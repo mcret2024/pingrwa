@@ -41,10 +41,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0
 .rchip{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink);background:#fff;border:1px solid var(--line);padding:7px 13px;border-radius:999px}
 .rchip .d{width:8px;height:8px;border-radius:50%}.rchip.soon{color:var(--mut)}
 .cta{display:flex;gap:12px}
-.mapwrap{position:relative;background:linear-gradient(160deg,#fff,#F6F1FE);border:1px solid var(--line);border-radius:24px;padding:14px;box-shadow:0 20px 60px rgba(135,10,224,.1);height:420px}
-.mapwrap svg{width:100%;height:100%;display:block}
-.mlabel{font-family:var(--mono);font-size:11px;fill:var(--nv);font-weight:600}
-.mnode{animation:mp 2.4s ease-in-out infinite}@keyframes mp{0%,100%{r:5;opacity:.7}50%{r:7;opacity:1}}
+.mapwrap{position:relative;height:460px;display:flex;align-items:center;justify-content:center}
+.mapwrap::before{content:"";position:absolute;width:430px;height:430px;border-radius:50%;background:radial-gradient(circle,rgba(162,89,255,.22),rgba(15,181,166,.08) 55%,transparent 70%);filter:blur(4px)}
+.globe{width:100%;max-width:480px;aspect-ratio:1;position:relative;opacity:0;transition:opacity 1.2s ease;cursor:grab}
+.gpill{position:absolute;left:8px;top:14px;display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--pri);background:rgba(255,255,255,.85);border:1px solid var(--line);padding:6px 11px;border-radius:999px;backdrop-filter:blur(6px)}
+.gpill .d{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .fcard{position:absolute;right:24px;bottom:24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 14px 40px rgba(28,18,53,.14)}
 .fcard .l{font-size:11px;color:var(--mut);font-family:var(--mono)}.fcard .v{font-family:var(--disp);font-weight:800;font-size:24px;color:var(--nv)}.fcard .v small{font-size:13px;color:var(--ok)}
 .gstat{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
@@ -128,16 +129,8 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
    <div class="cta"><button class="btn pri-b">투자 시작하기</button><button class="btn">작동 방식 보기</button></div>
   </div>
   <div class="mapwrap">
-   <svg viewBox="0 0 480 420" fill="none">
-    <g stroke="#A259FF" stroke-opacity=".4" stroke-dasharray="4 6" fill="none">
-     <path d="M300 360 Q330 220 360 90"/><path d="M300 360 Q380 230 432 120"/><path d="M300 360 Q300 260 300 190"/><path d="M300 360 Q260 270 245 205"/><path d="M300 360 Q280 330 272 300"/><path d="M300 360 Q340 360 372 360"/>
-    </g>
-    <g fill="#870AE0">
-     <circle class="mnode" cx="360" cy="90" r="6"/><circle class="mnode" cx="432" cy="120" r="6" style="animation-delay:.5s"/><circle class="mnode" cx="300" cy="190" r="6" style="animation-delay:.8s"/><circle class="mnode" cx="245" cy="205" r="6" style="animation-delay:1.1s"/><circle class="mnode" cx="272" cy="300" r="6" style="animation-delay:.3s"/><circle class="mnode" cx="372" cy="360" r="6" style="animation-delay:1.4s"/>
-    </g>
-    <circle cx="300" cy="360" r="11" fill="#0FB5A6"/><circle cx="300" cy="360" r="20" fill="#0FB5A6" fill-opacity=".18"/>
-    <g class="mlabel"><text x="350" y="78">한국</text><text x="424" y="108">일본</text><text x="288" y="180">베트남</text><text x="206" y="198">태국</text><text x="240" y="296">말레이시아</text><text x="384" y="364">인도네시아</text><text x="316" y="364" fill="#0FB5A6">싱가포르 HQ</text></g>
-   </svg>
+   <span class="gpill"><span class="d"></span>5개 마켓 · 실시간 상환</span>
+   <canvas id="globe" class="globe"></canvas>
    <div class="fcard"><div class="l">표준 채권 풀 · 60일</div><div class="v">18.4<small>% APY</small></div></div>
   </div>
  </section>
@@ -214,6 +207,27 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
 </div></footer>
 <script>
 (function(){var n=document.getElementById('navw');addEventListener('scroll',function(){n.classList.toggle('scr',scrollY>8)});})();
+</script>
+<script type="module">
+import createGlobe from "https://cdn.jsdelivr.net/npm/cobe@0.6.3/+esm";
+const cv=document.getElementById('globe');
+if(cv){
+ let phi=4.2,w=0,drag=null,rot=0.003;
+ const onResize=()=>{w=cv.offsetWidth};window.addEventListener('resize',onResize);onResize();
+ cv.addEventListener('pointerdown',e=>{drag=e.clientX;cv.style.cursor='grabbing'});
+ window.addEventListener('pointerup',()=>{drag=null;cv.style.cursor='grab'});
+ window.addEventListener('pointermove',e=>{if(drag!==null){phi+=(e.clientX-drag)/200;drag=e.clientX}});
+ createGlobe(cv,{
+  devicePixelRatio:2,width:w*2,height:w*2,phi:0,theta:0.26,dark:0,diffuse:1.1,
+  mapSamples:16000,mapBrightness:5.6,baseColor:[0.93,0.89,1],markerColor:[0.53,0.04,0.88],glowColor:[0.88,0.82,1],
+  markers:[
+   {location:[1.35,103.82],size:0.11},{location:[10.82,106.63],size:0.07},{location:[-6.2,106.85],size:0.07},
+   {location:[3.14,101.69],size:0.06},{location:[37.57,126.98],size:0.06},{location:[13.75,100.5],size:0.05},{location:[35.68,139.69],size:0.05}
+  ],
+  onRender:(state)=>{state.phi=phi;phi+=rot;state.width=w*2;state.height=w*2}
+ });
+ setTimeout(()=>{cv.style.opacity=1},250);
+}
 </script>
 </body>
 </html>
