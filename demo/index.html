@@ -13,19 +13,17 @@
 :root{--bg:#07060f;--bg2:#0c0a18;--surf:rgba(255,255,255,.04);--surf2:rgba(255,255,255,.065);--line:rgba(255,255,255,.09);--lineA:rgba(162,89,255,.34);
  --pri:#A259FF;--pri2:#6979F8;--mag:#E8459B;--ok:#2BD67B;--ink:#F4F2FF;--mut:rgba(244,242,255,.56);--mut2:rgba(244,242,255,.36);
  --g:linear-gradient(96deg,#870AE0,#A259FF);--gw:linear-gradient(96deg,#A259FF,#E8459B 70%,#FF6B6B);
- --disp:'Space Grotesk','Pretendard',sans-serif;--body:'Pretendard','Space Grotesk',sans-serif;--mono:'Space Mono',monospace}
+ --disp:'Space Grotesk','Pretendard',sans-serif;--body:'Pretendard','Space Grotesk',sans-serif;--mono:'Space Mono',monospace;
+ --dots:radial-gradient(rgba(255,255,255,.18) 1.2px,transparent 1.2px)}
 body{margin:0;font-family:var(--body);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
 .page{position:relative;overflow:hidden}
-.page::before{content:"";position:fixed;inset:0;z-index:0;background:url('img/city.jpg') center/cover;opacity:.06;filter:grayscale(1) blur(1px)}
-.page::after{content:"";position:fixed;inset:0;z-index:0;background:radial-gradient(900px 560px at 78% -60px,rgba(162,89,255,.3),transparent 60%),radial-gradient(700px 480px at 12% 8%,rgba(105,121,248,.18),transparent 62%),linear-gradient(var(--bg2),var(--bg) 62%);pointer-events:none}
+.page::after{content:"";position:fixed;inset:0;z-index:0;background:radial-gradient(900px 560px at 78% -60px,rgba(135,10,224,.32),transparent 60%),radial-gradient(700px 480px at 12% 8%,rgba(105,121,248,.16),transparent 62%),linear-gradient(var(--bg2),var(--bg) 62%);pointer-events:none}
+.page::before{content:"";position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:52px 52px;-webkit-mask:radial-gradient(800px 520px at 72% 4%,#000,transparent 72%);mask:radial-gradient(800px 520px at 72% 4%,#000,transparent 72%);pointer-events:none}
 .wrap{max-width:1200px;margin:0 auto;padding:0 44px;position:relative;z-index:1}
 .tick{border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--mut);position:relative;z-index:1;background:rgba(7,6,15,.6)}
 .tick .wrap{display:flex;gap:34px;padding:9px 44px;align-items:center}
 .tick b{color:var(--ink)}.tick .up{color:var(--ok)}.tick i{color:var(--pri)}
 nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
-.logo{font-family:var(--disp);font-weight:700;font-size:22px;display:flex;align-items:center;gap:9px}
-.logo .mk{width:26px;height:26px;border-radius:8px;background:var(--g);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}
-.logo b{color:var(--pri)}.logo span{color:#fff}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
 .brand .bmk{width:50px;height:26px;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('img/logo-mark.svg') left center/contain no-repeat;mask:url('img/logo-mark.svg') left center/contain no-repeat}
 .brand .bwm{width:62px;height:16px;background:#fff;-webkit-mask:url('img/logo-text.svg') left center/contain no-repeat;mask:url('img/logo-text.svg') left center/contain no-repeat}
@@ -35,7 +33,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0
 .net{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--surf);border:1px solid var(--line);padding:8px 13px;border-radius:10px}
 .net .d{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .btn{font-family:var(--body);font-weight:600;border-radius:12px;cursor:pointer;border:0;font-size:14px;padding:11px 20px}
-.pri-b{background:var(--g);color:#fff;box-shadow:0 8px 28px rgba(162,89,255,.4)}
+.pri-b{background:var(--g);color:#fff;box-shadow:0 8px 28px rgba(135,10,224,.4)}
 .ghost{background:var(--surf);color:var(--ink);border:1px solid var(--line)}
 .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;padding:46px 0 30px}
 .kick{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:#c9aaff;margin-bottom:20px;display:flex;align-items:center;gap:9px}
@@ -46,9 +44,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0
 .cta{display:flex;gap:13px;margin-bottom:40px}
 .hstats{display:flex;gap:34px}.hstats .v{font-family:var(--disp);font-weight:700;font-size:28px}.hstats .v small{font-size:14px;color:var(--ok)}.hstats .l{font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.5px;margin-top:4px}
 .orbwrap{position:relative;height:440px;display:flex;align-items:center;justify-content:center}
-.orbwrap::before{content:"";position:absolute;width:380px;height:380px;border-radius:50%;background:url('img/commerce.jpg') center/cover;opacity:.14;filter:saturate(1.2);-webkit-mask:radial-gradient(circle,#000 38%,transparent 68%);mask:radial-gradient(circle,#000 38%,transparent 68%)}
 .orb{position:relative;width:360px;height:360px;animation:spin 32s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-.glow{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(162,89,255,.5),rgba(105,121,248,.16) 45%,transparent 70%);filter:blur(6px);left:30px;top:30px}
+.glow{position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(135,10,224,.5),rgba(105,121,248,.16) 46%,transparent 70%);filter:blur(8px);left:20px;top:20px}
+.core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:18px;background:var(--g);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(135,10,224,.6);z-index:2}
+.core .bmk{width:42px;height:24px;background:#fff;-webkit-mask:url('img/logo-mark.svg') center/contain no-repeat;mask:url('img/logo-mark.svg') center/contain no-repeat}
 .node{position:absolute;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 12px 2px var(--pri);animation:pulse 2.6s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.5;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
 .fchip{position:absolute;z-index:3;background:rgba(13,11,24,.82);border:1px solid var(--lineA);border-radius:14px;padding:12px 15px;backdrop-filter:blur(8px);box-shadow:0 14px 40px rgba(0,0,0,.5)}
 .fchip .l{font-family:var(--mono);font-size:10px;color:var(--mut)}.fchip .v{font-family:var(--disp);font-weight:700;font-size:20px;margin-top:2px}.fchip .v small{font-size:12px;color:var(--ok)}
@@ -64,27 +63,30 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0
 .pools{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .pool{position:relative;background:var(--surf2);border:1px solid var(--line);border-radius:20px;overflow:hidden;transition:.22s}
 .pool:hover{transform:translateY(-5px);border-color:var(--lineA);box-shadow:0 20px 50px rgba(0,0,0,.5)}
-.pool .pimg{height:118px;background-size:cover;background-position:center;position:relative}
-.pool .pimg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,10,24,.25),var(--surf2))}
+.phead{height:96px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.phead .pat{position:absolute;inset:0;background-image:var(--dots);background-size:15px 15px;opacity:.4}
+.phead>i{font-size:38px;color:#fff;opacity:.92;position:relative}
+.ph-a{background:linear-gradient(135deg,#16A36B,#2BD67B)}.ph-b{background:linear-gradient(135deg,#870AE0,#A259FF)}.ph-c{background:linear-gradient(135deg,#B4138A,#E8459B)}
 .pool .rk{position:absolute;top:12px;left:12px;z-index:2;font-family:var(--mono);font-size:10px;font-weight:700;padding:5px 10px;border-radius:8px;letter-spacing:.5px}
-.rk.low{background:rgba(43,214,123,.2);color:#7af0b3;border:1px solid rgba(43,214,123,.4)}
-.rk.mid{background:rgba(255,193,7,.18);color:#ffd766;border:1px solid rgba(255,193,7,.4)}
-.rk.hi{background:rgba(232,69,155,.2);color:#ff9ccb;border:1px solid rgba(232,69,155,.42)}
-.pool .pb{padding:20px 22px 22px;margin-top:-44px;position:relative;z-index:2}
+.rk.low{background:rgba(43,214,123,.22);color:#bff6d8;border:1px solid rgba(43,214,123,.5)}
+.rk.mid{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.rk.hi{background:rgba(232,69,155,.24);color:#ffd0e8;border:1px solid rgba(232,69,155,.5)}
+.pool .pb{padding:20px 22px 22px}
 .pool .nm{font-family:var(--disp);font-size:18px;font-weight:600}
 .pool .big{font-family:var(--disp);font-size:44px;font-weight:700;line-height:1;background:var(--gw);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:6px}
 .pool .bl{font-family:var(--mono);font-size:11px;color:var(--mut);margin:6px 0 18px;letter-spacing:.5px}
 .pbar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.pbar i{display:block;height:100%;background:var(--g)}
 .pmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:11px}.pmeta b{color:#fff}
 .pool .btn{width:100%;margin-top:20px}
-/* asset showcase */
 .assets{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.acard{position:relative;height:220px;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
-.acard img{width:100%;height:100%;object-fit:cover;filter:saturate(1.05)}
-.acard .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,6,15,.1),rgba(7,6,15,.86));display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
-.acard .ov .t{font-family:var(--disp);font-weight:600;font-size:16px}
-.acard .ov .m{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:3px}
-.acard .ov .bd{position:absolute;top:12px;left:12px;font-family:var(--mono);font-size:10px;color:#7af0b3;background:rgba(43,214,123,.18);border:1px solid rgba(43,214,123,.4);padding:4px 9px;border-radius:8px}
+.acard{position:relative;height:188px;border-radius:18px;overflow:hidden;border:1px solid var(--line);display:flex;align-items:flex-end}
+.acard .pat{position:absolute;inset:0;background-image:var(--dots);background-size:16px 16px;opacity:.4;-webkit-mask:linear-gradient(150deg,#000,transparent 70%);mask:linear-gradient(150deg,#000,transparent 70%)}
+.acard>i{position:absolute;top:16px;right:16px;font-size:44px;color:rgba(255,255,255,.32)}
+.acard .ov{position:relative;width:100%;padding:16px;background:linear-gradient(transparent,rgba(7,6,15,.5))}
+.acard .ov .bd{position:absolute;top:-150px;left:16px;font-family:var(--mono);font-size:10px;color:#fff;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.25);padding:4px 9px;border-radius:8px}
+.acard .ov .t{font-family:var(--disp);font-weight:600;font-size:17px}
+.acard .ov .m{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.72);margin-top:3px}
+.ac1{background:linear-gradient(150deg,#5B1AA8,#A259FF)}.ac2{background:linear-gradient(150deg,#7A0FB0,#C026D3)}.ac3{background:linear-gradient(150deg,#3B2FCf,#6979F8)}.ac4{background:linear-gradient(150deg,#A21CAF,#E8459B)}
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .step{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:24px}
 .step .n{font-family:var(--mono);font-size:13px;color:var(--pri);border:1px solid var(--lineA);width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
@@ -95,14 +97,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0
 .mh{font-family:var(--mono);font-size:11px;color:var(--mut2);border-bottom:1px solid var(--line);letter-spacing:1px;text-transform:uppercase}
 .mr{border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}.mr:last-child{border-bottom:0}.mr:hover{background:rgba(255,255,255,.02)}
 .mr .id{font-family:var(--mono);font-size:12px;color:#c9aaff}
-.mr .ind{display:flex;align-items:center;gap:10px}.mr .th{width:30px;height:30px;border-radius:8px;object-fit:cover}
+.mr .ind{display:flex;align-items:center;gap:10px}.mr .th{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
 .mr .amt{font-family:var(--mono);font-weight:700;color:#fff}.mr .yld{font-family:var(--mono);color:#7af0b3;font-weight:700}
 .mprog{display:flex;align-items:center;gap:10px}.mprog .b{flex:1;height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.mprog .b i{display:block;height:100%;background:var(--g)}.mprog span{font-family:var(--mono);font-size:11px;color:var(--mut)}
 .badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:5px 10px;border-radius:8px;letter-spacing:.5px}.badge.run{background:rgba(162,89,255,.18);color:#c9aaff;border:1px solid var(--lineA)}.badge.done{background:rgba(43,214,123,.16);color:#7af0b3;border:1px solid rgba(43,214,123,.4)}
 .two{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
-.calc{position:relative;border:1px solid var(--lineA);border-radius:20px;padding:26px;overflow:hidden}
-.calc::before{content:"";position:absolute;inset:0;background:url('img/finance.jpg') center/cover;opacity:.12}
-.calc::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(162,89,255,.16),rgba(12,10,24,.86))}
+.calc{position:relative;border:1px solid var(--lineA);border-radius:20px;padding:26px;overflow:hidden;background:linear-gradient(160deg,rgba(135,10,224,.16),var(--surf))}
+.calc .pat{position:absolute;inset:0;background-image:var(--dots);background-size:18px 18px;opacity:.18}
 .calc>*{position:relative;z-index:1}
 .calc h3{font-family:var(--disp);margin:0 0 5px;font-size:20px;font-weight:600}.calc .cs{font-family:var(--mono);font-size:12px;color:var(--mut);margin:0 0 20px}
 .ci{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px}.ci:last-child{border-bottom:0}.ci .k{color:var(--mut)}.ci .v{font-family:var(--mono);font-weight:700;color:#fff}.ci.hl .v{color:#7af0b3;font-size:17px}
@@ -110,9 +111,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0
 .panel h3{font-family:var(--disp);font-size:18px;margin:0 0 18px;font-weight:600;display:flex;align-items:center;gap:9px}.panel h3 i{color:var(--pri)}
 .tr{display:grid;grid-template-columns:22px 32px 1fr auto;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}.tr:last-child{border-bottom:0}
 .tr .rn{font-family:var(--mono);color:var(--mut);font-size:12px}.tr .av{width:32px;height:32px;border-radius:50%;background:var(--g)}.tr .nm{font-family:var(--mono);font-size:13px}.tr .sv{font-family:var(--mono);color:#c9aaff;font-size:12px}
-.cband{margin-top:64px;text-align:center;position:relative;overflow:hidden;border:1px solid var(--lineA);border-radius:26px;padding:60px 20px}
-.cband::before{content:"";position:absolute;inset:0;background:url('img/city.jpg') center/cover;opacity:.18;filter:grayscale(.4)}
-.cband::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 50% 0,rgba(162,89,255,.4),transparent 70%),linear-gradient(180deg,rgba(7,6,15,.7),rgba(7,6,15,.92))}
+.cband{margin-top:64px;text-align:center;position:relative;overflow:hidden;border:1px solid var(--lineA);border-radius:26px;padding:60px 20px;background:radial-gradient(600px 300px at 50% 0,rgba(135,10,224,.4),transparent 70%),linear-gradient(180deg,#120726,#0a0418)}
+.cband .pat{position:absolute;inset:0;background-image:var(--dots);background-size:20px 20px;opacity:.12}
 .cband>*{position:relative;z-index:1}
 .cband h2{font-family:var(--disp);font-size:40px;font-weight:700;letter-spacing:-1px;margin:0 0 12px}.cband p{color:var(--mut);font-size:15px;margin:0 0 26px}
 footer{margin-top:60px;border-top:1px solid var(--line);padding:38px 0 60px;display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:22px}
@@ -142,6 +142,7 @@ footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-de
    </div>
    <div class="orbwrap">
     <div class="glow"></div>
+    <div class="core"><span class="bmk"></span></div>
     <div class="orb"><svg viewBox="0 0 360 360" fill="none">
      <circle cx="180" cy="180" r="150" stroke="rgba(162,89,255,.32)"/>
      <ellipse cx="180" cy="180" rx="150" ry="56" stroke="rgba(162,89,255,.28)"/><ellipse cx="180" cy="180" rx="150" ry="110" stroke="rgba(105,121,248,.25)"/>
@@ -167,9 +168,9 @@ footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-de
    <div class="seyb">INVEST</div>
    <div class="sh"><div><h2>투자 풀</h2><p>분산된 PINGPAY 매출채권 묶음에 예치하고, 매출 자동 상환에서 발생하는 수익을 받으세요.</p></div><a>전체 풀 보기 <i class="ti ti-arrow-right"></i></a></div>
    <div class="pools">
-    <div class="pool"><div class="pimg" style="background-image:url('img/cafe.jpg')"></div><span class="rk low">LOW RISK</span><div class="pb"><span class="nm">안정형 풀</span><div class="big">12.0%</div><div class="bl">APY · 60일 만기</div><div class="pbar"><i style="width:82%"></i></div><div class="pmeta"><span>충전율 <b>82%</b></span><span>채권 <b>320</b></span></div><button class="btn ghost">예치하기</button></div></div>
-    <div class="pool"><div class="pimg" style="background-image:url('img/commerce.jpg')"></div><span class="rk mid">MID RISK</span><div class="pb"><span class="nm">표준형 풀</span><div class="big">18.4%</div><div class="bl">APY · 60일 만기</div><div class="pbar"><i style="width:64%"></i></div><div class="pmeta"><span>충전율 <b>64%</b></span><span>채권 <b>210</b></span></div><button class="btn pri-b">예치하기</button></div></div>
-    <div class="pool"><div class="pimg" style="background-image:url('img/finance.jpg')"></div><span class="rk hi">HIGH YIELD</span><div class="pb"><span class="nm">성장형 풀</span><div class="big">24.0%</div><div class="bl">APY · 90일 만기</div><div class="pbar"><i style="width:47%"></i></div><div class="pmeta"><span>충전율 <b>47%</b></span><span>채권 <b>150</b></span></div><button class="btn ghost">예치하기</button></div></div>
+    <div class="pool"><div class="phead ph-a"><div class="pat"></div><i class="ti ti-shield-check"></i></div><span class="rk low">LOW RISK</span><div class="pb"><span class="nm">안정형 풀</span><div class="big">12.0%</div><div class="bl">APY · 60일 만기</div><div class="pbar"><i style="width:82%"></i></div><div class="pmeta"><span>충전율 <b>82%</b></span><span>채권 <b>320</b></span></div><button class="btn ghost">예치하기</button></div></div>
+    <div class="pool"><div class="phead ph-b"><div class="pat"></div><i class="ti ti-chart-arcs"></i></div><span class="rk mid">MID RISK</span><div class="pb"><span class="nm">표준형 풀</span><div class="big">18.4%</div><div class="bl">APY · 60일 만기</div><div class="pbar"><i style="width:64%"></i></div><div class="pmeta"><span>충전율 <b>64%</b></span><span>채권 <b>210</b></span></div><button class="btn pri-b">예치하기</button></div></div>
+    <div class="pool"><div class="phead ph-c"><div class="pat"></div><i class="ti ti-rocket"></i></div><span class="rk hi">HIGH YIELD</span><div class="pb"><span class="nm">성장형 풀</span><div class="big">24.0%</div><div class="bl">APY · 90일 만기</div><div class="pbar"><i style="width:47%"></i></div><div class="pmeta"><span>충전율 <b>47%</b></span><span>채권 <b>150</b></span></div><button class="btn ghost">예치하기</button></div></div>
    </div>
   </section>
 
@@ -177,10 +178,10 @@ footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-de
    <div class="seyb">REAL-WORLD COLLATERAL</div>
    <div class="sh"><div><h2>실물 담보 자산</h2><p>모든 채권은 실제 영업 중인 가맹점의 매출에서 발생합니다. 가상자산 가격 변동과 무관한 실물 현금흐름.</p></div></div>
    <div class="assets">
-    <div class="acard"><img src="img/store-retail.jpg" alt="리테일"><div class="ov"><span class="bd">214 bonds</span><div class="t">리테일</div><div class="m">매출채권 · 평균 +20%</div></div></div>
-    <div class="acard"><img src="img/cafe.jpg" alt="카페"><div class="ov"><span class="bd">214 bonds</span><div class="t">카페 · F&B</div><div class="m">매출채권 · 평균 +20%</div></div></div>
-    <div class="acard"><img src="img/payment.jpg" alt="결제"><div class="ov"><span class="bd">148 bonds</span><div class="t">외식 · 결제</div><div class="m">매출채권 · 평균 +20%</div></div></div>
-    <div class="acard"><img src="img/commerce.jpg" alt="커머스"><div class="ov"><span class="bd">132 bonds</span><div class="t">뷰티 · 커머스</div><div class="m">매출채권 · 평균 +20%</div></div></div>
+    <div class="acard ac1"><div class="pat"></div><i class="ti ti-building-store"></i><div class="ov"><span class="bd">214 bonds</span><div class="t">리테일</div><div class="m">매출채권 · 평균 +20%</div></div></div>
+    <div class="acard ac2"><div class="pat"></div><i class="ti ti-coffee"></i><div class="ov"><span class="bd">214 bonds</span><div class="t">카페 · F&B</div><div class="m">매출채권 · 평균 +20%</div></div></div>
+    <div class="acard ac3"><div class="pat"></div><i class="ti ti-tools-kitchen-2"></i><div class="ov"><span class="bd">148 bonds</span><div class="t">외식 · 결제</div><div class="m">매출채권 · 평균 +20%</div></div></div>
+    <div class="acard ac4"><div class="pat"></div><i class="ti ti-sparkles"></i><div class="ov"><span class="bd">132 bonds</span><div class="t">뷰티 · 커머스</div><div class="m">매출채권 · 평균 +20%</div></div></div>
    </div>
   </section>
 
@@ -200,16 +201,16 @@ footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-de
    <div class="sh"><div><h2>채권 마켓</h2><p>현재 상환이 진행 중인 실물 매출채권. 모든 상환은 60일 스케줄에 따라 매출에서 자동 차감됩니다.</p></div><a>전체 채권 <i class="ti ti-arrow-right"></i></a></div>
    <div class="mkt">
     <div class="mh"><span>채권 ID</span><span>가맹점 업종</span><span>선지급액</span><span>수익률</span><span>상환 진행률</span><span>상태</span></div>
-    <div class="mr"><span class="id">#PB-1042</span><span class="ind"><img class="th" src="img/cafe.jpg" alt="">카페 · F&B</span><span class="amt">$600</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:34%"></i></span><span>34%</span></span><span><span class="badge run">D-40</span></span></div>
-    <div class="mr"><span class="id">#PB-1041</span><span class="ind"><img class="th" src="img/store-retail.jpg" alt="">리테일</span><span class="amt">$1,200</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:58%"></i></span><span>58%</span></span><span><span class="badge run">D-25</span></span></div>
-    <div class="mr"><span class="id">#PB-1040</span><span class="ind"><img class="th" src="img/commerce.jpg" alt="">뷰티</span><span class="amt">$850</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:81%"></i></span><span>81%</span></span><span><span class="badge run">D-11</span></span></div>
-    <div class="mr"><span class="id">#PB-1039</span><span class="ind"><img class="th" src="img/payment.jpg" alt="">외식</span><span class="amt">$400</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:100%"></i></span><span>100%</span></span><span><span class="badge done">완료</span></span></div>
+    <div class="mr"><span class="id">#PB-1042</span><span class="ind"><span class="th ac2"><i class="ti ti-coffee"></i></span>카페 · F&B</span><span class="amt">$600</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:34%"></i></span><span>34%</span></span><span><span class="badge run">D-40</span></span></div>
+    <div class="mr"><span class="id">#PB-1041</span><span class="ind"><span class="th ac1"><i class="ti ti-building-store"></i></span>리테일</span><span class="amt">$1,200</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:58%"></i></span><span>58%</span></span><span><span class="badge run">D-25</span></span></div>
+    <div class="mr"><span class="id">#PB-1040</span><span class="ind"><span class="th ac4"><i class="ti ti-sparkles"></i></span>뷰티</span><span class="amt">$850</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:81%"></i></span><span>81%</span></span><span><span class="badge run">D-11</span></span></div>
+    <div class="mr"><span class="id">#PB-1039</span><span class="ind"><span class="th ac3"><i class="ti ti-tools-kitchen-2"></i></span>외식</span><span class="amt">$400</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:100%"></i></span><span>100%</span></span><span><span class="badge done">완료</span></span></div>
    </div>
   </section>
 
   <section class="sec">
    <div class="two">
-    <div class="calc">
+    <div class="calc"><div class="pat"></div>
      <div class="seyb" style="margin-bottom:14px">YIELD MODEL</div>
      <h3>수익 구조 예시</h3><p class="cs">가맹점 일평균 매출 $200 · 60일 채권 기준</p>
      <div class="ci"><span class="k">선지급 금액 (월매출 10%)</span><span class="v">$600</span></div>
@@ -228,7 +229,7 @@ footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-de
    </div>
   </section>
 
-  <div class="cband"><h2>실물 매출채권에 지금 투자하세요</h2><p>지갑을 연결하고 분산된 RWA 채권 풀에 예치하면 끝. 별도 심사 없이 즉시 시작합니다.</p><button class="btn pri-b" style="padding:14px 30px;font-size:15px">지갑 연결하고 시작 <i class="ti ti-arrow-right"></i></button></div>
+  <div class="cband"><div class="pat"></div><h2>실물 매출채권에 지금 투자하세요</h2><p>지갑을 연결하고 분산된 RWA 채권 풀에 예치하면 끝. 별도 심사 없이 즉시 시작합니다.</p><button class="btn pri-b" style="padding:14px 30px;font-size:15px">지갑 연결하고 시작 <i class="ti ti-arrow-right"></i></button></div>
 
   <footer>
    <div><a class="brand" href="#" aria-label="pingpay RWA"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a><div class="desc">PINGPAY 매출채권을 토큰화한 실물자산(RWA) 투자 프로토콜. 실제 가맹점 매출 상환에서 발생하는 수익을 온체인으로 제공합니다.</div></div>
