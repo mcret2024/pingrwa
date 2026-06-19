@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PINGRWA — RWA dApp (v3)</title>
+<link rel="icon" type="image/svg+xml" href="img/logo-mark.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
@@ -11,7 +12,7 @@
 *{box-sizing:border-box}
 :root{--bg:#07060f;--bg2:#0c0a18;--surf:rgba(255,255,255,.04);--surf2:rgba(255,255,255,.065);--line:rgba(255,255,255,.09);--lineA:rgba(162,89,255,.34);
  --pri:#A259FF;--pri2:#6979F8;--mag:#E8459B;--ok:#2BD67B;--ink:#F4F2FF;--mut:rgba(244,242,255,.56);--mut2:rgba(244,242,255,.36);
- --g:linear-gradient(96deg,#A259FF,#6979F8);--gw:linear-gradient(96deg,#A259FF,#E8459B 70%,#FF6B6B);
+ --g:linear-gradient(96deg,#870AE0,#A259FF);--gw:linear-gradient(96deg,#A259FF,#E8459B 70%,#FF6B6B);
  --disp:'Space Grotesk','Pretendard',sans-serif;--body:'Pretendard','Space Grotesk',sans-serif;--mono:'Space Mono',monospace}
 body{margin:0;font-family:var(--body);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
 .page{position:relative;overflow:hidden}
@@ -25,6 +26,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0
 .logo{font-family:var(--disp);font-weight:700;font-size:22px;display:flex;align-items:center;gap:9px}
 .logo .mk{width:26px;height:26px;border-radius:8px;background:var(--g);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}
 .logo b{color:var(--pri)}.logo span{color:#fff}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand .bmk{width:50px;height:26px;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('img/logo-mark.svg') left center/contain no-repeat;mask:url('img/logo-mark.svg') left center/contain no-repeat}
+.brand .bwm{width:62px;height:16px;background:#fff;-webkit-mask:url('img/logo-text.svg') left center/contain no-repeat;mask:url('img/logo-text.svg') left center/contain no-repeat}
+.brand .brwa{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--g);padding:3px 7px;border-radius:7px;letter-spacing:1px;margin-left:2px}
 .menu{display:flex;gap:30px;font-size:14px;color:var(--mut)}.menu .on{color:#fff}.menu span{cursor:pointer}.menu span:hover{color:#fff}
 .right{display:flex;align-items:center;gap:12px}
 .net{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--surf);border:1px solid var(--line);padding:8px 13px;border-radius:10px}
@@ -122,7 +127,7 @@ footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-de
  <div class="tick"><div class="wrap"><span><i class="ti ti-circle-filled" style="font-size:8px"></i> TVL <b>$4,210,500</b></span><span>평균 APY <b class="up">18.4%</b></span><span>상환율 <b class="up">99.2%</b></span><span>가맹점 <b>1,240</b></span><span>활성 채권 <b>680</b></span></div></div>
  <div class="wrap">
   <nav>
-   <div class="logo"><span class="mk"><i class="ti ti-hexagon"></i></span><b>PING</b><span>RWA</span></div>
+   <a class="brand" href="#" aria-label="pingpay RWA"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a>
    <div class="menu"><span class="on">마켓</span><span>투자 풀</span><span>채권</span><span>실적</span><span>문서</span></div>
    <div class="right"><div class="net"><span class="d"></span>Solana</div><button class="btn pri-b">지갑 연결</button></div>
   </nav>
@@ -226,7 +231,7 @@ footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-de
   <div class="cband"><h2>실물 매출채권에 지금 투자하세요</h2><p>지갑을 연결하고 분산된 RWA 채권 풀에 예치하면 끝. 별도 심사 없이 즉시 시작합니다.</p><button class="btn pri-b" style="padding:14px 30px;font-size:15px">지갑 연결하고 시작 <i class="ti ti-arrow-right"></i></button></div>
 
   <footer>
-   <div><div class="logo"><span class="mk"><i class="ti ti-hexagon"></i></span><b>PING</b><span>RWA</span></div><div class="desc">PINGPAY 매출채권을 토큰화한 실물자산(RWA) 투자 프로토콜. 실제 가맹점 매출 상환에서 발생하는 수익을 온체인으로 제공합니다.</div></div>
+   <div><a class="brand" href="#" aria-label="pingpay RWA"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a><div class="desc">PINGPAY 매출채권을 토큰화한 실물자산(RWA) 투자 프로토콜. 실제 가맹점 매출 상환에서 발생하는 수익을 온체인으로 제공합니다.</div></div>
    <div><h5>PROTOCOL</h5><a>투자 풀</a><a>채권 마켓</a><a>실적 · 통계</a><a>추천 보상</a></div>
    <div><h5>RESOURCES</h5><a>작동 방식</a><a>문서 (Docs)</a><a>스마트컨트랙트</a><a>FAQ</a></div>
    <div><h5>LEGAL</h5><a>이용약관</a><a>개인정보처리방침</a><a>KYC / AML</a><a>위험 고지</a></div>
