@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>KYC Return · SilicaChain</title>
+  <link rel="shortcut icon" href="assets/images/favicon.png">
+  <link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+  <script>
+    (function () {
+      try {
+        var key = 'rwa_lang_user_v1';
+        var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+        var lang = /^(ko|en)$/.test(raw) ? raw : 'ko';
+        var de = document.documentElement;
+        de.lang = lang === 'zh' ? 'zh-CN' : lang;
+        de.setAttribute('data-rwa-lang', lang);
+        de.setAttribute('data-rwa-i18n-ready', lang === 'ko' ? '1' : '0');
+        // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+        de.classList.add("rwa-booting-early");
+        window.__RWA_I18N_BOOT_LANG__ = lang;
+      } catch (_) {}
+    })();
+  </script>
+  <style id="rwaI18nBootStyle">
+    html[data-rwa-i18n-ready="0"] body { visibility: hidden; }
+    html[data-rwa-i18n-ready="1"] body { visibility: visible; }
+  </style>
+  <script>
+    (function () {
+      var released = false;
+      function release() {
+        if (released) return;
+        released = true;
+        try {
+          document.documentElement.setAttribute('data-rwa-i18n-ready', '1');
+          document.documentElement.removeAttribute('data-rwa-i18n-pending');
+        } catch (_) {}
+      }
+      window.__RWA_I18N_BOOT_RELEASE__ = release;
+      window.addEventListener('load', function () { setTimeout(release, 0); }, { once: true });
+      setTimeout(release, 4500);
+    })();
+  </script>
+</head>
+<body data-page="kyc-return">
+<div id="siteHeaderMount"></div>
+<div id="toast" class="pill hidden" style="position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:999; max-width:min(520px, calc(100% - 28px));"></div>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <!-- (2026-05-18 v570) Title was previously "KYC Verification Complete"
+           which falsely implied the user was already approved. didit at this
+           point has only RECEIVED the submission — actual approval depends
+           on automated + human review afterward. Corrected wording to avoid
+           giving a false sense of completion. -->
+      <div class="card" style="max-width:620px; margin:24px auto 64px;">
+        <div class="pad">
+          <div style="font-size:38px; text-align:center; margin-bottom:8px">📨</div>
+          <h1 style="margin:0 0 8px; text-align:center">Submission Received</h1>
+          <div class="muted" style="line-height:1.6; text-align:center">
+            Your identity verification has been submitted. Our provider and team will review it shortly. You will be redirected to the KYC page to monitor progress.
+          </div>
+          <div class="hr"></div>
+          <button id="kycReturnBtn" class="btn primary block" type="button">Continue to KYC Page</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="siteFooterMount"></div>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/pages/kyc-return.js?v=20260326u"></script>
+</body>
+</html>

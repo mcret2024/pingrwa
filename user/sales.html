@@ -1,0 +1,124 @@
+<!-- public/sales.html -->
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sale · SilicaChain</title>
+  <link rel="shortcut icon" href="assets/images/favicon.png">
+  <link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+  <script>
+    (function () {
+      try {
+        var key = 'rwa_lang_user_v1';
+        var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+        var lang = /^(ko|en)$/.test(raw) ? raw : 'ko';
+        var de = document.documentElement;
+        de.lang = lang === 'zh' ? 'zh-CN' : lang;
+        de.setAttribute('data-rwa-lang', lang);
+        de.setAttribute('data-rwa-i18n-ready', lang === 'ko' ? '1' : '0');
+        // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+        de.classList.add("rwa-booting-early");
+        window.__RWA_I18N_BOOT_LANG__ = lang;
+      } catch (_) {}
+    })();
+  </script>
+  <style id="rwaI18nBootStyle">
+    html[data-rwa-i18n-ready="0"] body { visibility: hidden; }
+    html[data-rwa-i18n-ready="1"] body { visibility: visible; }
+  </style>
+  <script>
+    (function () {
+      var released = false;
+      function release() {
+        if (released) return;
+        released = true;
+        try {
+          document.documentElement.setAttribute('data-rwa-i18n-ready', '1');
+          document.documentElement.removeAttribute('data-rwa-i18n-pending');
+        } catch (_) {}
+      }
+      window.__RWA_I18N_BOOT_RELEASE__ = release;
+      window.addEventListener('load', function () { setTimeout(release, 0); }, { once: true });
+      setTimeout(release, 4500);
+    })();
+  </script>
+</head>
+<body data-page="sales">
+
+<div id="siteHeaderMount"></div>
+
+<div id="toast" class="pill hidden" style="position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:999; max-width:min(520px, calc(100% - 28px));"></div>
+
+<!-- (2026-05-15 v393) 운영자: '유저 페이지에서도 매각을 숨기고 히스토리와
+     클레임에서 매각이라는 항목을 모두 숨겨라.' 페이지 본 콘텐츠 hidden +
+     비활성 안내. 향후 자산 매각 또는 다른 부동산 사이트에서 활성화 시
+     아래 비활성 main 제거 + 원본 main 의 hidden 속성만 제거. -->
+<main>
+  <section class="section" style="padding:60px 16px">
+    <div class="container">
+      <div class="card"><div class="pad" style="text-align:center">
+        <h1 style="margin:0 0 12px">Feature Unavailable</h1>
+        <div class="muted" style="line-height:1.6">
+          Sale features are disabled on this deployment. They may be enabled in the future when asset sale or other real estate operations are required.
+        </div>
+      </div></div>
+    </div>
+  </section>
+</main>
+
+<main hidden>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <h1 style="margin:0 0 8px">Sale</h1>
+            <div class="muted">Review exchange terms and proceeds for assets that have been sold.</div>
+          </div>
+          <a class="btn small" href="portfolio.html">My Assets</a>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="notice">
+          <strong>Settlement Notice</strong><br>
+          Platform users receive settlement based on the platform user allocation total.<br>
+          The exchange rate per token is calculated as Platform User Allocation Total (USDT) ÷ Total Issued Tokens. Local currency conversion values are shown for reference only.
+        </div>
+      </div>
+    </div>
+
+    <div style="height:14px"></div>
+
+    <div id="salesList" class="grid"></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="links">
+      <a class="pill-link" href="landing.html">About</a>
+      <a class="pill-link" href="assets.html">Assets</a>
+      <a class="pill-link" href="markets.html">Markets</a>
+      <a class="pill-link" href="staking.html">Staking</a>
+      <a class="pill-link" href="claim.html">Claim</a>
+      <!-- (v393) Sale link hidden — feature disabled on this deployment. -->
+      <a class="pill-link" href="sales.html" hidden>Sale</a>
+    </div>
+    <div style="margin-top:10px" class="small-note">
+      Investment products carry the risk of principal loss, and prices and returns may fluctuate. The information shown on this page is for guidance only.
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+</body>
+</html>

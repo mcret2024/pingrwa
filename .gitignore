@@ -1,0 +1,72 @@
+# ========================================
+#  SilicaChain Platform - .gitignore
+# ========================================
+
+# Environment / secrets
+.env
+.env.local
+.env.production
+*.env
+!.env.example
+
+# Composer
+# (2026-05-26 v832) Hostinger 공유호스팅 에 SSH/composer 없어서 vendor/ 를
+#   서버에서 install 못 함. 깃 자동 배포가 .gitignore 기반으로 vendor/ 를
+#   wipe 하던 문제 해결을 위해 vendor/ 를 git 에 포함시킴. ~19MB 추가되지만
+#   운영 필수. 로컬에서 composer update 후 vendor/ 변경분도 함께 커밋.
+# /php-api/vendor/
+/php-api/vendor.zip
+composer.phar
+
+# Diagnostic scripts (one-off debug tools — do not commit)
+/check.php
+
+# NPM (for _manual_build pptxgenjs)
+node_modules/
+package-lock.json
+
+# Install lock
+.installed
+/php-api/.installed
+
+# Uploads (user content)
+# (2026-06-08 v889) 운영 UPLOAD_DIR 가 deploy zone 밖 (예: /home/USER/silica_uploads)
+#   이라 silica/uploads/ 디렉토리를 함께 deploy 할 필요 없음. 오히려 deploy 되면
+#   Apache 의 RewriteCond -d 가 매칭되어 /uploads/(.*) → /api/file/$1 룰을
+#   가로채는 부작용 (v888 .htaccess fix 와 결합). 따라서 디렉토리 자체를
+#   추적 제외.
+/uploads/
+/php-api/uploads/
+
+# Logs
+*.log
+/logs/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Backups
+*.bak
+*.backup
+*.bak.*
+*~
+
+# Temporary
+/tmp/
+/temp/
+*.tmp
+
+# OS
+desktop.ini
+
+# PHP cache
+.phpunit.result.cache
+
+# Local development
+preview-router.php.local
+.local

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>세련된 배경 시안 5종 · SilicaChain</title>
+<style>
+  :root {
+    --logo-red: #E53935;
+    --logo-orange: #F57C00;
+    --logo-green: #2E7D32;
+    --logo-blue: #1976D2;
+    --logo-violet: #8E24AA;
+    --ink: #0F172A;
+    --paper: #FCFCFA;
+    --line: #E2E8F0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Pretendard", sans-serif;
+    background: #F1F5F9;
+    color: var(--ink);
+    padding: 40px 20px;
+  }
+  .page-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .page-subtitle {
+    text-align: center;
+    color: #64748B;
+    margin-bottom: 40px;
+    font-size: 14px;
+  }
+  .principles {
+    max-width: 720px;
+    margin: 0 auto 40px;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.7;
+  }
+  .principles strong { color: var(--ink); }
+  .concept {
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
+  }
+  .concept-header {
+    padding: 22px 30px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .concept-title {
+    font-size: 22px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    letter-spacing: -0.3px;
+  }
+  .concept-id {
+    background: var(--ink);
+    color: #FFFFFF;
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-family: 'Times New Roman', serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .concept-desc {
+    color: #64748B;
+    font-size: 13px;
+    max-width: 540px;
+    text-align: right;
+    line-height: 1.6;
+  }
+  .concept-stage {
+    position: relative;
+    height: 480px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .mock-content {
+    position: relative;
+    z-index: 10;
+    padding: 60px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 40px;
+  }
+  .mock-text { flex: 1; max-width: 480px; }
+  .mock-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--ink);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-family: 'Times New Roman', serif;
+  }
+  .mock-h1 {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+  .mock-h1 b { color: var(--logo-red); }
+  .mock-h1 i { color: var(--logo-blue); font-style: normal; }
+  .mock-p {
+    color: #475569;
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  .mock-btn {
+    display: inline-block;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 4px 0 0 #6A1B7E;
+  }
+  .mock-photo {
+    flex: 1;
+    aspect-ratio: 21/9;
+    max-width: 460px;
+    background: url('assets/images/silica/silica_mine.png') center/cover, #1E293B;
+    border-radius: 14px;
+    box-shadow: 0 8px 0 0 rgba(15, 23, 42, 0.20);
+  }
+
+  .palette {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .palette .pd {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.10);
+  }
+
+  /* ============================================ */
+  /* S1: Editorial Restraint                      */
+  /* 거대한 1색 + 가는 선 + 한 점 + 코너 캡션      */
+  /* ============================================ */
+  .bg-s1 {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .bg-s1 .ghost-circle {
+    position: absolute;
+    width: 720px; height: 720px;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    opacity: 0.07;
+    top: -260px;
+    right: -200px;
+  }
+  .bg-s1 .h-line-1 {
+    position: absolute;
+    left: 0; right: 0;
+    top: 22%;
+    height: 1px;
+    background: var(--logo-red);
+    opacity: 0.5;
+  }
+  .bg-s1 .h-line-2 {
+    position: absolute;
+    right: 0;
+    width: 50%;
+    bottom: 32%;
+    height: 1px;
+    background: var(--logo-blue);
+    opacity: 0.45;
+  }
+  .bg-s1 .dot-accent {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--logo-orange);
+    top: 22%; left: 38%;
+    transform: translateY(-50%);
+  }
+  .bg-s1 .corner-tag {
+    position: absolute;
+    top: 28px; right: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: var(--logo-green);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .bg-s1 .corner-tag-bl {
+    position: absolute;
+    bottom: 28px; left: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: rgba(15,23,42,0.4);
+    text-transform: uppercase;
+  }
+
+  /* ============================================ */
+  /* S2: Modernist Trio                            */
+  /* 큰 도형 3개만: 솔리드 + 외곽선 + 선 + 점       */
+  /* ============================================ */
+  .bg-s2 {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .bg-s2 .solid-block {
+    position: absolute;
+    width: 280px; height: 200px;
+    background: var(--logo-violet);
+    bottom: -50px;
+    left: -50px;
+  }
+  .bg-s2 .ring-circle {
+    position: absolute;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 3px solid var(--logo-red);
+    top: 6%; right: 8%;
+  }
+  .bg-s2 .thin-line {
+    position: absolute;
+    width: 360px; height: 3px;
+    background: var(--logo-blue);
+    top: 50%; right: -60px;
+    transform: rotate(-22deg);
+    transform-origin: center;
+  }
+  .bg-s2 .small-square {
+    position: absolute;
+    width: 16px; height: 16px;
+    background: var(--logo-orange);
+    top: 75%; left: 35%;
+  }
+  .bg-s2 .ed-mark {
+    position: absolute;
+    top: 28px; left: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: var(--logo-green);
+    font-weight: 600;
+  }
+
+  /* ============================================ */
+  /* S3: Swiss Precision                           */
+  /* 흐린 격자 + 컬러 강조선 + N° 마커               */
+  /* ============================================ */
+  .bg-s3 {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    background-image:
+      linear-gradient(rgba(15,23,42,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px);
+    background-size: 64px 64px;
+    background-position: 0 0;
+  }
+  .bg-s3 .v-rule {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 16.67%;
+    width: 2px;
+    background: var(--logo-red);
+    opacity: 0.55;
+  }
+  .bg-s3 .h-rule {
+    position: absolute;
+    left: 0; right: 0;
+    top: 78%;
+    height: 2px;
+    background: var(--logo-blue);
+    opacity: 0.55;
+  }
+  .bg-s3 .corner-fill {
+    position: absolute;
+    width: 80px; height: 80px;
+    background: var(--logo-violet);
+    bottom: 0; right: 0;
+  }
+  .bg-s3 .corner-fill-2 {
+    position: absolute;
+    width: 16px; height: 16px;
+    background: var(--logo-orange);
+    top: 0; left: 16.67%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid var(--paper);
+    box-shadow: 0 0 0 2px var(--logo-orange);
+  }
+  .bg-s3 .num-tl {
+    position: absolute;
+    top: 28px; left: 28px;
+    font-family: 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--logo-red);
+    font-weight: 700;
+  }
+  .bg-s3 .num-tr {
+    position: absolute;
+    top: 28px; right: 28px;
+    font-family: 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--logo-green);
+    font-weight: 700;
+  }
+  .bg-s3 .num-bl {
+    position: absolute;
+    bottom: 28px; left: 28px;
+    font-family: 'Times New Roman', serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(15,23,42,0.45);
+    font-weight: 600;
+  }
+
+  /* ============================================ */
+  /* S4: Gallery Composition                       */
+  /* 코너에서 잘리는 큰 도형 2 + 가는 대각선 + 점     */
+  /* ============================================ */
+  .bg-s4 {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .bg-s4 .corner-violet {
+    position: absolute;
+    width: 360px; height: 360px;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    top: -180px; left: -180px;
+  }
+  .bg-s4 .corner-red {
+    position: absolute;
+    width: 320px; height: 320px;
+    background: var(--logo-red);
+    bottom: -160px; right: -160px;
+    transform: rotate(15deg);
+  }
+  .bg-s4 .diag-line {
+    position: absolute;
+    width: 70%;
+    height: 1px;
+    background: var(--logo-blue);
+    top: 50%;
+    left: 18%;
+    transform: rotate(-12deg);
+    opacity: 0.55;
+  }
+  .bg-s4 .ring {
+    position: absolute;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--logo-orange);
+    top: 22%;
+    right: 22%;
+  }
+  .bg-s4 .dot-g {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--logo-green);
+    bottom: 28%;
+    left: 32%;
+  }
+  .bg-s4 .gallery-mark {
+    position: absolute;
+    top: 28px; right: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: rgba(15,23,42,0.5);
+    text-transform: uppercase;
+  }
+
+  /* ============================================ */
+  /* S5: Architectural Lines                       */
+  /* 5색 가는 선들이 의도적 각도로 교차 + 작은 점     */
+  /* ============================================ */
+  .bg-s5 {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .bg-s5 .arch {
+    position: absolute;
+    height: 1px;
+    transform-origin: left center;
+  }
+  .bg-s5 .a-red    { width: 110%; background: var(--logo-red);    top: 20%; left: -5%; transform: rotate(-2deg);  opacity: 0.5; }
+  .bg-s5 .a-blue   { width: 70%;  background: var(--logo-blue);   top: 48%; left: 22%; transform: rotate(14deg);  opacity: 0.5; height: 2px;}
+  .bg-s5 .a-orange { width: 55%;  background: var(--logo-orange); top: 72%; left: -2%; transform: rotate(-7deg);  opacity: 0.5; }
+  .bg-s5 .a-violet { width: 45%;  background: var(--logo-violet); top: 32%; left: -8%; transform: rotate(-28deg); opacity: 0.55; height: 2px; }
+  .bg-s5 .a-green  { width: 35%;  background: var(--logo-green);  top: 84%; right: 0;  transform: rotate(18deg);  opacity: 0.5; }
+  .bg-s5 .pt {
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+  .bg-s5 .pt-1 { background: var(--logo-red);    top: 20%; left: 62%; }
+  .bg-s5 .pt-2 { background: var(--logo-blue);   top: 67%; left: 64%; }
+  .bg-s5 .pt-3 { background: var(--logo-violet); top: 25%; left: 14%; }
+  .bg-s5 .pt-4 { background: var(--logo-orange); top: 70%; left: 26%; width: 5px; height: 5px; }
+  .bg-s5 .blueprint-stamp {
+    position: absolute;
+    bottom: 24px; right: 28px;
+    font-family: 'Times New Roman', serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: rgba(15,23,42,0.55);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .bg-s5 .bp-tl {
+    position: absolute;
+    top: 24px; left: 28px;
+    font-family: 'Times New Roman', serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(15,23,42,0.4);
+  }
+
+  @media (max-width: 720px) {
+    .mock-content { flex-direction: column; padding: 24px; }
+    .mock-photo { display: none; }
+    .concept-stage { height: auto; min-height: 380px; }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">세련된 배경 시안 5종</h1>
+<p class="page-subtitle">A·B 도형 컨셉을 절제·여백·에디토리얼 타이포로 재해석. 갤러리·매거진·건축 도면 톤.</p>
+
+<div class="principles">
+  <strong>세련 5원칙:</strong> ① 도형 3~5개로 축소 ② 여백 70%+ 확보 ③ 솔리드 대신 가는 선/외곽선 활용
+  ④ 아이보리 배경(#FCFCFA)으로 콘트라스트 절제 ⑤ N°·코너 라벨로 에디토리얼 마감
+</div>
+
+<!-- =================== S1 =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">S1</span>Editorial Restraint</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">거대한 흐린 보라 원 1개 + 가는 컬러 라인 2 + 강조점 1 + 코너 캡션. 럭셔리 매거진 표지처럼 정적.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-s1">
+      <div class="ghost-circle"></div>
+      <div class="h-line-1"></div>
+      <div class="h-line-2"></div>
+      <div class="dot-accent"></div>
+      <div class="corner-tag">N° 01 — SILICA</div>
+      <div class="corner-tag-bl">REAL · WORLD · ASSET</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">S1 · EDITORIAL</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S2 =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">S2</span>Modernist Trio</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">큰 도형 3개만: 보라 솔리드 블록(좌하) + 빨강 외곽선 원(우상) + 파랑 가는 선(중앙 사선). 바우하우스 성년판.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-s2">
+      <div class="solid-block"></div>
+      <div class="ring-circle"></div>
+      <div class="thin-line"></div>
+      <div class="small-square"></div>
+      <div class="ed-mark">EST. 2026</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">S2 · MODERNIST</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S3 =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">S3</span>Swiss Precision</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">흐린 64px 격자 + 빨강 수직 + 파랑 수평 + 보라 코너 사각 + N° 텍스트. 스위스 그래픽디자인 스쿨, 시계 광고 톤.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-s3">
+      <div class="v-rule"></div>
+      <div class="h-rule"></div>
+      <div class="corner-fill"></div>
+      <div class="corner-fill-2"></div>
+      <div class="num-tl">N° 79907</div>
+      <div class="num-tr">KR · 36.5°N</div>
+      <div class="num-bl">— SECTION A —</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">S3 · SWISS</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S4 =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">S4</span>Gallery Composition</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">코너에서 잘리는 큰 도형 2개 (보라 원 좌상, 빨강 사각 우하) + 가는 대각선 + 외곽선 원. Tate Modern 큐레이팅 톤.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-s4">
+      <div class="corner-violet"></div>
+      <div class="corner-red"></div>
+      <div class="diag-line"></div>
+      <div class="ring"></div>
+      <div class="dot-g"></div>
+      <div class="gallery-mark">— EXHIBIT 02 —</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">S4 · GALLERY</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S5 =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">S5</span>Architectural Lines</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">5색 가는 선 5개가 의도적 각도로 교차 + 작은 강조점 4 + 코너 도면 마크. 건축 청사진 + 일본 미니멀 감성.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-s5">
+      <div class="arch a-red"></div>
+      <div class="arch a-blue"></div>
+      <div class="arch a-orange"></div>
+      <div class="arch a-violet"></div>
+      <div class="arch a-green"></div>
+      <div class="pt pt-1"></div>
+      <div class="pt pt-2"></div>
+      <div class="pt pt-3"></div>
+      <div class="pt pt-4"></div>
+      <div class="bp-tl">DRAWING · 2026/04</div>
+      <div class="blueprint-stamp">SECTION 271 — H</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">S5 · BLUEPRINT</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<div style="text-align:center; padding: 40px 20px; color:#64748B; font-size:14px; max-width:600px; margin:0 auto;">
+  <strong style="color:var(--ink);">S1·S2·S3·S4·S5</strong> 중 마음에 드는 시안 번호를 알려주시면 landing.html에 적용합니다.<br>
+  조합도 가능합니다 (예: "S3 격자 + S4 코너 도형").
+</div>
+
+</body>
+</html>

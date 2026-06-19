@@ -1,0 +1,1510 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>스테이킹 설정 · SilicaChain</title>
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <link rel="shortcut icon" href="img/favicon.png">
+  <style>
+    .admin-shell{max-width:1400px;margin:0 auto;padding:22px 16px}
+    .admin-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .admin-grid{display:grid;grid-template-columns:260px 1fr;gap:14px;margin-top:14px}
+    @media (max-width: 900px){.admin-grid{grid-template-columns:1fr}}
+    .admin-menu a{justify-content:flex-start;text-decoration:none}
+    .admin-menu a.active{background:var(--accent-light); border:1px solid var(--amber-border); color:var(--accent-dark)}
+
+    .admin-menu{display:flex;flex-direction:column;gap:10px}
+    .admin-menu a{width:100% !important;display:flex !important;justify-content:flex-start !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .admin-menu a.btn.block{width:100% !important;display:flex !important}
+    @media (max-width: 900px){.admin-menu{gap:8px}}
+
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 900px){.mini-grid{grid-template-columns:1fr}}
+    .kv{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .kv .k{color:#475569;font-size:12px;line-height:1.55;white-space:pre-line}
+    .kv .v{font-weight:900;color:#0f172a;text-align:right;line-height:1.55;white-space:pre-line}
+    .pillbox{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 4px 14px rgba(15,23,42,.05)}
+    .pillbox > div[style*="font-weight:950"]{color:#0f172a}
+
+    /* ============ 이자율 회차 (interest-rates.html 통합) ============ */
+    .rate-hero {
+      padding: 40px 28px;
+      text-align: center;
+      background: var(--panel);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: var(--r-md);
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .rate-hero::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--logo-violet);
+    }
+    .rate-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--aurora-3);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .rate-current {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900;
+      font-size: clamp(48px, 6vw, 84px);
+      line-height: 1;
+      letter-spacing: -2px;
+      background: var(--logo-blue);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .rate-meta {
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--steel);
+      margin-top: 14px;
+      font-size: 13px;
+    }
+    .rate-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+    @media (max-width: 1000px) { .rate-grid-2 { grid-template-columns: 1fr; } }
+
+    .input-suffix {
+      display: flex; background: var(--glass-2);
+      border: 1px solid var(--border); border-radius: var(--r-sm);
+    }
+    .input-suffix input { flex: 1; background: transparent; border: none; padding: 12px 14px; }
+    .input-suffix .suffix {
+      padding: 12px 14px; border-left: 1px solid var(--border);
+      color: var(--aurora-3); font-family: 'Oswald', sans-serif;
+      font-weight: 600; letter-spacing: 1px; font-size: 12px;
+    }
+
+    .effective-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--r-sm);
+      padding: 14px;
+      color: var(--amber);
+      margin: 14px 0;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .effective-warning strong { display: block; margin-bottom: 4px; }
+  </style>
+</head>
+<body data-page="staking">
+
+<div id="toast" class="pill hidden"></div>
+
+<div id="adminHeaderMount"></div>
+<div class="admin-shell">
+<div class="admin-grid">
+
+<div class="card">
+<div class="pad admin-menu">
+
+<div class="muted">관리 메뉴</div>
+
+<a class="btn block" href="dashboard.html">대시보드</a>
+<a class="btn block" href="assets.html">부동산 자산 등록/관리</a>
+<a class="btn block" href="docs.html">문서 관리</a>
+<a class="btn block" href="sales.html">매각 관리</a>
+<a class="btn block active" href="staking.html">스테이킹 설정</a>
+<a class="btn block" href="users.html">유저 관리</a>
+        <a class="btn block" href="emails.html">단체 메일 발송</a>
+<a class="btn block" href="accounting.html">회계 통계</a>
+<a class="btn block" href="referrals.html">추천인 관리</a>
+<a class="btn block" href="deposits.html">입금 승인 관리</a>
+<a class="btn block" href="withdrawals.html">출금 신청 (USDT)</a>
+        <a class="btn block" href="token-withdrawals.html">토큰 출금 관리</a>
+<a class="btn block" href="transactions.html">입출금 내역</a>
+<a class="btn block" href="contracts.html">전자계약 관리</a>
+<a class="btn block" href="settings.html">환경설정</a>
+<a class="btn block" href="fx-live.html">실시간 환율</a>
+
+</div>
+</div>
+
+    <main>
+
+      <!-- (2026-05-06) 페이지 헤더 -->
+      <div class="admin-page-header" style="margin-bottom:14px">
+        <div>
+          <h1 class="admin-page-title">스테이킹 설정</h1>
+        </div>
+      </div>
+
+      <!-- ============ Current Effective Rate (Hero) ============ -->
+      <div class="rate-hero">
+        <div class="rate-eyebrow">◆ CURRENT EFFECTIVE RATE · <span id="heroCycleLabel">-</span></div>
+        <div class="rate-current" id="currentRateDisplay">5.00%</div>
+        <div class="rate-meta">매월 15일 USDT 자동 지급</div>
+      </div>
+
+      <!-- ============ Rate Change + Cycle Detection ============ -->
+      <div class="rate-grid-2">
+
+        <!-- Rate Change Form -->
+        <div class="card-aurora" style="padding:24px">
+          <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;text-transform:uppercase">이자율 변경</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;color:var(--steel);margin-top:4px">// 변경된 요율은 다음 회차부터 적용됩니다</div>
+          </div>
+
+          <div class="field">
+            <label for="currentRateField">현재 이자율 (읽기 전용)</label>
+            <div class="input-suffix">
+              <input id="currentRateField" type="text" value="5.00" readonly>
+              <span class="suffix">%</span>
+            </div>
+          </div>
+
+          <!--
+            (2026-05-08) 다음 예정된 이자율 — read-only mirror of the
+            already-saved next-cycle rate (settings.fx_provider_chain
+            isn't involved; this comes from /api/admin/silica/rate's
+            next_cycle_rate_pct). Hidden when no pending change exists,
+            so the form stays compact for the common case.
+          -->
+          <div class="field" id="nextRateFieldWrap" style="display:none">
+            <label for="nextRateField">다음 예정된 이자율 (읽기 전용)</label>
+            <div class="input-suffix">
+              <input id="nextRateField" type="text" value="" readonly>
+              <span class="suffix">%</span>
+            </div>
+            <div class="help" id="nextRateFieldHint">다음 회차부터 적용 예정입니다.</div>
+          </div>
+
+          <div class="field">
+            <label for="newRateField">새 이자율</label>
+            <div class="input-suffix">
+              <!-- (2026-05-06) 사전 입력값 제거. 기본 disabled — "편집하기" 버튼으로만 활성화. -->
+              <input id="newRateField" type="number" step="0.01" min="0" placeholder="예: 5.50" disabled>
+              <span class="suffix">%</span>
+            </div>
+            <div class="help" id="ratePreview">편집하기 버튼을 눌러 이자율을 변경하세요.</div>
+          </div>
+
+          <div class="field">
+            <label for="changeReason">변경 사유</label>
+            <textarea id="changeReason" placeholder="예: 시장 금리 상승 반영" disabled></textarea>
+          </div>
+
+          <div class="effective-warning" id="rateEffectiveNote" style="display:none">
+            <strong id="rateEffectiveTitle">변경 시 적용 회차</strong>
+            <span id="rateEffectiveBody">새 이자율 입력 후 표시됩니다.</span>
+          </div>
+
+          <div class="row" style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap">
+            <button id="rateEditBtn" class="btn primary" style="flex:1; min-width:140px">편집하기</button>
+            <button id="rateSaveBtn" class="btn primary" style="flex:1; min-width:140px; display:none">변경 사항 저장</button>
+            <button id="rateCancelBtn" class="btn" style="display:none">취소</button>
+          </div>
+          <div id="rateEditNotice" class="text-muted text-center" style="font-size:12px;margin-top:8px">편집하기 버튼을 누르면 입력이 활성화됩니다. (관리자 지갑 연결 필요)</div>
+        </div>
+
+        <!-- Cycle Detection Logic -->
+        <div class="card-aurora" style="padding:24px">
+          <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;text-transform:uppercase">"이번 회차" 판별 로직</div>
+          </div>
+
+          <div class="alert alert-info">
+            <div class="alert-icon">📅</div>
+            <div class="alert-content">
+              <div class="alert-title">오늘: <span id="todayDisplay">-</span></div>
+              <div class="alert-message">
+                이번 회차 → <strong id="currentCycleLabel">-</strong>
+                  (<span id="currentCyclePayoutDate">-</span> 지급) ·
+                  요율 <strong id="currentCycleRate">-</strong><br>
+                다음 회차 → <strong id="nextCycleLabel">-</strong>
+                  (<span id="nextCyclePayoutDate">-</span> 지급) ·
+                  요율 <strong id="nextCycleRate">-</strong>
+                  <span id="nextCycleNewRateNote" class="muted" style="margin-left:6px"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ Asset Settings (정산통화/APR/FX) ============ -->
+      <div class="card">
+        <div class="pad">
+
+          <!--
+            (2026-05-06) Silica 단일자산 정리:
+            JS(staking.js) 호환용 hidden DOM 유지.
+          -->
+          <div style="display:none" aria-hidden="true">
+            <select id="aprAssetSelect" class="input"></select>
+            <select id="assetStatus" class="input" disabled>
+              <option value="활성">활성</option>
+            </select>
+            <input id="payday" class="input" value="" />
+            <input id="lockDays" class="input" value="" />
+            <span id="globalPreview"></span>
+            <button id="stkRefreshBtn" type="button">refresh</button>
+            <button id="stkSaveGlobalBtn" type="button">save</button>
+            <button id="assetTestBtn" type="button">test</button>
+          </div>
+
+          <!-- ASSET SETTINGS -->
+          <!--
+            (2026-05-08) Removed "자산 설정 저장" button — Silica is a
+            single-asset USDT-only deployment, the only thing the button
+            ever wrote (settlement_basis + APR) is now managed by the
+            "이자 회차" card / removed entirely. Keep #assetSaveBtn as a
+            hidden button so staking.js's optional-chained click handler
+            doesn't crash if it's still bound.
+          -->
+          <!-- (v903) 운영자 요청 — '테스트모드 이자 지급' 헤더 + 구분선 제거.
+                 testInterestCard 가 v861 에서 주석 처리되고 v902 에서 두 재해 복구
+                 카드도 평상시 숨김 처리되면서 헤더만 빈 채로 남아 있었음.
+                 #assetSaveBtn 은 staking.js L63/L429 가 참조하므로 hidden 유지.
+          <div class="row" style="align-items:flex-end">
+            <div>
+              <div style="font-weight:950;font-size:16px">테스트모드 이자 지급</div>
+            </div>
+          </div>
+          -->
+          <button id="assetSaveBtn" type="button" hidden></button>
+
+          <!-- (v903) 구분선 제거 — 위 헤더와 한 세트.
+          <div class="hr"></div>
+          -->
+
+          <!--
+            (2026-05-07) USDT-fixed 모델로 전환되어 환율(지급시점) 카드 제거.
+            1 TOKEN = 1 USDT 페그라 환율 변환 단계가 사라졌고, 월이자는
+            "스테이킹 수량 × APR ÷ 12 (USDT)" 한 줄로 끝난다.
+            staking.js 가 #calcFx / #calcFxHint / #calcPerTokenMonthlyLocal
+            을 옵셔널 체인으로 참조하므로 DOM 만 제거해도 안전.
+
+            (2026-05-08) 사장님 정책: 자산 파라미터 카드의 "정산통화" 와
+            "연 이율 APR(%)" 행 제거. Silica 단일 자산 USDT-only 모델이므로
+            정산통화는 항상 USDT 이고 APR 은 위쪽 "이자 회차" 카드에서
+            관리한다. 두 칸은 중복이므로 깨끗하게 제거.
+            staking.js 가 #assetSettleCcy / #aprValue 를 옵셔널 체인으로
+            참조하므로 hidden span/input 만 남겨 호환성 유지.
+          -->
+          <div style="display:none">
+            <span id="assetSettleCcy">-</span>
+            <input id="aprValue" type="hidden" value="">
+          </div>
+
+          <div class="hr"></div>
+
+          <!-- (2026-05-14 v359) 운영자: '테스트용 이자 지급 기능이 없어져 버렸다.'
+               v357 에서 기존 테스트 카드를 재해 복구 용도로 용도변경하면서 테스트
+               기능 자체가 사라짐. 두 기능을 카드 2개로 분리해 모두 복원:
+                 - testInterestCard: 항상 활성 + 중복 허용 (개발/테스트)
+                 - forceInterestCard: payment-status 기반 (재해 복구) -->
+          <!-- (v902) 두 재해 복구 카드 (#forceInterestCard, #catchUpAccrualCard)
+               는 평상시 숨김 → admin/js/staking.js 의 refreshDisasterGate() 가
+               overdue_interest=true 일 때만 표시 + grid 를 3컬럼으로 전환. -->
+          <div class="mini-grid" id="interestCardGrid" style="grid-template-columns: 1fr;">
+            <div class="pillbox">
+              <div style="font-weight:950;margin-bottom:8px">이자 계산 미리보기</div>
+              <div class="kv"><div class="k">100 TOKEN 연 이자</div><div class="v" id="calcPerTokenAnnualUsdt">-</div></div>
+              <div class="kv" style="margin-top:8px"><div class="k">100 TOKEN 월 이자</div><div class="v" id="calcPerTokenMonthlyUsdt">-</div></div>
+              <div class="small-note" style="margin-top:10px; line-height:1.7; white-space:pre-line">
+                * 계산식: 1 TOKEN = 1 USDT 페그 →
+                  연이자 = 스테이킹 수량 × APR,
+                  월이자 = 연이자 ÷ 12 (USDT)
+              </div>
+            </div>
+
+            <!-- (2026-05-26 v861) Mainnet 전환 — testInterestCard UI 숨김.
+                 force-interest 의 mode='test' 가 per-holder 중복 체크를 우회
+                 하므로 운영자가 mainnet 에서 실수로 누르면 진짜 USDT 더블 지급
+                 사고 발생. devnet 회귀 테스트 시 주석 해제만 하면 복원됨.
+                 백엔드 staking.php 에도 mainnet+test 거부 가드 추가 (v861) —
+                 주석 해제 + 실수 클릭 케이스도 차단.
+            <div class="pillbox" id="testInterestCard">
+              <div style="font-weight:950;margin-bottom:8px">테스트용 이자 배정</div>
+              <div class="kv"><div class="k">지급 방식</div><div class="v">선택 자산 전체 스테이커 대상
+1개월분 강제 배정</div></div>
+              <div class="kv" style="margin-top:8px"><div class="k">기준</div><div class="v">월이자 = 스테이킹 수량 × APR ÷ 12 (USDT)</div></div>
+              <div style="margin-top:12px; padding:10px 12px; border-radius:8px; font-size:12px; line-height:1.6; background:rgba(245,158,11,0.10); border:1px solid rgba(245,158,11,0.30); color:#92400E;">
+                ⚙ 개발/검증용 — 날짜 무관 즉시 배정 가능
+              </div>
+              <div class="tagrow" style="margin-top:12px">
+                <button id="testInterestBtn" class="btn small" type="button">테스트 배정</button>
+              </div>
+              <div class="small-note" style="margin-top:10px; line-height:1.65">
+                * 날짜와 관계없이 버튼을 누를 때마다 1개월 이자를 추가 배정합니다.
+                  같은 월에 이미 이력이 있어도 테스트용으로 중복 배정됩니다.
+              </div>
+            </div>
+            -->
+
+
+            <!-- (2026-05-14 v357) 재해 복구 — payment-status 기반 비활성화.
+                 (v902) 카드 자체를 평상시 숨김. JS 가 overdue_interest=true 일 때 display:'' 로 표시. -->
+            <div class="pillbox" id="forceInterestCard" style="display:none;">
+              <div style="font-weight:950;margin-bottom:8px">이자 수동 배정 (재해 복구)</div>
+              <div class="kv"><div class="k">지급 방식</div><div class="v">선택 자산 전체 스테이커 대상
+1개월분 강제 배정</div></div>
+              <div class="kv" style="margin-top:8px"><div class="k">기준</div><div class="v">월이자 = 스테이킹 수량 × APR ÷ 12 (USDT)</div></div>
+              <div id="forceInterestState" style="margin-top:12px; padding:10px 12px; border-radius:8px; font-size:12px; line-height:1.6; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.30); color:#047857; display:none;">
+                <!-- (v901) 정상 운영 중 안내 텍스트 제거 — 운영자 요청.
+                     평상시에는 박스 자체를 숨김 (admin/js/staking.js 가 매각/재해 상태일 때 display:'' 로 다시 표시). -->
+              </div>
+              <div class="tagrow" style="margin-top:12px">
+                <button id="forceInterestBtn" class="btn small primary" type="button" disabled>이자 수동 배정</button>
+              </div>
+              <div class="small-note" style="margin-top:10px; line-height:1.65">
+                * 14~16일 시스템이 자동 처리하지 못한 재해 상황에서만 활성화됩니다.
+                <!-- (v901) 아래 두 문장 제거 — 운영자 요청.
+                       v900 의 DB UNIQUE 적용 후 중복 배정이 DB 레벨에서 차단되므로
+                       "중복 배정 위험" 안내가 더 이상 사실에 부합하지 않음.
+                   미지급이 감지되면 자동으로 활성됩니다. 같은 월에 이미 배정된
+                   사용자에게는 중복 배정 위험이 있으므로 반드시 확인 후 진행하세요. -->
+              </div>
+            </div>
+
+            <!-- (2026-05-18 v575) 과거 회차 catch-up — 14-16일 lock window 전체가
+                 outage 로 죽어서 cron 이 한 번도 못 돈 경우, 지난 회차를 명시적으로
+                 보충 지급. force-interest 와 별도 — 현재 월이 아닌 PAST 월 처리.
+                 보안: month_key 명시 + type-to-confirm + 이중 지급 자동 차단. -->
+            <div class="pillbox" id="catchUpAccrualCard" style="margin-top:14px; border-color: rgba(239,68,68,0.30); display:none;">
+              <div style="font-weight:950; margin-bottom:8px; color:#dc2626">⚠ 과거 회차 catch-up (서버 장애 복구)</div>
+              <div class="kv"><div class="k">용도</div><div class="v">14-16일 lock window 전체가 outage 로 cron 못 돈 경우, 지난 회차 보충</div></div>
+              <div class="kv" style="margin-top:8px"><div class="k">대상</div><div class="v">선택 회차의 모든 자산 + 모든 스테이커 (전체 일괄)</div></div>
+              <div class="kv" style="margin-top:8px"><div class="k">현재 회차</div><div class="v">사용 불가 — 정규 cron 또는 위 [이자 수동 배정] 사용</div></div>
+
+              <div class="split" style="margin-top:14px; gap:10px">
+                <div class="field">
+                  <label for="catchUpMonthKey" style="font-size:12px; font-weight:700">회차 (YYYY-MM)</label>
+                  <input id="catchUpMonthKey" class="input" type="text" placeholder="예: 2026-04" autocomplete="off" spellcheck="false" style="width:100%; margin-top:4px">
+                  <div class="small-note" style="margin-top:4px">반드시 과거 회차여야 합니다. 현재 회차는 거절됩니다.</div>
+                </div>
+                <div class="field">
+                  <label for="catchUpConfirm" style="font-size:12px; font-weight:700">확인 문구</label>
+                  <input id="catchUpConfirm" class="input" type="text" placeholder="재해복구확인" autocomplete="off" spellcheck="false" style="width:100%; margin-top:4px">
+                  <div class="small-note" style="margin-top:4px">정확히 <strong>재해복구확인</strong> 을 입력하세요.</div>
+                </div>
+              </div>
+
+              <div class="tagrow" style="margin-top:14px">
+                <button id="catchUpAccrualBtn" class="btn small" style="background:#dc2626; color:#fff; border-color:#b91c1c" type="button" disabled>과거 회차 보충 지급 실행</button>
+              </div>
+
+              <div id="catchUpResult" class="hidden" style="margin-top:12px; padding:12px; background:rgba(2,6,23,0.04); border:1px solid var(--border); border-radius:8px; font-size:12px; line-height:1.6"></div>
+
+              <div class="small-note" style="margin-top:10px; line-height:1.65; color:#991b1b">
+                * 이미 처리된 회차 (cron_accrual_done 키 존재 또는 interest_claims 행 존재) 는 자동 거절됩니다 — 이중 지급 방지.
+                * 실행 시 silica_audit_log 에 자동 기록 (누가, 언제, 어느 회차).
+                * 작업 후 결과를 반드시 확인하세요.
+              </div>
+            </div>
+          </div>
+
+          <!--
+            (2026-05-15 v371) 이자 지급 로그 — 2단계 뷰.
+            1) summary: 회차(월) 별 집계만 (가벼움)
+            2) row 클릭 → 모달: 세부 50개씩 페이지네이션
+          -->
+          <div class="pillbox" style="margin-top:14px">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;">
+              <div style="font-weight:950">이자 지급 로그 (회차별 집계)</div>
+              <button id="interestSummaryRefresh" class="btn small" type="button">↻ 새로고침</button>
+            </div>
+            <div class="small-note" style="margin-bottom:10px;">행 클릭 시 해당 회차의 세부 지급 내역이 팝업으로 표시됩니다.</div>
+            <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+              <table class="table" style="font-size:12px;margin:0;">
+                <thead>
+                  <tr>
+                    <th>회차</th>
+                    <th>자산</th>
+                    <th style="text-align:right;">총 인원</th>
+                    <th style="text-align:right;">지급 완료</th>
+                    <th style="text-align:right;">미수령</th>
+                    <th style="text-align:right;">합계 (USDT)</th>
+                    <th>최초 배정</th>
+                  </tr>
+                </thead>
+                <tbody id="interestSummaryBody">
+                  <tr><td colspan="7" class="text-center muted" style="padding:24px 0;">로딩 중…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- (v371) 세부 회차 모달 — 50개씩 페이지네이션 -->
+          <div id="interestDetailModal" class="hidden" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;">
+            <div id="interestDetailBackdrop" style="position:absolute;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(6px);"></div>
+            <div style="position:relative;width:min(960px,calc(100% - 32px));max-height:calc(100vh - 48px);background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,0.30);display:flex;flex-direction:column;overflow:hidden;">
+              <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <h3 id="interestDetailTitle" style="margin:0;font-size:18px;font-weight:800;">회차 세부</h3>
+                <button id="interestDetailClose" class="btn small" type="button">✕ 닫기</button>
+              </div>
+              <!-- (2026-05-15 v372) 검색 / 필터 — 회차 안에서 사용자 찾기. -->
+              <div style="padding:12px 24px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;">
+                <input id="interestDetailSearch" type="text" class="input"
+                       placeholder="🔍 지갑 주소 검색 (전체 또는 일부)"
+                       style="flex:1;min-width:240px;font-size:13px;" />
+                <select id="interestDetailStatus" class="input" style="max-width:160px;font-size:13px;">
+                  <option value="">전체 상태</option>
+                  <option value="claimed">수령 완료</option>
+                  <option value="pending">미수령</option>
+                </select>
+                <button id="interestDetailSearchClear" class="btn small" type="button" title="검색 초기화">✕</button>
+              </div>
+              <div style="padding:14px 24px 0;flex:1;overflow-y:auto;">
+                <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+                  <table class="table" style="font-size:12px;margin:0;">
+                    <thead>
+                      <tr>
+                        <th>배정 시각</th>
+                        <th>회차</th>
+                        <th>지갑</th>
+                        <th style="text-align:right;">스테이크</th>
+                        <th style="text-align:right;">APR</th>
+                        <th style="text-align:right;">금액 (USDT)</th>
+                        <th>상태</th>
+                        <th>클레임 시각</th>
+                        <th>Batch ID</th>
+                      </tr>
+                    </thead>
+                    <tbody id="interestDetailBody">
+                      <tr><td colspan="9" class="text-center muted" style="padding:24px 0;">로딩 중…</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div id="interestDetailMeta" class="small-note" style="line-height:1.5;">—</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button id="interestDetailPrev" class="btn small" type="button" disabled>◀ 이전</button>
+                  <span id="interestDetailPageInfo" class="small-note">1 / 1</span>
+                  <button id="interestDetailNext" class="btn small" type="button" disabled>다음 ▶</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!--
+            (2026-05-08) 지갑 진단 카드 — "이자 지급 테스팅을 했는데 유저
+            페이지에 안 나온다" 상황을 빠르게 디버깅하기 위해 추가.
+            특정 지갑의 holdings(staked_token) + interest_claims 원본
+            행을 그대로 보여준다. force-interest 가 실제로 그 지갑에
+            대해 row 를 INSERT 했는지 즉시 확인 가능.
+          -->
+          <div class="pillbox" style="margin-top:14px">
+            <div style="font-weight:950;margin-bottom:8px">지갑 진단 (이자 클레임 상태)</div>
+            <div class="tagrow" style="gap:8px;align-items:stretch;margin-top:10px">
+              <input id="diagWalletInput" type="text" class="input" placeholder="지갑 주소 입력 (예: 8xT...)" style="flex:1;min-width:280px" />
+              <button id="diagWalletBtn" class="btn small" type="button">진단</button>
+            </div>
+            <div id="diagWalletResult" style="margin-top:14px; display:none">
+              <div id="diagWalletSummary" class="kv-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px"></div>
+              <div id="diagAddrSampleWrap" style="display:none; margin-bottom:12px; padding:10px; background:#fef3c7; border:1px solid #f59e0b; border-radius:8px">
+                <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:#92400e">⚠ 저장된 address 와 입력값 비교 (공백/길이 불일치 확인)</div>
+                <div id="diagAddrSampleBody" style="font-size:11px;font-family:monospace;line-height:1.6"></div>
+              </div>
+              <div style="font-weight:700; font-size:13px; margin-bottom:6px">interest_claims 행 (최신순)</div>
+              <div style="overflow:auto;border:1px solid var(--border);border-radius:8px">
+                <table class="table" style="font-size:12px;margin:0">
+                  <thead>
+                    <tr>
+                      <th>id</th>
+                      <th>월</th>
+                      <th>스테이킹</th>
+                      <th>APR</th>
+                      <th>USDT 금액</th>
+                      <th>상태</th>
+                      <th>생성</th>
+                      <th>수령</th>
+                    </tr>
+                  </thead>
+                  <tbody id="diagWalletClaimsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!--
+            (2026-05-17 v453) 운영자 요청: '지갑 진단 (이자 클레임 상태)' 아래에
+            '지갑 진단 (스테이킹 수량)' 카드 추가. 주소 검색 → 해당 사용자의
+            스테이킹/언스테이킹 기록 + 총 스테이킹 수량을 팝업으로 표시.
+          -->
+          <div class="pillbox" style="margin-top:14px">
+            <div style="font-weight:950;margin-bottom:8px">지갑 진단 (스테이킹 수량)</div>
+            <div class="muted" style="font-size:12px;margin-bottom:8px">
+              특정 지갑의 holdings(silica_sto_staked) + stake/unstake 거래 기록을 비교 진단합니다.
+            </div>
+            <div class="tagrow" style="gap:8px;align-items:stretch;margin-top:10px">
+              <input id="diagStakeInput" type="text" class="input" placeholder="지갑 주소 입력 (예: 8xT...)" style="flex:1;min-width:280px" />
+              <button id="diagStakeBtn" class="btn small" type="button">진단</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!--
+        (2026-05-17 v453) 스테이킹 진단 결과 팝업 모달 — backdrop + 중앙 카드.
+        diagStakeBtn 클릭 시 표시. 닫기는 모달 우상단 X 또는 backdrop 클릭.
+      -->
+      <div id="diagStakeModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px);">
+        <div style="background:#fff; border-radius:14px; max-width:920px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 24px 64px rgba(15,23,42,0.28);">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 22px; border-bottom:1px solid #e5e7eb; position:sticky; top:0; background:#fff; z-index:1;">
+            <div>
+              <div style="font-weight:950; font-size:16px;">스테이킹 진단 결과</div>
+              <div id="diagStakeModalAddr" style="font-family:monospace; font-size:11px; color:#6b7280; margin-top:2px;">—</div>
+            </div>
+            <button id="diagStakeModalClose" type="button" style="background:none; border:none; font-size:24px; cursor:pointer; padding:0 8px; color:#6b7280;">&times;</button>
+          </div>
+          <div style="padding:22px;">
+            <div style="font-weight:700; font-size:13px; margin-bottom:10px;">요약</div>
+            <div id="diagStakeSummary" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:18px;"></div>
+
+            <div id="diagStakeDiscrepancyBox" style="display:none; padding:12px; margin-bottom:18px; background:#fef3c7; border:1px solid #f59e0b; border-radius:8px;">
+              <div style="font-weight:700; font-size:13px; color:#92400e;">⚠ 이력 기준 net 과 holdings 차이 발견</div>
+              <div id="diagStakeDiscrepancyDesc" style="font-size:12px; color:#78350f; margin-top:4px; line-height:1.5;"></div>
+            </div>
+
+            <!--
+              (2026-05-17 v455) 데이터 정정 도구. 누락된 wallet_transactions 자동
+              감지 + 백필 INSERT. holdings 자체는 변경하지 않음 (이미 발생한
+              interest_claims 와의 일관성 보존).
+            -->
+            <div id="diagStakeReconcileBox" style="display:none; padding:14px; margin-bottom:18px; background:#eff6ff; border:1px solid #3b82f6; border-radius:8px;">
+              <div style="font-weight:700; font-size:13px; color:#1e40af; margin-bottom:6px;">🔧 데이터 정정 도구</div>
+              <div id="diagStakeReconcileDesc" style="font-size:12px; color:#1e3a8a; line-height:1.6; margin-bottom:10px;"></div>
+              <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1e3a8a; cursor:pointer;">
+                  <input type="checkbox" id="reconcileChkInvest" />
+                  <span><strong>invest_credit 누락 보정</strong> — funding_records 와 wallet_transactions 비교 후 누락된 invest_credit row 자동 INSERT</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1e3a8a; cursor:pointer;">
+                  <input type="checkbox" id="reconcileChkStakeGap" />
+                  <span><strong>staked gap 보정</strong> — holdings.silica_sto_staked 와 이력 기준 net 차이를 stake/unstake row 로 보정</span>
+                </label>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="reconcilePreviewBtn" class="btn small" type="button">미리보기 (dry-run)</button>
+                <button id="reconcileApplyBtn" class="btn small primary" type="button">실행</button>
+                <!--
+                  (v456) v455 백필 row 만 DELETE — 운영자가 백필 결과가 어색
+                  하거나 잘못된 경우 되돌리기. memo='[v455 reconcile]%' 기준.
+                  holdings 변경 X.
+                -->
+                <button id="reconcileRevertBtn" class="btn small" type="button" style="margin-left:auto; background:rgba(239, 68, 68, 0.08); border-color:#ef4444; color:#b91c1c;">백필 되돌리기 (v455 row 삭제)</button>
+              </div>
+              <div id="reconcileResult" style="margin-top:10px; font-size:12px; color:#1e3a8a; display:none;"></div>
+            </div>
+
+            <div style="font-weight:700; font-size:13px; margin-bottom:6px;">스테이킹 거래 기록 (최신순)</div>
+            <div style="overflow:auto; border:1px solid #e5e7eb; border-radius:8px;">
+              <table class="table" style="font-size:12px; margin:0; width:100%;">
+                <thead>
+                  <tr>
+                    <th>id</th>
+                    <th>시각</th>
+                    <th>타입</th>
+                    <th>수량</th>
+                    <th>전</th>
+                    <th>후</th>
+                    <th>상태</th>
+                    <th>비고</th>
+                  </tr>
+                </thead>
+                <tbody id="diagStakeRecordsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Rate Change History ============ -->
+      <div class="card-aurora" style="padding:24px;margin-top:14px">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;text-transform:uppercase">변경 이력 (감사 로그)</div>
+          </div>
+          <div class="flex gap-md">
+            <button class="btn small" id="historyRefreshBtn">⟳ 새로고침</button>
+            <button class="btn small" id="historyExportBtn">📥 CSV</button>
+          </div>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>변경일</th>
+              <th>적용 시작 회차</th>
+              <th>이전 요율</th>
+              <th>새 요율</th>
+              <th>변경자</th>
+              <th>사유</th>
+            </tr>
+          </thead>
+          <tbody id="rateHistoryBody">
+            <tr>
+              <td>2026-01-01 09:00</td>
+              <td><span class="badge badge-cyan">2026-01 회차</span></td>
+              <td class="text-mono">—</td>
+              <td class="text-mono"><strong>5.00%</strong></td>
+              <td>admin@silica</td>
+              <td>초기 설정</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- (2026-05-16 v400) 운영자: '⚠ 운영 종료 / Wind-down 카드를
+           모두 제거해라. 4단계와 5단계만 settings.html 의 AMM 감사 아래에
+           구현해라.' admin/staking.html 의 wind-down 박스 전체 제거.
+           운영 종료 UI 는 admin/settings.html#winddown 으로 일원화.
+           backend (admin_silica_winddown.php) 의 endpoints / state 머신 /
+           가드 모두 그대로 유지 — 단지 UI 위치가 settings 로 이동. -->
+      <div style="display:none">
+        <!-- 본 div 는 v396 의 wind-down 5단계 패널 자리 placeholder.
+             모든 wind-down UI 는 admin/settings.html#winddown 으로 이전됨.
+             코드 보존 차원에서 빈 div 만 남김 — 향후 staking 페이지에
+             wind-down 단축 링크가 필요해질 경우 재활용 가능.
+             모달 (winddownConfirmModal, winddownCloseModal) 과 JS IIFE
+             도 같이 제거. settings.html 에 동일한 모달 + 핸들러 존재. -->
+
+        <!-- 현재 상태 박스 -->
+        <div id="winddownStateBox" style="padding:10px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:16px; font-size:12.5px;">
+          <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
+            <strong>현재 상태:</strong>
+            <span id="winddownState" style="padding:3px 10px; border-radius:999px; background:#f1f5f9; font-weight:700;">로딩 중…</span>
+          </div>
+          <div class="kv" style="font-size:12px;"><div class="k">공지 시작</div><div class="v" id="winddownAnnouncedAt">-</div></div>
+          <div class="kv" style="font-size:12px;"><div class="k">강제 unstake 시점</div><div class="v" id="winddownStakingDisabledAt">-</div></div>
+          <div class="kv" style="font-size:12px;"><div class="k">출금 마감</div><div class="v" id="winddownDeadlineDisplay">-</div></div>
+          <div class="kv" style="font-size:12px;"><div class="k">AMM</div><div class="v" id="winddownAmmDisplay">-</div></div>
+        </div>
+
+        <!-- Step 1: Wind-down 시작 -->
+        <div id="winddownStepBegin" class="winddown-step" style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:10px;">
+          <div style="font-weight:800; margin-bottom:6px;">1단계 · Wind-down 시작</div>
+          <div class="small-note" style="margin-bottom:10px;">
+            서비스 종료를 공식 공지합니다. announced_at 기록. 이 단계 이후 2~5단계가 활성됩니다.
+          </div>
+          <textarea id="winddownReasonInput" class="input" rows="2" placeholder="종료 사유 (선택, audit 에 기록)" style="margin-bottom:8px; width:100%;"></textarea>
+          <button id="winddownBeginBtn" class="btn small primary" type="button">Wind-down 시작</button>
+        </div>
+
+        <!-- Step 2: AMM 설정 -->
+        <div id="winddownStepAmm" class="winddown-step" style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:10px;">
+          <div style="font-weight:800; margin-bottom:6px;">2단계 · AMM 매수 풀 설정 (선택)</div>
+          <div class="small-note" style="margin-bottom:10px;">
+            회원이 SilicaSTO 를 USDT 로 매도할 수 있는 자동 매수 풀. 매수 시세는 회사 재량으로 결정 — 1토큰=1USDT 보장 안 함.
+            USDT 유동성 소진 시 매수 중단.
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:8px;">
+            <input id="winddownAmmEnabled" type="checkbox"> AMM 활성
+          </label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+            <input id="winddownAmmPrice" class="input" type="number" step="0.000001" placeholder="매수 시세 (USDT)" style="flex:1; min-width:150px;">
+            <input id="winddownAmmLiquidity" class="input" type="number" step="0.01" placeholder="USDT 유동성 한도" style="flex:1; min-width:150px;">
+          </div>
+          <button id="winddownAmmSaveBtn" class="btn small" type="button">AMM 설정 저장</button>
+        </div>
+
+        <!-- Step 3: 출금 마감일 -->
+        <div id="winddownStepDeadline" class="winddown-step" style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:10px;">
+          <div style="font-weight:800; margin-bottom:6px;">3단계 · 출금 마감일 설정</div>
+          <div class="small-note" style="margin-bottom:10px;">
+            이 시점 이후 사이트는 영구 폐쇄되고, 미회수 자금은 회사에 귀속됩니다 (약관 제10.5조).
+            announced_at 으로부터 최대 2개월 이내 지정 가능. 시각은 자동으로 23:59:59 KST 적용.
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+            <input id="winddownDeadlineInput" class="input" type="date" style="max-width:200px;">
+            <span id="winddownDeadlineHint" class="small-note"></span>
+          </div>
+          <button id="winddownDeadlineSaveBtn" class="btn small" type="button">마감일 저장</button>
+        </div>
+
+        <!-- Step 4: 스테이킹 강제 중단 -->
+        <div id="winddownStepDisableStaking" class="winddown-step" style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:10px;">
+          <div style="font-weight:800; margin-bottom:6px;">4단계 · 스테이킹 강제 중단</div>
+          <div class="small-note" style="margin-bottom:10px;">
+            모든 stakers 의 SilicaSTO 가 즉시 언스테이킹되어 보유 잔액으로 이동합니다.
+            <br><strong>14~16일 KST 락 윈도우 기간에는 실행 불가.</strong> 관리자 지갑 연결 필수.
+          </div>
+          <div class="tagrow">
+            <button id="winddownDisableStakingBtn" class="btn small danger" type="button">스테이킹 중단</button>
+            <span id="winddownStakingHint" class="small-note" style="line-height:1.6;"></span>
+          </div>
+        </div>
+
+        <!-- Step 5: 영구 폐쇄 -->
+        <div id="winddownStepClose" class="winddown-step" style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0;">
+          <div style="font-weight:800; margin-bottom:6px;">5단계 · 영구 폐쇄</div>
+          <div class="small-note" style="margin-bottom:10px;">
+            사이트가 영구 폐쇄됩니다. 출금 마감일 이후에 진행하세요. 미회수 자금 합계가 audit 에 기록되고
+            state 가 closed 로 변경됩니다. 이후 모든 user 측 API 가 차단됩니다.
+          </div>
+          <button id="winddownCloseBtn" class="btn small danger" type="button">서비스 종료</button>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+</div>
+
+<!-- Wind-down 스테이킹 중단 확인 모달 -->
+<div id="winddownConfirmModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+  <div style="background:#fff; border-radius:14px; max-width:540px; width:100%; padding:24px; box-shadow:0 24px 60px rgba(15,23,42,0.30);">
+    <div style="font-weight:950; font-size:18px; color:#991B1B; margin-bottom:10px;">
+      ⚠ 스테이킹 강제 중단 확인
+    </div>
+    <div style="line-height:1.65; color:#475569; margin-bottom:14px; font-size:13px;">
+      이 작업은 되돌릴 수 없습니다. 실행 즉시:
+      <ul style="margin:8px 0 8px 22px; padding:0;">
+        <li>모든 stakers 의 SilicaSTO 가 강제 언스테이킹됩니다.</li>
+        <li>이 시점 이후 더 이상 이자가 발생하지 않습니다.</li>
+        <li>유저 거래 내역과 시스템 audit 로그에 자동 기록됩니다.</li>
+      </ul>
+      계속하려면 아래에 정확히 <strong style="color:#991B1B;">스테이킹 중단</strong> 을 입력하세요.
+    </div>
+    <input id="winddownConfirmInput" class="input" placeholder="스테이킹 중단" style="margin-bottom:10px; width:100%;">
+    <div id="winddownConfirmError" style="font-size:12px; color:#dc2626; margin-bottom:10px; min-height:16px;"></div>
+    <div class="tagrow" style="justify-content:flex-end;">
+      <button id="winddownConfirmCancel" class="btn small" type="button">취소</button>
+      <button id="winddownConfirmSubmit" class="btn small danger" type="button">실행</button>
+    </div>
+  </div>
+</div>
+
+<!-- Wind-down 영구 폐쇄 확인 모달 -->
+<div id="winddownCloseModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+  <div style="background:#fff; border-radius:14px; max-width:540px; width:100%; padding:24px; box-shadow:0 24px 60px rgba(15,23,42,0.30);">
+    <div style="font-weight:950; font-size:18px; color:#991B1B; margin-bottom:10px;">
+      🛑 서비스 영구 폐쇄 확인
+    </div>
+    <div style="line-height:1.65; color:#475569; margin-bottom:14px; font-size:13px;">
+      이 작업은 되돌릴 수 없습니다. 실행 즉시:
+      <ul style="margin:8px 0 8px 22px; padding:0;">
+        <li>state 가 closed 로 변경됩니다.</li>
+        <li>모든 user 측 API 호출이 차단됩니다.</li>
+        <li>미회수 자금 합계 (참고용) 가 audit 에 기록됩니다.</li>
+        <li>약관 제10.5조에 따라 미회수 자금은 회사에 귀속됩니다.</li>
+      </ul>
+      계속하려면 아래에 정확히 <strong style="color:#991B1B;">서비스 종료</strong> 를 입력하세요.
+    </div>
+    <input id="winddownCloseInput" class="input" placeholder="서비스 종료" style="margin-bottom:10px; width:100%;">
+    <div id="winddownCloseError" style="font-size:12px; color:#dc2626; margin-bottom:10px; min-height:16px;"></div>
+    <div class="tagrow" style="justify-content:flex-end;">
+      <button id="winddownCloseCancel" class="btn small" type="button">취소</button>
+      <button id="winddownCloseSubmit" class="btn small danger" type="button">서비스 종료 실행</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/staking.js?v=20260608v902-disaster-cards-conditional-display"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  window.AdminHeader?.loadHeader?.();
+
+  // ============ 이자율 회차 (interest-rates.html 통합) ============
+  // 회차 자동 계산 — 오늘 날짜 기준.
+  //   - 오늘 ≤ 15일: 이번 회차 = 당월, 다음 회차 = 다음달
+  //   - 오늘 ≥ 16일: 이번 회차 = 다음달, 다음 회차 = 다다음달
+  // 새 요율은 항상 "다음 회차" 부터 적용된다는 정책.
+  const cycleEls = {
+    today:           document.getElementById('todayDisplay'),
+    currentLabel:    document.getElementById('currentCycleLabel'),
+    currentDate:     document.getElementById('currentCyclePayoutDate'),
+    currentRate:     document.getElementById('currentCycleRate'),
+    nextLabel:       document.getElementById('nextCycleLabel'),
+    nextDate:        document.getElementById('nextCyclePayoutDate'),
+    nextRate:        document.getElementById('nextCycleRate'),
+    nextRateNote:    document.getElementById('nextCycleNewRateNote'),
+    heroCycle:       document.getElementById('heroCycleLabel'),
+    heroRate:        document.getElementById('currentRateDisplay'),
+  };
+
+  function fmtCycle(year, month0) {
+    const d = new Date(year, month0, 1);
+    return {
+      label: `${d.getMonth() + 1}월 회차`,
+      payout: `${d.getMonth() + 1}/15`,
+      year: d.getFullYear(),
+      month1: d.getMonth() + 1,
+    };
+  }
+
+  const currentInput = document.getElementById('currentRateField');
+  const newInput     = document.getElementById('newRateField');
+  // (2026-05-08) Pending next-cycle rate display (read-only).
+  const nextRateField     = document.getElementById('nextRateField');
+  const nextRateFieldWrap = document.getElementById('nextRateFieldWrap');
+  const nextRateFieldHint = document.getElementById('nextRateFieldHint');
+  const reasonInput  = document.getElementById('changeReason');
+  const preview      = document.getElementById('ratePreview');
+  const effectiveEl  = document.getElementById('rateEffectiveNote');
+  const effectiveBody= document.getElementById('rateEffectiveBody');
+  const editBtn      = document.getElementById('rateEditBtn');
+  const saveBtn      = document.getElementById('rateSaveBtn');
+  const cancelBtn    = document.getElementById('rateCancelBtn');
+  const noticeEl     = document.getElementById('rateEditNotice');
+
+  // (2026-05-08) Track the most recently saved "next cycle" rate from
+  //   /api/admin/silica/rate so the cycle preview box reflects pending
+  //   changes without the user having to re-enter the field. Defaults
+  //   to NaN until the first API load.
+  let savedNextCycleRate = NaN;
+
+  function refreshCycleBox() {
+    const today = new Date();
+    const dom   = today.getDate();
+    const yr    = today.getFullYear();
+    const mo0   = today.getMonth();
+
+    const curMonthOffset = (dom <= 15) ? 0 : 1;
+    const cur  = fmtCycle(yr, mo0 + curMonthOffset);
+    const next = fmtCycle(yr, mo0 + curMonthOffset + 1);
+
+    const curRateVal = parseFloat(currentInput?.value || 0) || 0;
+    const newRateVal = parseFloat(newInput?.value);
+    const hasNewRate = Number.isFinite(newRateVal) && newRateVal > 0;
+    // Saved next-cycle rate (from API), used when the user is NOT
+    //   actively editing. Falls back to current rate if no pending change.
+    const hasSavedNext = Number.isFinite(savedNextCycleRate) && savedNextCycleRate > 0
+      && savedNextCycleRate !== curRateVal;
+
+    if (cycleEls.today) {
+      // (2026-05-06) 언어팩 일관성 — AdminI18n.locale() 가 'en-US' 또는 'ko-KR' 반환.
+      // EN 모드에서는 영어 날짜 포맷("May 6, 2026") 으로 출력해 i18n 사전 의존도 ↓.
+      const loc = (window.AdminI18n?.locale?.() || 'ko-KR');
+      cycleEls.today.textContent = today.toLocaleDateString(loc, { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    if (cycleEls.currentLabel) cycleEls.currentLabel.textContent = cur.label;
+    if (cycleEls.currentDate)  cycleEls.currentDate.textContent  = cur.payout;
+    if (cycleEls.currentRate)  cycleEls.currentRate.textContent  = curRateVal > 0 ? `${curRateVal.toFixed(2)}%` : '-';
+
+    if (cycleEls.nextLabel) cycleEls.nextLabel.textContent = next.label;
+    if (cycleEls.nextDate)  cycleEls.nextDate.textContent  = next.payout;
+    if (cycleEls.nextRate) {
+      // Priority: editing > saved next > current.
+      let nextRateTxt = '-';
+      if (hasNewRate) {
+        nextRateTxt = `${newRateVal.toFixed(2)}%`;
+      } else if (hasSavedNext) {
+        nextRateTxt = `${savedNextCycleRate.toFixed(2)}%`;
+      } else if (curRateVal > 0) {
+        nextRateTxt = `${curRateVal.toFixed(2)}%`;
+      }
+      cycleEls.nextRate.textContent = nextRateTxt;
+    }
+    if (cycleEls.nextRateNote) {
+      // (2026-05-08) Note only shown while the user is mid-edit. Once a
+      //   change is saved the cycle box already shows the new % in the
+      //   '다음 회차' column, which is enough — the extra '← 변경 적용
+      //   예정' tag was redundant per operator feedback.
+      cycleEls.nextRateNote.textContent = hasNewRate ? '← 새 요율 적용 예정' : '';
+    }
+
+    // 히어로 카드 갱신
+    if (cycleEls.heroCycle) {
+      cycleEls.heroCycle.textContent = `${cur.label} (${cur.month1 - 1 > 0 ? cur.month1 - 1 : 12}/16 ~ ${cur.month1}/15)`;
+    }
+    if (cycleEls.heroRate) {
+      cycleEls.heroRate.textContent = curRateVal > 0 ? `${curRateVal.toFixed(2)}%` : '-';
+    }
+  }
+
+  function showToast(msg, kind) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.classList.remove('hidden', 'good', 'bad');
+    t.classList.add(kind === 'bad' ? 'bad' : 'good');
+    t.textContent = msg;
+    setTimeout(() => t.classList.add('hidden'), 3000);
+  }
+
+  // 관리자 지갑 연결 확인. admin.core.js 가
+  // localStorage.rwa_admin_wallet_v1 에 연결된 지갑 주소를 저장.
+  function getAdminWalletAddress() {
+    try { return (localStorage.getItem('rwa_admin_wallet_v1') || '').trim(); }
+    catch (_) { return ''; }
+  }
+
+  function updatePreview() {
+    if (!preview) return;
+    const current = parseFloat(currentInput?.value) || 0;
+    const next = parseFloat(newInput?.value);
+    if (current > 0 && Number.isFinite(next) && next > 0) {
+      const diff = (next - current).toFixed(2);
+      const sign = diff >= 0 ? '+' : '';
+      preview.textContent = `변경: ${current}% → ${next}% (${sign}${diff}%p)`;
+      preview.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+      if (effectiveEl) {
+        effectiveEl.style.display = '';
+        if (effectiveBody) {
+          effectiveBody.innerHTML =
+            `이번 회차: <strong>${current}% 유지</strong><br>` +
+            `다음 회차부터: <strong>${next}% 적용</strong>`;
+        }
+      }
+    } else {
+      preview.textContent = '편집하기 버튼을 눌러 이자율을 변경하세요.';
+      preview.style.color = '';
+      if (effectiveEl) effectiveEl.style.display = 'none';
+    }
+  }
+
+  newInput?.addEventListener('input', () => { updatePreview(); refreshCycleBox(); });
+
+  // 초기 회차 박스 렌더 — 페이지 로드 시 1회.
+  refreshCycleBox();
+
+  function setEditMode(on) {
+    if (newInput)   newInput.disabled   = !on;
+    if (reasonInput) reasonInput.disabled = !on;
+    if (editBtn)   editBtn.style.display   = on ? 'none' : '';
+    if (saveBtn)   saveBtn.style.display   = on ? '' : 'none';
+    if (cancelBtn) cancelBtn.style.display = on ? '' : 'none';
+    if (noticeEl) {
+      noticeEl.textContent = on
+        ? '편집 모드 — 변경 사항 저장 후 모든 사용자에게 알림 팝업 자동 발송'
+        : '편집하기 버튼을 누르면 입력이 활성화됩니다. (관리자 지갑 연결 필요)';
+    }
+    if (on && newInput) {
+      newInput.focus();
+    } else {
+      if (newInput) newInput.value = '';
+      if (reasonInput) reasonInput.value = '';
+      updatePreview();
+      refreshCycleBox();
+    }
+  }
+
+  editBtn?.addEventListener('click', () => {
+    const wallet = getAdminWalletAddress();
+    if (!wallet) {
+      showToast('관리자 지갑을 먼저 연결하세요.', 'bad');
+      return;
+    }
+    setEditMode(true);
+  });
+
+  cancelBtn?.addEventListener('click', () => {
+    setEditMode(false);
+  });
+
+  // (2026-05-08) Wire to POST /api/admin/silica/rate (backend was already
+  //   implemented in admin_silica_rate.php; only the click handler was a
+  //   stub). On success the next-cycle effective date and round-trip
+  //   payload are surfaced in the toast so the operator can verify the
+  //   write landed without flipping to a separate audit screen.
+  async function loadCurrentRate() {
+    if (!window.AdminCore?.api) return;
+    try {
+      const r = await window.AdminCore.api('/api/admin/silica/rate', { method: 'GET' });
+      const cur = Number(r?.this_cycle_rate_pct ?? 0);
+      if (currentInput && Number.isFinite(cur) && cur > 0) {
+        currentInput.value = cur.toFixed(2);
+      }
+      // (2026-05-08) Track the saved next-cycle rate so refreshCycleBox()
+      //   can render it in the "다음 회차" column even after the user has
+      //   left edit mode. Earlier the box always mirrored the current
+      //   rate, hiding the just-saved change.
+      const nxt = Number(r?.next_cycle_rate_pct ?? 0);
+      const nxtDate = String(r?.next_cycle_payout || '').slice(0, 10);
+      const hasPending = Number.isFinite(nxt) && nxt > 0 && nxt !== cur;
+      savedNextCycleRate = (Number.isFinite(nxt) && nxt > 0) ? nxt : NaN;
+
+      // Populate the dedicated "다음 예정된 이자율" read-only field. Only
+      //   shown when there's an actual pending change distinct from the
+      //   current rate, so the form stays compact otherwise.
+      if (nextRateFieldWrap && nextRateField) {
+        if (hasPending) {
+          nextRateField.value = nxt.toFixed(2);
+          if (nextRateFieldHint) {
+            nextRateFieldHint.textContent = nxtDate
+              ? `${nxtDate} 회차부터 적용 예정입니다.`
+              : '다음 회차부터 적용 예정입니다.';
+          }
+          nextRateFieldWrap.style.display = '';
+        } else {
+          nextRateField.value = '';
+          nextRateFieldWrap.style.display = 'none';
+        }
+      }
+
+      if (hasPending && noticeEl) {
+        noticeEl.textContent = `현재 ${cur.toFixed(2)}% · 다음 회차(${nxtDate})부터 ${nxt.toFixed(2)}% 적용 예약됨`;
+      }
+      refreshCycleBox();
+    } catch (e) {
+      console.warn('[silica.rate] load failed', e);
+    }
+  }
+  loadCurrentRate();
+
+  saveBtn?.addEventListener('click', async () => {
+    const wallet = getAdminWalletAddress();
+    if (!wallet) {
+      showToast('관리자 지갑을 먼저 연결하세요.', 'bad');
+      setEditMode(false);
+      return;
+    }
+    const next = parseFloat(newInput?.value);
+    const reason = (reasonInput?.value || '').trim();
+    if (!Number.isFinite(next) || next < 0) {
+      showToast('새 이자율은 0 이상의 숫자여야 합니다.', 'bad');
+      return;
+    }
+    if (!reason) {
+      showToast('변경 사유를 입력하세요.', 'bad');
+      return;
+    }
+    if (!window.AdminCore?.api) {
+      showToast('AdminCore 가 준비되지 않았습니다. 새로고침 후 다시 시도하세요.', 'bad');
+      return;
+    }
+
+    // Lock the button for the round-trip.
+    saveBtn.disabled = true;
+    const origLabel = saveBtn.textContent;
+    saveBtn.textContent = '저장 중…';
+
+    try {
+      const r = await window.AdminCore.api('/api/admin/silica/rate', {
+        method: 'POST',
+        body: { rate_pct: next, reason },
+      });
+      const eff = String(r?.effective_from_payout || '').slice(0, 10);
+      const newPct = Number(r?.new_rate_pct ?? next);
+      showToast(`이자율 ${newPct.toFixed(2)}% 저장 완료 (${eff || '다음 회차'} 부터 적용)`, 'good');
+      setEditMode(false);
+      await loadCurrentRate();
+      await loadRateHistory(); // refresh audit log table
+    } catch (e) {
+      const msg = e?.message || String(e);
+      showToast(`저장 실패: ${msg}`, 'bad');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = origLabel;
+    }
+  });
+
+  // (2026-05-08) Wire 변경 이력 (감사 로그) table to
+  //   GET /api/admin/silica/rate/history. The placeholder static row
+  //   is wiped on load and replaced by the actual history; the
+  //   "⟳ 새로고침" button re-fetches.
+  const historyBody = document.getElementById('rateHistoryBody');
+  const historyRefreshBtn = document.getElementById('historyRefreshBtn');
+  const historyExportBtn  = document.getElementById('historyExportBtn');
+
+  function escHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function fmtRowDate(s) {
+    if (!s) return '-';
+    const t = String(s).trim();
+    return t.length >= 16 ? t.slice(0, 16).replace('T', ' ') : t;
+  }
+
+  async function loadRateHistory() {
+    if (!historyBody || !window.AdminCore?.api) return;
+    historyBody.innerHTML = '<tr><td colspan="6" class="center muted">로딩 중...</td></tr>';
+    try {
+      const r = await window.AdminCore.api('/api/admin/silica/rate/history?limit=200', { method: 'GET' });
+      const rows = Array.isArray(r?.history) ? r.history : [];
+      if (!rows.length) {
+        historyBody.innerHTML = '<tr><td colspan="6" class="center muted">변경 이력이 없습니다.</td></tr>';
+        return;
+      }
+      historyBody.innerHTML = rows.map((row) => {
+        const created = fmtRowDate(row.created_at);
+        const eff = String(row.effective_from_payout || '').slice(0, 7);
+        const prev = row.prev_rate_bps != null
+          ? `${(Number(row.prev_rate_bps) / 100).toFixed(2)}%`
+          : '—';
+        const cur = `${Number(row.rate_pct ?? row.rate_bps / 100).toFixed(2)}%`;
+        return `
+          <tr>
+            <td>${escHtml(created)}</td>
+            <td><span class="badge badge-cyan">${escHtml(eff)} 회차</span></td>
+            <td class="text-mono">${escHtml(prev)}</td>
+            <td class="text-mono"><strong>${escHtml(cur)}</strong></td>
+            <td>${escHtml(row.created_by || '-')}</td>
+            <td>${escHtml(row.reason || '-')}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      console.warn('[silica.rate.history] load failed', e);
+      historyBody.innerHTML = `<tr><td colspan="6" class="center muted">이력을 불러오지 못했습니다: ${escHtml(e?.message || e)}</td></tr>`;
+    }
+  }
+
+  historyRefreshBtn?.addEventListener('click', loadRateHistory);
+  historyExportBtn?.addEventListener('click', () => {
+    showToast('CSV 내보내기는 추후 추가 예정입니다.', 'good');
+  });
+
+  loadRateHistory();
+
+  // ============ Wind-down 종합 패널 (v396) ============
+  //
+  // (2026-05-16 v400) 운영자: '⚠ 운영 종료 / Wind-down 카드를 모두
+  //   제거해라. 4단계와 5단계만 settings.html 에 구현해라.' 본 IIFE 는
+  //   비활성화 — return 으로 즉시 종료. element 참조 / backend 호출
+  //   모두 차단. settings.html#winddown 에 동일한 4/5단계 패널이 있고
+  //   거기 IIFE 가 별도 작동. 본 코드는 git 보존 차원에서 남김.
+  //
+  // (이전) 약관 v392 제10조 (광산 매각, 운영 종료 및 정산) 시스템화.
+  //   State machine: active → winding_down → closed.
+  //   각 단계 카드가 현재 state 에 따라 자동 활성/비활성 + UI 안내.
+  //
+  // Endpoints (settings.html#winddown 의 IIFE 가 호출):
+  //   GET  /api/admin/silica/winddown
+  //   POST /api/admin/silica/winddown/disable-staking  (4단계, 14~16일 차단)
+  //   POST /api/admin/silica/winddown/close            (5단계)
+  (() => {
+    return; // (v400) UI 가 settings.html 로 이전됨.
+    const api   = window.AdminCore?.api;
+    const toast = window.AdminCore?.toast;
+    if (!api) return;
+
+    const els = {
+      // 상태 표시
+      stateBadge: document.getElementById('winddownState'),
+      announcedAt: document.getElementById('winddownAnnouncedAt'),
+      stakingDisabledAt: document.getElementById('winddownStakingDisabledAt'),
+      deadlineDisplay: document.getElementById('winddownDeadlineDisplay'),
+      ammDisplay: document.getElementById('winddownAmmDisplay'),
+      // Step 카드
+      stepBegin: document.getElementById('winddownStepBegin'),
+      stepAmm: document.getElementById('winddownStepAmm'),
+      stepDeadline: document.getElementById('winddownStepDeadline'),
+      stepDisable: document.getElementById('winddownStepDisableStaking'),
+      stepClose: document.getElementById('winddownStepClose'),
+      // Step 1: Begin
+      reasonInput: document.getElementById('winddownReasonInput'),
+      beginBtn: document.getElementById('winddownBeginBtn'),
+      // Step 2: AMM
+      ammEnabled: document.getElementById('winddownAmmEnabled'),
+      ammPrice: document.getElementById('winddownAmmPrice'),
+      ammLiquidity: document.getElementById('winddownAmmLiquidity'),
+      ammSaveBtn: document.getElementById('winddownAmmSaveBtn'),
+      // Step 3: Deadline
+      deadlineInput: document.getElementById('winddownDeadlineInput'),
+      deadlineHint: document.getElementById('winddownDeadlineHint'),
+      deadlineSaveBtn: document.getElementById('winddownDeadlineSaveBtn'),
+      // Step 4: Disable staking
+      disableBtn: document.getElementById('winddownDisableStakingBtn'),
+      disableHint: document.getElementById('winddownStakingHint'),
+      // Step 5: Close
+      closeBtn: document.getElementById('winddownCloseBtn'),
+      // Modals
+      confirmModal: document.getElementById('winddownConfirmModal'),
+      confirmInput: document.getElementById('winddownConfirmInput'),
+      confirmError: document.getElementById('winddownConfirmError'),
+      confirmCancel: document.getElementById('winddownConfirmCancel'),
+      confirmSubmit: document.getElementById('winddownConfirmSubmit'),
+      closeModal: document.getElementById('winddownCloseModal'),
+      closeInput: document.getElementById('winddownCloseInput'),
+      closeError: document.getElementById('winddownCloseError'),
+      closeCancel: document.getElementById('winddownCloseCancel'),
+      closeSubmit: document.getElementById('winddownCloseSubmit'),
+    };
+
+    const fmtDt = (s) => {
+      if (!s) return '-';
+      return String(s).replace('T', ' ').slice(0, 19);
+    };
+
+    const setStepDisabled = (stepEl, disabled, hint) => {
+      if (!stepEl) return;
+      stepEl.style.opacity = disabled ? '0.5' : '1';
+      stepEl.style.pointerEvents = disabled ? 'none' : '';
+      // hint 는 step 내부 small-note 가 아니라 step 첫 번째 small-note 갱신
+      if (hint) {
+        const note = stepEl.querySelector('.small-note');
+        if (note && !stepEl.dataset.origNote) stepEl.dataset.origNote = note.innerHTML;
+        if (note) note.innerHTML = hint;
+      } else if (stepEl.dataset.origNote) {
+        const note = stepEl.querySelector('.small-note');
+        if (note) note.innerHTML = stepEl.dataset.origNote;
+        delete stepEl.dataset.origNote;
+      }
+    };
+
+    const LOCK_DAYS = [14, 15, 16];
+    const today = new Date();
+    const todayDay = today.getDate();
+    const inLockWindow = LOCK_DAYS.includes(todayDay);
+
+    let currentState = null;
+
+    const renderState = (w) => {
+      currentState = w?.state || 'active';
+
+      // 상태 칩
+      if (els.stateBadge) {
+        const map = {
+          'active': { txt: '정상 운영 (active)', bg: '#dcfce7', color: '#15803d' },
+          'winding_down': { txt: 'Wind-down 진행 중', bg: '#fef3c7', color: '#92400e' },
+          'closed': { txt: '영구 폐쇄 (closed)', bg: '#fee2e2', color: '#991b1b' },
+        };
+        const s = map[currentState] || { txt: currentState, bg: '#f1f5f9', color: '#475569' };
+        els.stateBadge.textContent = s.txt;
+        els.stateBadge.style.background = s.bg;
+        els.stateBadge.style.color = s.color;
+      }
+      if (els.announcedAt) els.announcedAt.textContent = fmtDt(w?.announced_at);
+      if (els.stakingDisabledAt) els.stakingDisabledAt.textContent = fmtDt(w?.staking_disabled_at);
+      if (els.deadlineDisplay) els.deadlineDisplay.textContent = fmtDt(w?.withdrawal_deadline);
+      if (els.ammDisplay) {
+        if (Number(w?.amm_enabled) === 1) {
+          const price = Number(w?.amm_buy_price_usdt || 0);
+          const liq = Number(w?.amm_liquidity_usdt || 0);
+          const used = Number(w?.amm_liquidity_used || 0);
+          els.ammDisplay.textContent = `활성 · 시세 ${price} USDT · 유동성 ${(liq - used).toLocaleString('ko-KR')} / ${liq.toLocaleString('ko-KR')} USDT`;
+        } else {
+          els.ammDisplay.textContent = '비활성';
+        }
+      }
+
+      // 각 step 활성/비활성
+      const isActive = currentState === 'active';
+      const isWinding = currentState === 'winding_down';
+      const isClosed = currentState === 'closed';
+      const hasDeadline = !!w?.withdrawal_deadline;
+      const hasStakingDisabled = !!w?.staking_disabled_at;
+
+      // Step 1: Begin — active 일 때만
+      setStepDisabled(els.stepBegin, !isActive, isActive ? null : `이미 진행 중 또는 종료됨 (state: ${currentState}).`);
+
+      // Step 2: AMM — winding_down 일 때만
+      setStepDisabled(els.stepAmm, !isWinding, isWinding ? null : (isActive ? '1단계 완료 후 활성.' : '이미 종료된 상태.'));
+
+      // Step 3: Deadline — winding_down 일 때만
+      setStepDisabled(els.stepDeadline, !isWinding, isWinding ? null : (isActive ? '1단계 완료 후 활성.' : '이미 종료된 상태.'));
+
+      // Step 4: Disable staking — winding_down + not yet disabled + 14~16일 외
+      let step4Disabled = false;
+      let step4Hint = '';
+      if (!isWinding) {
+        step4Disabled = true;
+        step4Hint = isActive ? '1단계 완료 후 활성.' : '이미 종료된 상태.';
+      } else if (hasStakingDisabled) {
+        step4Disabled = true;
+        step4Hint = `이미 실행됨 (${fmtDt(w.staking_disabled_at)}).`;
+      } else if (inLockWindow) {
+        step4Disabled = true;
+        step4Hint = `오늘은 ${todayDay}일 (스테이킹 락 윈도우) — 17일 이후 실행 가능.`;
+      }
+      setStepDisabled(els.stepDisable, step4Disabled, step4Disabled ? step4Hint : null);
+      if (els.disableHint && !step4Disabled) {
+        els.disableHint.textContent = '버튼 클릭 후 확인 모달에서 "스테이킹 중단" 을 입력하세요.';
+      } else if (els.disableHint) {
+        els.disableHint.textContent = step4Hint;
+      }
+      if (els.disableBtn) els.disableBtn.disabled = step4Disabled;
+
+      // Step 5: Close — winding_down + has deadline
+      let step5Disabled = false;
+      let step5Hint = '';
+      if (isClosed) {
+        step5Disabled = true;
+        step5Hint = '이미 종료됨.';
+      } else if (!isWinding) {
+        step5Disabled = true;
+        step5Hint = '1단계 완료 후 활성.';
+      } else if (!hasDeadline) {
+        step5Disabled = true;
+        step5Hint = '3단계 (출금 마감일) 설정 후 활성.';
+      }
+      setStepDisabled(els.stepClose, step5Disabled, step5Disabled ? step5Hint : null);
+
+      // Form 값 채우기 (기존 설정 미리보기)
+      if (els.ammEnabled) els.ammEnabled.checked = Number(w?.amm_enabled) === 1;
+      if (els.ammPrice) els.ammPrice.value = w?.amm_buy_price_usdt || '';
+      if (els.ammLiquidity) els.ammLiquidity.value = w?.amm_liquidity_usdt || '';
+      if (els.deadlineInput && w?.withdrawal_deadline) {
+        els.deadlineInput.value = String(w.withdrawal_deadline).slice(0, 10);
+      }
+      // 2개월 한도 표시
+      if (els.deadlineHint && w?.announced_at) {
+        try {
+          const a = new Date(w.announced_at.replace(' ', 'T'));
+          const max = new Date(a);
+          max.setMonth(max.getMonth() + 2);
+          els.deadlineHint.textContent = `최대 ${max.toISOString().slice(0, 10)} 까지`;
+          if (els.deadlineInput) els.deadlineInput.max = max.toISOString().slice(0, 10);
+        } catch (_) {}
+      }
+    };
+
+    const loadState = async () => {
+      try {
+        const r = await api('/api/admin/silica/winddown', { method: 'GET' });
+        renderState(r?.winddown || {});
+      } catch (e) {
+        console.warn('[winddown load]', e);
+        toast?.(e?.message || '상태 로딩 실패', 'bad');
+      }
+    };
+
+    // --- Step 1: Begin ---
+    els.beginBtn?.addEventListener('click', async () => {
+      if (!confirm('Wind-down 을 시작합니다. 운영 종료 공식 공지로 기록되며 되돌릴 수 없습니다.\n계속하시겠습니까?')) return;
+      els.beginBtn.disabled = true;
+      try {
+        await api('/api/admin/silica/winddown/begin', {
+          method: 'POST',
+          body: { reason: els.reasonInput?.value || '' },
+        });
+        toast?.('Wind-down 시작 완료', 'good');
+        await loadState();
+      } catch (e) {
+        toast?.(e?.message || '시작 실패', 'bad');
+      } finally {
+        els.beginBtn.disabled = false;
+      }
+    });
+
+    // --- Step 2: AMM ---
+    els.ammSaveBtn?.addEventListener('click', async () => {
+      const enabled = !!els.ammEnabled?.checked;
+      const price = Number(els.ammPrice?.value || 0);
+      const liquidity = Number(els.ammLiquidity?.value || 0);
+      if (enabled && price <= 0) { toast?.('AMM 매수 시세는 0 보다 커야 합니다.', 'bad'); return; }
+      if (enabled && liquidity < 0) { toast?.('USDT 유동성은 0 이상이어야 합니다.', 'bad'); return; }
+      els.ammSaveBtn.disabled = true;
+      try {
+        await api('/api/admin/silica/winddown/set-amm', {
+          method: 'POST',
+          body: { enabled, buy_price_usdt: price, liquidity_usdt: liquidity },
+        });
+        toast?.('AMM 설정 저장 완료', 'good');
+        await loadState();
+      } catch (e) {
+        toast?.(e?.message || '저장 실패', 'bad');
+      } finally {
+        els.ammSaveBtn.disabled = false;
+      }
+    });
+
+    // --- Step 3: Deadline ---
+    els.deadlineSaveBtn?.addEventListener('click', async () => {
+      const val = (els.deadlineInput?.value || '').trim();
+      if (!val) { toast?.('출금 마감일을 선택하세요.', 'bad'); return; }
+      els.deadlineSaveBtn.disabled = true;
+      try {
+        await api('/api/admin/silica/winddown/set-deadline', {
+          method: 'POST',
+          body: { withdrawal_deadline: val },
+        });
+        toast?.('출금 마감일 저장 완료', 'good');
+        await loadState();
+      } catch (e) {
+        toast?.(e?.message || '저장 실패', 'bad');
+      } finally {
+        els.deadlineSaveBtn.disabled = false;
+      }
+    });
+
+    // --- Step 4: Disable staking (모달) ---
+    const openConfirmModal = () => {
+      if (els.confirmInput) els.confirmInput.value = '';
+      if (els.confirmError) els.confirmError.textContent = '';
+      els.confirmModal?.classList.remove('hidden');
+      setTimeout(() => els.confirmInput?.focus(), 50);
+    };
+    const closeConfirmModal = () => els.confirmModal?.classList.add('hidden');
+
+    els.disableBtn?.addEventListener('click', openConfirmModal);
+    els.confirmCancel?.addEventListener('click', closeConfirmModal);
+    els.confirmModal?.addEventListener('click', (e) => { if (e.target === els.confirmModal) closeConfirmModal(); });
+    els.confirmSubmit?.addEventListener('click', async () => {
+      const txt = (els.confirmInput?.value || '').trim();
+      if (txt !== '스테이킹 중단') {
+        if (els.confirmError) els.confirmError.textContent = '확인 문구가 일치하지 않습니다. 정확히 "스테이킹 중단" 을 입력하세요.';
+        return;
+      }
+      els.confirmSubmit.disabled = true;
+      const origLabel = els.confirmSubmit.textContent;
+      els.confirmSubmit.textContent = '처리 중…';
+      if (els.confirmError) els.confirmError.textContent = '';
+      try {
+        const r = await api('/api/admin/silica/winddown/disable-staking', {
+          method: 'POST',
+          body: { confirm_text: txt },
+        });
+        const cnt = Number(r?.unstake_count || 0);
+        const tot = Number(r?.total_unstaked || 0);
+        toast?.(`강제 언스테이킹 완료 — ${cnt}명 / ${tot.toLocaleString('ko-KR')} SilicaSTO 이동`, 'good');
+        closeConfirmModal();
+        await loadState();
+      } catch (e) {
+        if (els.confirmError) els.confirmError.textContent = e?.message || String(e) || '실행 실패';
+      } finally {
+        els.confirmSubmit.disabled = false;
+        els.confirmSubmit.textContent = origLabel;
+      }
+    });
+
+    // --- Step 5: Close (모달) ---
+    const openCloseModal = () => {
+      if (els.closeInput) els.closeInput.value = '';
+      if (els.closeError) els.closeError.textContent = '';
+      els.closeModal?.classList.remove('hidden');
+      setTimeout(() => els.closeInput?.focus(), 50);
+    };
+    const closeCloseModal = () => els.closeModal?.classList.add('hidden');
+
+    els.closeBtn?.addEventListener('click', openCloseModal);
+    els.closeCancel?.addEventListener('click', closeCloseModal);
+    els.closeModal?.addEventListener('click', (e) => { if (e.target === els.closeModal) closeCloseModal(); });
+    els.closeSubmit?.addEventListener('click', async () => {
+      const txt = (els.closeInput?.value || '').trim();
+      if (txt !== '서비스 종료') {
+        if (els.closeError) els.closeError.textContent = '확인 문구가 일치하지 않습니다. 정확히 "서비스 종료" 를 입력하세요.';
+        return;
+      }
+      els.closeSubmit.disabled = true;
+      const origLabel = els.closeSubmit.textContent;
+      els.closeSubmit.textContent = '처리 중…';
+      if (els.closeError) els.closeError.textContent = '';
+      try {
+        const r = await api('/api/admin/silica/winddown/close', {
+          method: 'POST',
+          body: { confirm_text: txt },
+        });
+        toast?.(`서비스 영구 폐쇄 완료. 미회수 SilicaSTO 잔액: ${Number(r?.remaining_silica_sto_balance || 0).toLocaleString('ko-KR')}`, 'good');
+        closeCloseModal();
+        await loadState();
+      } catch (e) {
+        if (els.closeError) els.closeError.textContent = e?.message || String(e) || '실행 실패';
+      } finally {
+        els.closeSubmit.disabled = false;
+        els.closeSubmit.textContent = origLabel;
+      }
+    });
+
+    // 초기 로드
+    loadState();
+  })();
+});
+</script>
+
+</body>
+</html>

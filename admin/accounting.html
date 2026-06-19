@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>회계 통계 · SilicaChain</title>
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <link rel="shortcut icon" href="img/favicon.png">
+  <style>
+    .admin-shell{max-width:1280px;margin:0 auto;padding:22px 16px}
+    .admin-grid{display:grid;grid-template-columns:260px 1fr;gap:14px;margin-top:14px}
+    @media (max-width:900px){.admin-grid{grid-template-columns:1fr}}
+    .admin-menu{display:flex;flex-direction:column;gap:10px}
+    .admin-menu a{width:100%!important;display:flex!important;justify-content:flex-start!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+    .admin-menu a.active{background:var(--accent-light); border:1px solid var(--amber-border); color:var(--accent-dark)}
+    .stat-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+    @media (max-width:1280px){.stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media (max-width:1040px){.stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media (max-width:760px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:520px){.stat-grid{grid-template-columns:1fr}}
+    .stat-card{padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+    .stat-title{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+    .stat-subtitle{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.35;min-height:30px}
+    .stat-value{font-size:20px;font-weight:950;margin-top:8px;line-height:1.3}
+    .stat-value .dec{font-size:.7em;font-weight:600;color:var(--muted);opacity:.85}
+    .stat-value .unit{font-size:.65em;font-weight:600;color:var(--muted);margin-left:4px}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .dec{font-size:.72em;font-weight:500;color:var(--muted);opacity:.8}
+  </style>
+</head>
+<body>
+<div id="toast" class="pill hidden"></div>
+<div id="adminHeaderMount"></div>
+<div class="admin-shell">
+  <div class="admin-grid">
+    <div class="card">
+      <div class="pad admin-menu">
+        <div class="muted">관리 메뉴</div>
+        <a class="btn block" href="dashboard.html">대시보드</a>
+        <a class="btn block" href="assets.html">부동산 자산 등록/관리</a>
+        <a class="btn block" href="docs.html">문서 관리</a>
+        <a class="btn block" href="sales.html">매각 관리</a>
+        <a class="btn block" href="staking.html">스테이킹 설정</a>
+        <a class="btn block" href="users.html">유저 관리</a>
+        <a class="btn block" href="emails.html">단체 메일 발송</a>
+        <a class="btn block active" href="accounting.html">회계 통계</a>
+        <a class="btn block" href="referrals.html">추천인 관리</a>
+        <a class="btn block" href="deposits.html">입금 승인 관리</a>
+        <a class="btn block" href="withdrawals.html">출금 신청</a>
+        <a class="btn block" href="token-withdrawals.html">토큰 출금</a>
+        <a class="btn block" href="settings.html">설정</a>
+        <a class="btn block" href="contracts.html">문서/계약 관리</a>
+        <a class="btn block" href="fx-live.html">실시간 환율</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <div style="font-weight:950;font-size:16px">회계 통계 대시보드</div>
+            <div class="muted" style="margin-top:6px">유저 실보유 USDT, 모금 사용 총액, 입금/출금 대기, 전월/당월/다음달 이자를 함께 확인합니다.</div>
+          </div>
+          <div class="tagrow"><button id="acctRefreshBtn" class="btn small" type="button">새로고침</button></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div id="acctSummaryNotice" class="notice">
+          <strong>집계 기준</strong>
+          <!-- (2026-05-11 v281) 운영자: 'notes 폰트가 너무 크다.'
+               .notice 기본 font-size(18px)를 따르지 않도록 인라인 축소
+               + 백엔드가 보내는 줄바꿈을 그대로 렌더하도록 pre-line. -->
+          <span id="acctSummaryMeta" style="display:block; margin-top:6px; font-size:12px; line-height:1.6; white-space:pre-line; color:var(--muted);">-</span>
+        </div>
+
+        <!-- (2026-05-16 v411) 운영자: '각각 수익들에 대한 카드를 누르면
+             해당 수익건에 대한 세부내역을 볼 수 있는 카드 팝업.' 수익
+             카드 9개에 클릭 핸들러 추가 (data-detail 속성). 카드 클릭 →
+             해당 카테고리 모달 (이자 / 출금수수료 / 거래수수료) 오픈.
+             정보 카드 (총 유저 / 유저 USDT / 모금 / 입금대기 / 출금대기)
+             는 수익 아니므로 클릭 안 됨. -->
+        <style>
+          .stat-card[data-detail] { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+          .stat-card[data-detail]:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
+        </style>
+        <div class="stat-grid" style="margin-top:12px">
+          <div class="stat-card"><div class="stat-title">총 유저 수</div><div class="stat-subtitle">현재 가입/연결 유저</div><div id="acctUserCount" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">유저 총 USDT</div><div class="stat-subtitle">balances 기준</div><div id="acctTotalUserUsdt" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">모금 사용 총액</div><div class="stat-subtitle">확정 + 관리자 대기</div><div id="acctFundingUsed" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">입금 대기 USDT</div><div class="stat-subtitle">승인 전 입금 신청</div><div id="acctPendingDeposits" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">출금 대기 USDT</div><div class="stat-subtitle">전송 대기 기준</div><div id="acctPendingWithdrawals" class="stat-value mono">-</div></div>
+          <!-- (2026-05-20 v680) 출금 대기 토큰 카드 — SilicaSTO / Silica 분리.
+               token_withdraw_requests 의 pending+processing 합산. -->
+          <div class="stat-card"><div class="stat-title">출금 대기 SilicaSTO</div><div class="stat-subtitle">토큰 출금 대기 (단일 자산)</div><div id="acctPendingWithdrawalsSto" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">출금 대기 Silica</div><div class="stat-subtitle">Silica 보상 토큰 출금 대기</div><div id="acctPendingWithdrawalsSilica" class="stat-value mono">-</div></div>
+          <!-- (2026-05-16 v413) 운영자: '관리자 수익은 출금수수료/거래수수료
+               2가지. 이자 카드 클릭 팝업은 잠시 숨겨두고 출금/거래수수료
+               팝업에서 디테일한 세부 내역.' 이자는 사용자에게 지급되는
+               비용 (= 회사 비용) 이라 관리자 수익 아님. 카드의 data-detail
+               속성 제거 → 클릭 불가. 🔍 이모지도 제거. -->
+          <div class="stat-card"><div class="stat-title">누적 이자</div><div class="stat-subtitle">전체 누적 발생 이자</div><div id="acctCumulativeInterest" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">전월 발생 이자</div><div id="acctPreviousMonthLabel" class="stat-subtitle">-</div><div id="acctPreviousMonthInterest" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">당월 발생 이자</div><div id="acctCurrentMonthLabel" class="stat-subtitle">-</div><div id="acctCurrentMonthInterest" class="stat-value mono">-</div></div>
+          <div class="stat-card"><div class="stat-title">다음달 예상 이자</div><div id="acctNextProjectedLabel" class="stat-subtitle">-</div><div id="acctNextProjectedInterest" class="stat-value mono">-</div></div>
+          <div class="stat-card" data-detail="withdraw_fee"><div class="stat-title">출금수수료 수익 누적 🔍</div><div class="stat-subtitle">완료된 출금 기준</div><div id="acctWithdrawFeeCumulative" class="stat-value mono">-</div></div>
+          <div class="stat-card" data-detail="withdraw_fee"><div class="stat-title">출금수수료 수익 전월 🔍</div><div id="acctWithdrawFeePreviousLabel" class="stat-subtitle">-</div><div id="acctWithdrawFeePrevious" class="stat-value mono">-</div></div>
+          <div class="stat-card" data-detail="withdraw_fee"><div class="stat-title">출금수수료 수익 현재월 🔍</div><div id="acctWithdrawFeeCurrentLabel" class="stat-subtitle">-</div><div id="acctWithdrawFeeCurrent" class="stat-value mono">-</div></div>
+          <div class="stat-card" data-detail="trade_fee"><div class="stat-title">거래수수료 수익 누적 🔍</div><div class="stat-subtitle">체결 완료 기준</div><div id="acctTradeFeeCumulative" class="stat-value mono">-</div></div>
+          <div class="stat-card" data-detail="trade_fee"><div class="stat-title">거래수수료 수익 전월 🔍</div><div id="acctTradeFeePreviousLabel" class="stat-subtitle">-</div><div id="acctTradeFeePrevious" class="stat-value mono">-</div></div>
+          <div class="stat-card" data-detail="trade_fee"><div class="stat-title">거래수수료 수익 현재월 🔍</div><div id="acctTradeFeeCurrentLabel" class="stat-subtitle">-</div><div id="acctTradeFeeCurrent" class="stat-value mono">-</div></div>
+        </div>
+
+        <!-- (v413) 수익 세부 모달 — 출금수수료 / 거래수수료만.
+             상단: 시기별 합계 + 산정 기준 + period 필터 버튼.
+             하단: 세부 거래 내역 표 + 페이지네이션. -->
+        <div id="acctDetailModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+          <div style="background:#fff; border-radius:14px; max-width:920px; width:100%; max-height:calc(100vh - 48px); overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(15,23,42,0.30);">
+            <div style="padding:18px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:950; font-size:18px;" id="acctDetailTitle">수익 세부</div>
+                <div class="small-note" id="acctDetailSubtitle" style="margin-top:4px;">-</div>
+              </div>
+              <button id="acctDetailClose" class="btn small" type="button">✕ 닫기</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:18px 20px;">
+              <!-- 시기별 합계 -->
+              <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px; margin-bottom:14px;">
+                <div class="stat-card" style="padding:10px 12px;">
+                  <div class="stat-title" style="font-size:11px;">누적</div>
+                  <div id="acctDetailCumul" class="stat-value mono" style="font-size:16px; margin-top:4px;">-</div>
+                </div>
+                <div class="stat-card" style="padding:10px 12px;">
+                  <div class="stat-title" style="font-size:11px;" id="acctDetailPrevLabel">전월</div>
+                  <div id="acctDetailPrev" class="stat-value mono" style="font-size:16px; margin-top:4px;">-</div>
+                </div>
+                <div class="stat-card" style="padding:10px 12px;">
+                  <div class="stat-title" style="font-size:11px;" id="acctDetailCurLabel">현재월</div>
+                  <div id="acctDetailCur" class="stat-value mono" style="font-size:16px; margin-top:4px;">-</div>
+                </div>
+              </div>
+              <!-- (v415) 산정 기준 안내 notice 제거 — UI 노출 X. 코드 주석 참조. -->
+              <div id="acctDetailInfo" class="notice" style="display:none;">-</div>
+
+              <!-- (v413) 세부 거래 내역 표 -->
+              <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                <div style="font-weight:800; font-size:14px;">세부 거래 내역</div>
+                <div class="tagrow" id="acctDetailPeriodTabs">
+                  <button class="btn small active" data-period="cumulative" type="button">누적</button>
+                  <button class="btn small" data-period="previous" type="button">전월</button>
+                  <button class="btn small" data-period="current" type="button">현재월</button>
+                </div>
+              </div>
+              <div style="margin-top:8px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px;">
+                <table class="table" style="font-size:12px; margin:0;">
+                  <thead id="acctDetailTableHead">
+                    <tr><th>시점</th><th>주소</th><th class="right">수수료 (USDT)</th></tr>
+                  </thead>
+                  <tbody id="acctDetailTableBody">
+                    <tr><td colspan="6" class="muted center" style="padding:24px 0;">로딩 중…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span id="acctDetailPageInfo" class="small-note">- / -</span>
+                <div class="tagrow">
+                  <button id="acctDetailPrevBtn" class="btn small" type="button">◀ 이전</button>
+                  <button id="acctDetailNextBtn" class="btn small" type="button">다음 ▶</button>
+                </div>
+              </div>
+
+              <div class="tagrow" style="margin-top:14px;">
+                <a id="acctDetailLink" class="btn small primary" href="#" target="_blank" rel="noopener">전체 거래 내역 보기 ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <div style="font-weight:950;font-size:16px">자산별 이자 통계</div>
+            <div class="muted" style="margin-top:6px">미지급 이자 대신 전월/당월 실제 발생 이자와 현재 스테이킹 기준 다음달 예상 이자를 표시합니다.</div>
+          </div>
+        </div>
+
+        <div style="overflow:auto;margin-top:10px">
+          <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>자산</th>
+                <th>상태</th>
+                <th class="right">APR</th>
+                <th class="right">스테이커</th>
+                <th class="right">스테이킹 수량</th>
+                <th class="right">누적 이자(USDT)</th>
+                <th class="right">전월 이자(USDT)</th>
+                <th class="right">당월 이자(USDT)</th>
+                <th class="right">다음달 예상(USDT)</th>
+              </tr>
+            </thead>
+            <tbody id="acctAssetRows">
+              <tr><td colspan="9" class="muted center">-</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/accounting.js?v=20260526v850-image-swap"></script>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{window.AdminHeader.loadHeader()})
+</script>
+
+<!-- (2026-05-16 v411) 수익 카드 클릭 → 카테고리별 세부 모달.
+     accounting.js 가 fetch 한 summary 데이터를 window.__ACCT_SUMMARY__ 에
+     저장 (또는 모달 진입 시 재호출). 모달은 시기별 분포 + 산정 기준 +
+     관련 admin 페이지 deeplink 표시. -->
+<script>
+(function () {
+  const modal      = document.getElementById('acctDetailModal');
+  const titleEl    = document.getElementById('acctDetailTitle');
+  const subtitleEl = document.getElementById('acctDetailSubtitle');
+  const closeBtn   = document.getElementById('acctDetailClose');
+  const infoEl     = document.getElementById('acctDetailInfo');
+  const linkEl     = document.getElementById('acctDetailLink');
+  const cumulEl    = document.getElementById('acctDetailCumul');
+  const prevEl     = document.getElementById('acctDetailPrev');
+  const prevLabel  = document.getElementById('acctDetailPrevLabel');
+  const curEl      = document.getElementById('acctDetailCur');
+  const curLabel   = document.getElementById('acctDetailCurLabel');
+  const nextCard   = document.getElementById('acctDetailNextCard');
+  const nextEl     = document.getElementById('acctDetailNext');
+  const nextLabel  = document.getElementById('acctDetailNextLabel');
+  if (!modal) return;
+
+  const fmtUsdt = (v) => {
+    const n = Number(v || 0);
+    return n.toLocaleString('ko-KR', { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + ' USDT';
+  };
+
+  // (v413) interest 카드 클릭 비활성화 — 운영자 결정: 관리자 수익은 출금/거래
+  //   수수료 2가지만. 이자는 회사 비용 (사용자 지급) 이므로 제외.
+  // (v415) 운영자: '산정 기준 설명은 코드 주석으로 들어가있으면 된다.
+  //   사용자 페이지에는 이러한 설명글이 필요하지 않다.' info 필드를
+  //   화면 표시 X — 코드 주석으로만 보존 (운영자 / 개발자 참조용).
+  //
+  // ====== 산정 기준 (코드 주석 참조용) ======
+  //
+  // withdraw_fee:
+  //   · USDT 출금  → withdraw_requests.fee_amount (status = done/sent)
+  //   · 토큰 출금  → token_withdraw_requests.fee_amount (status = done)
+  //   · 토큰 수수료가 토큰으로 받힌 경우 시세 환산 후 합산
+  //   · 합계 = USDT 출금 fee_amount 합 + 토큰 출금 fee_amount (USDT 환산) 합
+  //
+  // trade_fee:
+  //   · DB 출처: trades 테이블의 fee 컬럼 (fee_usdt / taker_fee_usdt /
+  //     maker_fee_usdt / fee_amount / fee 중 존재 컬럼 합산)
+  //   · 매수/매도 양쪽에서 수수료 발생 가능
+  //   · 체결 완료 건만 (필터 없음 — trades 테이블 자체가 체결 결과 기록)
+  //
+  // ============================================
+  const PROFILE = {
+    withdraw_fee: {
+      title: '💰 출금수수료 수익 세부',
+      subtitle: 'USDT 출금 + 토큰 출금 처리 시 회사가 수취한 수수료.',
+      link: 'withdrawals.html',
+      linkText: '출금 신청 관리 ↗',
+      detailEndpoint: '/api/admin/accounting/withdraw-fee/detail',
+      tableHead: `<tr><th>시점</th><th>주소</th><th>종류</th><th class="right">출금량</th><th class="right">수수료 (USDT)</th></tr>`,
+      rowRender: (r) => {
+        const addr = String(r.address || '');
+        const addrShort = addr.length > 14 ? (addr.slice(0,6) + '…' + addr.slice(-4)) : addr;
+        return `<tr>
+          <td class="mono" style="font-size:11.5px;">${escHtml(String(r.event_at || '-').slice(0,19))}</td>
+          <td class="mono" title="${escHtml(addr)}">${escHtml(addrShort)}</td>
+          <td>${escHtml(String(r.kind || '-'))}</td>
+          <td class="right mono">${fmtN(r.amount, 6)}</td>
+          <td class="right mono"><strong>${fmtN(r.fee_usdt, 6)}</strong></td>
+        </tr>`;
+      },
+      colspan: 5,
+    },
+    trade_fee: {
+      title: '💰 거래수수료 수익 세부',
+      subtitle: '거래소 매수/매도 체결 시 회사가 수취한 수수료.',
+      // (v415) info 필드 제거 — UI 비표시. 산정 기준은 상단 주석 참조.
+      link: 'transactions.html',
+      linkText: '입출금 내역 ↗',
+      detailEndpoint: '/api/admin/accounting/trade-fee/detail',
+      tableHead: `<tr><th>시점</th><th>자산</th><th>side</th><th class="right">수량</th><th class="right">가격</th><th class="right">수수료 (USDT)</th></tr>`,
+      rowRender: (r) => {
+        const qty = Number(r.qty || r.quantity || r.amount || 0);
+        return `<tr>
+          <td class="mono" style="font-size:11.5px;">${escHtml(String(r.created_at || '-').slice(0,19))}</td>
+          <td>${escHtml(String(r.asset_id || r.symbol || '-'))}</td>
+          <td>${escHtml(String(r.side || '-'))}</td>
+          <td class="right mono">${fmtN(qty, 6)}</td>
+          <td class="right mono">${fmtN(r.price, 6)}</td>
+          <td class="right mono"><strong>${fmtN(r.fee_usdt, 6)}</strong></td>
+        </tr>`;
+      },
+      colspan: 6,
+    },
+  };
+
+  const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',
+  }[c]));
+  const fmtN = (v, d = 2) => Number(v || 0).toLocaleString('ko-KR', {
+    maximumFractionDigits: d, minimumFractionDigits: 0,
+  });
+
+  const detailValue = (type) => {
+    const txt = (id) => (document.getElementById(id)?.textContent || '-').trim();
+    const lblTxt = (id) => (document.getElementById(id)?.textContent || '').trim();
+    if (type === 'withdraw_fee') {
+      return {
+        cumul: txt('acctWithdrawFeeCumulative'),
+        prev:  txt('acctWithdrawFeePrevious'),
+        prevLabel: lblTxt('acctWithdrawFeePreviousLabel') || '전월',
+        cur:   txt('acctWithdrawFeeCurrent'),
+        curLabel:  lblTxt('acctWithdrawFeeCurrentLabel') || '현재월',
+      };
+    }
+    if (type === 'trade_fee') {
+      return {
+        cumul: txt('acctTradeFeeCumulative'),
+        prev:  txt('acctTradeFeePrevious'),
+        prevLabel: lblTxt('acctTradeFeePreviousLabel') || '전월',
+        cur:   txt('acctTradeFeeCurrent'),
+        curLabel:  lblTxt('acctTradeFeeCurrentLabel') || '현재월',
+      };
+    }
+    return null;
+  };
+
+  // (v413) 세부 거래 내역 표 — period 별 페이지네이션.
+  const tableHead    = document.getElementById('acctDetailTableHead');
+  const tableBody    = document.getElementById('acctDetailTableBody');
+  const pageInfo     = document.getElementById('acctDetailPageInfo');
+  const prevBtn      = document.getElementById('acctDetailPrevBtn');
+  const nextBtn      = document.getElementById('acctDetailNextBtn');
+  const periodTabs   = document.getElementById('acctDetailPeriodTabs');
+  const detailState  = { type: '', period: 'cumulative', offset: 0, total: 0 };
+  const DETAIL_LIMIT = 10;
+
+  const renderDetailPage = async () => {
+    const profile = PROFILE[detailState.type];
+    if (!profile || !tableBody) return;
+    tableBody.innerHTML = `<tr><td colspan="${profile.colspan}" class="muted center" style="padding:24px 0;">로딩 중…</td></tr>`;
+    if (tableHead) tableHead.innerHTML = profile.tableHead;
+    try {
+      const params = new URLSearchParams();
+      params.set('period', detailState.period);
+      params.set('offset', String(detailState.offset));
+      params.set('limit', String(DETAIL_LIMIT));
+      const r = await window.AdminCore.api(profile.detailEndpoint + '?' + params.toString(), { method: 'GET' });
+      const rows = Array.isArray(r?.rows) ? r.rows : [];
+      const pag  = r?.pagination || {};
+      detailState.total = Number(pag.total || 0);
+      if (!rows.length) {
+        tableBody.innerHTML = `<tr><td colspan="${profile.colspan}" class="muted center" style="padding:24px 0;">데이터 없음</td></tr>`;
+      } else {
+        tableBody.innerHTML = rows.map(profile.rowRender).join('');
+      }
+      const curPage = Math.floor(detailState.offset / DETAIL_LIMIT) + 1;
+      const totalPage = Math.max(1, Math.ceil(detailState.total / DETAIL_LIMIT));
+      if (pageInfo) pageInfo.textContent = `${curPage} / ${totalPage} (전체 ${detailState.total}건)`;
+      if (prevBtn) prevBtn.disabled = (detailState.offset === 0);
+      if (nextBtn) nextBtn.disabled = !pag.has_more;
+    } catch (e) {
+      tableBody.innerHTML = `<tr><td colspan="${profile.colspan}" class="center" style="padding:24px 0; color:#dc2626;">로딩 실패: ${e?.message || e}</td></tr>`;
+    }
+  };
+
+  const openModal = (type) => {
+    const profile = PROFILE[type];
+    const vals = detailValue(type);
+    if (!profile || !vals) return;
+    detailState.type = type;
+    detailState.period = 'cumulative';
+    detailState.offset = 0;
+    if (titleEl)    titleEl.textContent    = profile.title;
+    if (subtitleEl) subtitleEl.textContent = profile.subtitle;
+    // (v415) info 필드 제거 — 운영자: '산정 기준 설명글 사용자 페이지에 필요 X'
+    if (linkEl)     { linkEl.href = profile.link; linkEl.textContent = profile.linkText; }
+    if (cumulEl)    cumulEl.textContent    = vals.cumul;
+    if (prevEl)     prevEl.textContent     = vals.prev;
+    if (prevLabel)  prevLabel.textContent  = vals.prevLabel;
+    if (curEl)      curEl.textContent      = vals.cur;
+    if (curLabel)   curLabel.textContent   = vals.curLabel;
+    if (nextCard)   nextCard.hidden = true; // 수수료 카테고리에서는 next 안 씀
+    // period tab reset
+    periodTabs?.querySelectorAll('button[data-period]').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-period') === 'cumulative');
+    });
+    modal.classList.remove('hidden');
+    renderDetailPage();
+  };
+  const closeModal = () => modal.classList.add('hidden');
+
+  // 클릭 핸들러 — data-detail 속성 있는 카드만 (현재 withdraw_fee / trade_fee).
+  document.querySelectorAll('.stat-card[data-detail]').forEach((card) => {
+    card.addEventListener('click', () => openModal(card.getAttribute('data-detail')));
+  });
+  closeBtn?.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  // Period 탭 전환
+  periodTabs?.querySelectorAll('button[data-period]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const p = btn.getAttribute('data-period');
+      detailState.period = p;
+      detailState.offset = 0;
+      periodTabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      renderDetailPage();
+    });
+  });
+  prevBtn?.addEventListener('click', () => {
+    if (detailState.offset === 0) return;
+    detailState.offset = Math.max(0, detailState.offset - DETAIL_LIMIT);
+    renderDetailPage();
+  });
+  nextBtn?.addEventListener('click', () => {
+    detailState.offset += DETAIL_LIMIT;
+    renderDetailPage();
+  });
+})();
+</script>
+</body>
+</html>

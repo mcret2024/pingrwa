@@ -1,0 +1,19 @@
+# Ensure large POST bodies work for signature data (base64 PNG)
+<IfModule mod_php.c>
+    php_value post_max_size 8M
+    php_value upload_max_filesize 8M
+    php_value max_input_vars 5000
+</IfModule>
+
+RewriteEngine On
+
+# If the request is for a real file or directory, serve it directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route all /api/* requests to the PHP router
+RewriteRule ^api(/.*)?$ php-api/index.php [L,QSA]
+
+# Serve uploaded files
+RewriteRule ^uploads/(.*)$ uploads/$1 [L]

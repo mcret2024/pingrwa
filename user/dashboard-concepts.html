@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Concepts · SilicaChain</title>
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+<style>
+  :root {
+    --logo-red:    #E53935;
+    --logo-orange: #F57C00;
+    --logo-green:  #2E7D32;
+    --logo-blue:   #1976D2;
+    --logo-violet: #8E24AA;
+    --paper:       #FCFCFA;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Pretendard", sans-serif;
+    background: #F1F5F9;
+    color: #0F172A;
+    margin: 0;
+    padding: 32px 16px;
+  }
+  .page-title {
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .page-sub {
+    text-align: center;
+    color: #64748B;
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+  .concept-wrap {
+    max-width: 1400px;
+    margin: 0 auto 60px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  }
+  .concept-head {
+    padding: 20px 32px;
+    border-bottom: 2px solid #E2E8F0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: #F8FAFC;
+  }
+  .concept-id {
+    background: #0F172A;
+    color: #FFFFFF;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-family: 'Times New Roman', serif;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .concept-name { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+  .concept-tag { color: #64748B; font-size: 13px; max-width: 600px; }
+  .concept-stage {
+    padding: 40px;
+    background: var(--paper);
+    min-height: 480px;
+  }
+
+  /* ============================================ */
+  /* CONCEPT A: Editorial Magazine                */
+  /* ============================================ */
+  .conA { font-family: 'Times New Roman', Georgia, serif; }
+  .conA .ed-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 4px;
+    color: var(--logo-violet);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #0F172A;
+  }
+  .conA .ed-hero {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 48px;
+    align-items: start;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #CBD5E1;
+    margin-bottom: 32px;
+  }
+  .conA .ed-hero-num {
+    font-family: 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: clamp(80px, 12vw, 160px);
+    line-height: 0.85;
+    letter-spacing: -6px;
+    color: #0F172A;
+    margin: 0;
+  }
+  .conA .ed-hero-num .small { font-size: 0.4em; opacity: 0.5; font-weight: 400; }
+  .conA .ed-hero-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #64748B;
+    margin-bottom: 16px;
+  }
+  .conA .ed-hero-quote {
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.5;
+    color: #0F172A;
+    border-left: 3px solid var(--logo-violet);
+    padding: 8px 0 8px 24px;
+    margin: 0;
+  }
+  .conA .ed-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-bottom: 40px;
+  }
+  .conA .ed-cell {
+    padding: 24px 32px 24px 0;
+    border-right: 1px solid #CBD5E1;
+  }
+  .conA .ed-cell:last-child { border-right: none; padding-right: 0; }
+  .conA .ed-cell-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #64748B;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .conA .ed-cell-num {
+    font-family: 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-bottom: 6px;
+  }
+  .conA .ed-cell-cap {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: #64748B;
+  }
+  .conA .ed-section-title {
+    font-family: 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -1px;
+    margin: 0 0 16px;
+    border-bottom: 1px solid #0F172A;
+    padding-bottom: 8px;
+  }
+  .conA .ed-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px dotted #CBD5E1;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+  }
+  .conA .ed-row .date { color: #94A3B8; font-family: 'Times New Roman', serif; font-style: italic; }
+  .conA .ed-row .desc { font-weight: 600; }
+  .conA .ed-row .amt { text-align: right; font-weight: 700; color: var(--logo-green); }
+
+  /* ============================================ */
+  /* CONCEPT B: Terminal / Bloomberg              */
+  /* ============================================ */
+  .conB {
+    font-family: 'Space Grotesk', monospace;
+    background: #0A0E1A;
+    color: #E2E8F0;
+    padding: 32px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+  .conB .term-bar {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #1E293B;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    font-size: 11px;
+    color: #64748B;
+    letter-spacing: 2px;
+  }
+  .conB .term-bar .live { color: #10B981; }
+  .conB .term-bar .live::before { content: '●'; margin-right: 6px; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+  .conB .term-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    padding: 24px 0;
+    border-bottom: 1px solid #1E293B;
+    margin-bottom: 24px;
+  }
+  .conB .term-cell {
+    border-left: 2px solid #475569;
+    padding-left: 16px;
+  }
+  .conB .term-cell.up { border-left-color: #10B981; }
+  .conB .term-cell.zero { border-left-color: #475569; }
+  .conB .term-cell .lbl { font-size: 10px; color: #64748B; letter-spacing: 2px; margin-bottom: 6px; }
+  .conB .term-cell .val { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: #FFFFFF; }
+  .conB .term-cell .unit { font-size: 11px; color: #94A3B8; margin-top: 4px; }
+  .conB .term-cell .delta { font-size: 11px; margin-top: 4px; }
+  .conB .term-cell.up .delta { color: #10B981; }
+  .conB .term-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 100px 80px;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 12px;
+    border-bottom: 1px solid #1E293B;
+  }
+  .conB .term-row.head { color: #64748B; font-size: 10px; letter-spacing: 1px; padding-bottom: 8px; }
+  .conB .term-row .ts { color: #94A3B8; }
+  .conB .term-row .typ { font-weight: 600; }
+  .conB .term-row .amt { text-align: right; color: #10B981; font-weight: 700; }
+  .conB .term-row .st { text-align: right; font-size: 10px; color: #64748B; }
+  .conB .term-empty { text-align: center; padding: 32px 0; color: #475569; font-size: 13px; }
+
+  /* ============================================ */
+  /* CONCEPT C: Hero Number Stack                 */
+  /* ============================================ */
+  .conC { text-align: center; padding: 48px 0; }
+  .conC .hero-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 6px;
+    color: var(--logo-violet);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+  .conC .hero-mega {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(80px, 18vw, 220px);
+    line-height: 0.9;
+    letter-spacing: -8px;
+    margin: 0 0 8px;
+    background: linear-gradient(180deg, #0F172A 0%, #475569 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .conC .hero-mega .small {
+    font-size: 0.3em;
+    -webkit-text-fill-color: #94A3B8;
+    background: none;
+    margin-left: -8px;
+  }
+  .conC .hero-cap {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    color: #64748B;
+    letter-spacing: 2px;
+    margin-bottom: 64px;
+  }
+  .conC .hero-pills {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px 48px;
+    padding-top: 32px;
+    border-top: 1px solid #CBD5E1;
+  }
+  .conC .hero-pill { text-align: left; }
+  .conC .hero-pill .lbl {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; letter-spacing: 2px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .conC .hero-pill .val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    color: #0F172A;
+  }
+  .conC .hero-pill.violet .val { color: var(--logo-violet); }
+  .conC .hero-pill.red .val { color: var(--logo-red); }
+  .conC .hero-pill.blue .val { color: var(--logo-blue); }
+
+  /* ============================================ */
+  /* CONCEPT D: Horizontal Strip                  */
+  /* ============================================ */
+  .conD .strip-bar {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(4, 1fr);
+    align-items: center;
+    background: #0F172A;
+    color: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .conD .strip-cell {
+    padding: 24px 28px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .conD .strip-cell:last-child { border-right: none; }
+  .conD .strip-cell.brand {
+    background: linear-gradient(135deg, var(--logo-violet) 0%, var(--logo-blue) 100%);
+  }
+  .conD .strip-cell.brand .name {
+    font-family: 'Bebas Neue';
+    font-size: 24px;
+    letter-spacing: 1px;
+  }
+  .conD .strip-cell.brand .meta { font-size: 11px; opacity: 0.8; letter-spacing: 1px; }
+  .conD .strip-cell .lbl {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .conD .strip-cell .val {
+    font-family: 'Unbounded';
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -1px;
+  }
+  .conD .strip-cell .unit { font-size: 11px; color: #94A3B8; margin-top: 2px; }
+
+  .conD .strip-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+  .conD .strip-section {
+    padding: 24px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+  }
+  .conD .strip-section h3 {
+    font-family: 'Bebas Neue';
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin: 0 0 16px;
+    border-bottom: 2px solid #0F172A;
+    padding-bottom: 8px;
+  }
+  .conD .strip-empty { text-align: center; padding: 32px 0; color: #94A3B8; font-size: 13px; }
+  .conD .holding-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #F1F5F9;
+    font-family: 'Space Grotesk';
+    font-size: 13px;
+  }
+  .conD .holding-row .ticker { font-weight: 700; }
+  .conD .holding-row .bal { font-family: 'Unbounded'; font-weight: 700; }
+
+  /* ============================================ */
+  /* CONCEPT E: Asymmetric Split                  */
+  /* ============================================ */
+  .conE { display: grid; grid-template-columns: 1fr 320px; gap: 0; min-height: 480px; }
+  .conE .split-left {
+    padding: 40px;
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    color: #FFFFFF;
+    border-radius: 16px 0 0 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .conE .split-left::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--logo-violet) 0%, transparent 70%);
+    opacity: 0.4;
+  }
+  .conE .split-eyebrow {
+    font-family: 'Space Grotesk';
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--logo-violet);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .conE .split-mega {
+    font-family: 'Unbounded';
+    font-weight: 900;
+    font-size: clamp(60px, 8vw, 100px);
+    line-height: 1;
+    letter-spacing: -4px;
+    margin: 0 0 16px;
+    position: relative;
+  }
+  .conE .split-mega .small { font-size: 0.3em; color: #94A3B8; font-weight: 400; }
+  .conE .split-cap {
+    font-family: 'Space Grotesk';
+    font-size: 13px;
+    color: #94A3B8;
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .conE .split-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+  }
+  .conE .split-trio-cell .lbl {
+    font-family: 'Space Grotesk';
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .conE .split-trio-cell .val {
+    font-family: 'Unbounded';
+    font-weight: 700;
+    font-size: 24px;
+  }
+  .conE .split-right {
+    padding: 32px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+  }
+  .conE .split-right h3 {
+    font-family: 'Bebas Neue';
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin: 0 0 16px;
+    color: #0F172A;
+  }
+  .conE .split-feed-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #F1F5F9;
+    font-family: 'Space Grotesk';
+    font-size: 13px;
+  }
+  .conE .split-feed-item .when { font-size: 10px; color: #94A3B8; letter-spacing: 1px; margin-bottom: 4px; }
+  .conE .split-feed-item .what { font-weight: 600; }
+  .conE .split-empty { text-align: center; padding: 48px 0; color: #94A3B8; font-size: 13px; }
+
+  @media (max-width: 900px) {
+    .conA .ed-hero, .conA .ed-grid, .conD .strip-bar, .conD .strip-content, .conE { grid-template-columns: 1fr; }
+    .conB .term-grid { grid-template-columns: repeat(2, 1fr); }
+    .conE .split-left, .conE .split-right { border-radius: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Dashboard Concepts — 5 Variations</h1>
+<p class="page-sub">No-card layouts. Pick one number (A·B·C·D·E) to apply to index.html.</p>
+
+<!-- =================== CONCEPT A =================== -->
+<div class="concept-wrap">
+  <div class="concept-head">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="concept-id">A</span>
+      <span class="concept-name">Editorial Magazine</span>
+    </div>
+    <div class="concept-tag">Times New Roman 거대 숫자, 매거진 신문 스타일. 줄·점선 기반 구조. 차분하고 럭셔리.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="conA">
+      <div class="ed-eyebrow">// SilicaChain Investor — Vol 01 · Issue 01</div>
+
+      <div class="ed-hero">
+        <div>
+          <div class="ed-hero-label">Total Asset Value</div>
+          <div class="ed-hero-num">0<span class="small">.00</span></div>
+          <div style="font-family: 'Space Grotesk'; font-size: 13px; color: #64748B; margin-top: 8px;">USDT — KRW Equivalent ₩0</div>
+        </div>
+        <div>
+          <p class="ed-hero-quote">
+            "Real assets, mined on-chain. <br>Stable yield, transparent ledger."
+          </p>
+        </div>
+      </div>
+
+      <div class="ed-grid">
+        <div class="ed-cell">
+          <div class="ed-cell-label">Staked</div>
+          <div class="ed-cell-num">0</div>
+          <div class="ed-cell-cap">SILICASTO ≈ 0 USDT</div>
+        </div>
+        <div class="ed-cell">
+          <div class="ed-cell-label">Cumulative Interest</div>
+          <div class="ed-cell-num">0<span style="font-size:0.5em;font-weight:400">.00</span></div>
+          <div class="ed-cell-cap">USDT (since Apr 2026)</div>
+        </div>
+        <div class="ed-cell">
+          <div class="ed-cell-label">Silica Held</div>
+          <div class="ed-cell-num">0</div>
+          <div class="ed-cell-cap">SILICA ≈ 0 USDT @ 0.05</div>
+        </div>
+      </div>
+
+      <h2 class="ed-section-title">Recent Activity</h2>
+      <div class="ed-row">
+        <span class="date">—</span>
+        <span class="desc" style="text-align:center;color:#94A3B8;font-style:italic">No recent activity. Start your first investment.</span>
+        <span class="amt"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== CONCEPT B =================== -->
+<div class="concept-wrap">
+  <div class="concept-head">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="concept-id">B</span>
+      <span class="concept-name">Terminal · Bloomberg</span>
+    </div>
+    <div class="concept-tag">검은 배경 + 모노 폰트. 데이터 터미널 / 블룸버그 톤. 정보 밀도 최고. 트레이더 감성.</div>
+  </div>
+  <div class="concept-stage" style="background:#1E293B; padding:20px;">
+    <div class="conB">
+      <div class="term-bar">
+        <span>SILICACHAIN.TERM &gt; PORTFOLIO_v1</span>
+        <span class="live">LIVE · DEVNET</span>
+      </div>
+
+      <div class="term-grid">
+        <div class="term-cell zero">
+          <div class="lbl">TOTAL_USDT</div>
+          <div class="val">0.00</div>
+          <div class="unit">USD TETHER</div>
+          <div class="delta">— 0.00%</div>
+        </div>
+        <div class="term-cell zero">
+          <div class="lbl">STAKED_STO</div>
+          <div class="val">0</div>
+          <div class="unit">SILICASTO</div>
+          <div class="delta">— idle</div>
+        </div>
+        <div class="term-cell zero">
+          <div class="lbl">CUM_INTEREST</div>
+          <div class="val">0.00</div>
+          <div class="unit">USDT YIELD</div>
+          <div class="delta">— 0 cycles</div>
+        </div>
+        <div class="term-cell zero">
+          <div class="lbl">SILICA_HELD</div>
+          <div class="val">0.00</div>
+          <div class="unit">@ 0.05 USDT</div>
+          <div class="delta">— 0.00 USDT eq</div>
+        </div>
+      </div>
+
+      <div class="term-row head">
+        <span>TIMESTAMP</span><span>EVENT</span><span>AMOUNT</span><span>STATUS</span>
+      </div>
+      <div class="term-empty">[NO RECENT ACTIVITY] — start by depositing USDT</div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== CONCEPT C =================== -->
+<div class="concept-wrap">
+  <div class="concept-head">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="concept-id">C</span>
+      <span class="concept-name">Hero Mega-Number</span>
+    </div>
+    <div class="concept-tag">하나의 거대한 총자산 숫자가 화면을 지배. 나머지 메트릭은 작은 pill 로 하단. 임팩트 최고.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="conC">
+      <div class="hero-eyebrow">◆ Total Portfolio Value</div>
+      <div class="hero-mega">0<span class="small">.00</span></div>
+      <div class="hero-cap">USDT · ≈ ₩0 KRW · Solana Devnet</div>
+
+      <div class="hero-pills">
+        <div class="hero-pill violet">
+          <div class="lbl">Staked</div>
+          <div class="val">0 STO</div>
+        </div>
+        <div class="hero-pill red">
+          <div class="lbl">Cumulative Interest</div>
+          <div class="val">0.00 USDT</div>
+        </div>
+        <div class="hero-pill blue">
+          <div class="lbl">Silica Held</div>
+          <div class="val">0.00 SILICA</div>
+        </div>
+        <div class="hero-pill">
+          <div class="lbl">KYC</div>
+          <div class="val" style="font-size:14px;color:#94A3B8;letter-spacing:2px;text-transform:uppercase;padding-top:4px">Pending</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== CONCEPT D =================== -->
+<div class="concept-wrap">
+  <div class="concept-head">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="concept-id">D</span>
+      <span class="concept-name">Horizontal Strip</span>
+    </div>
+    <div class="concept-tag">상단 가로 5분할 검은 띠로 모든 KPI 한눈에. 본문은 2열로 활동/보유. 고급 ETF 대시보드 느낌.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="conD">
+      <div class="strip-bar">
+        <div class="strip-cell brand">
+          <div class="name">PORTFOLIO</div>
+          <div class="meta">SOLANA · DEVNET</div>
+        </div>
+        <div class="strip-cell">
+          <div class="lbl">Total Value</div>
+          <div class="val">0.00</div>
+          <div class="unit">USDT</div>
+        </div>
+        <div class="strip-cell">
+          <div class="lbl">Staked</div>
+          <div class="val">0</div>
+          <div class="unit">SILICASTO</div>
+        </div>
+        <div class="strip-cell">
+          <div class="lbl">Cum. Interest</div>
+          <div class="val">0.00</div>
+          <div class="unit">USDT</div>
+        </div>
+        <div class="strip-cell">
+          <div class="lbl">Silica</div>
+          <div class="val">0.00</div>
+          <div class="unit">SILICA</div>
+        </div>
+      </div>
+
+      <div class="strip-content">
+        <div class="strip-section">
+          <h3>Recent Activity</h3>
+          <div class="strip-empty">No recent activity. Start your first investment.</div>
+        </div>
+        <div class="strip-section">
+          <h3>Holdings</h3>
+          <div class="holding-row"><span class="ticker">USDT</span><span class="bal">0.00</span></div>
+          <div class="holding-row"><span class="ticker">SilicaSTO</span><span class="bal">0.00</span></div>
+          <div class="holding-row" style="border-bottom:none"><span class="ticker">Silica</span><span class="bal">0.00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== CONCEPT E =================== -->
+<div class="concept-wrap">
+  <div class="concept-head">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="concept-id">E</span>
+      <span class="concept-name">Asymmetric Split</span>
+    </div>
+    <div class="concept-tag">좌측 다크 패널 (메인 자산 + KPI), 우측 밝은 활동 피드. 비대칭 균형, 모던 핀테크 (Robinhood/Cash App 풍).</div>
+  </div>
+  <div class="concept-stage" style="padding:0;">
+    <div class="conE">
+      <div class="split-left">
+        <div class="split-eyebrow">◆ Total Portfolio Value</div>
+        <div class="split-mega">0<span class="small">.00</span></div>
+        <div class="split-cap">USDT · ≈ ₩0 KRW</div>
+
+        <div class="split-trio">
+          <div class="split-trio-cell">
+            <div class="lbl">Staked STO</div>
+            <div class="val">0</div>
+          </div>
+          <div class="split-trio-cell">
+            <div class="lbl">Cumulative Interest</div>
+            <div class="val">0.00</div>
+          </div>
+          <div class="split-trio-cell">
+            <div class="lbl">Silica</div>
+            <div class="val">0.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="split-right">
+        <h3>Activity Feed</h3>
+        <div class="split-empty">
+          <div style="font-size:32px; margin-bottom:8px;">⊕</div>
+          No recent activity.<br>
+          <span style="font-size:11px; opacity:0.7">Start your first investment.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center; padding:40px 20px; max-width:600px; margin:0 auto; color:#64748B; font-size:14px;">
+  <strong style="color:#0F172A;">A · B · C · D · E</strong> 중 마음에 드는 시안 번호를 알려주시면 index.html 에 적용합니다.<br>
+  <span style="font-size:12px; opacity:0.7">조합도 가능 (예: "A 메인 + D 상단 strip")</span>
+</div>
+
+</body>
+</html>

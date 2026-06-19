@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Admin Login · SilicaChain</title>
+  <link rel="shortcut icon" href="img/favicon.png">
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .admin-wrap {
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0;
+      position: relative;
+      z-index: 2;
+    }
+    .login-card {
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--r-lg);
+      padding: 48px 40px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--aurora-1), var(--aurora-3), var(--aurora-2));
+    }
+    .login-card::after {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 70%);
+      pointer-events: none;
+    }
+    .login-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .login-logo img {
+      height: 48px;
+      width: auto;
+      );
+    }
+    .login-logo .console-tag {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--aurora-3);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .login-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 8px;
+      color: var(--text);
+      position: relative;
+    }
+    .login-subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .field { margin-bottom: 16px; position: relative; }
+    .field label {
+      display: block;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--aurora-3);
+      margin-bottom: 8px;
+    }
+    .field .help {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--steel-dim);
+    }
+    .input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: all var(--t);
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--aurora-3);
+      background: rgba(6, 182, 212, 0.05);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+    }
+    .input::placeholder { color: var(--steel-dim); }
+    #adminOtp {
+      letter-spacing: 6px;
+      text-align: center;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .btn.block, .btn-block { width: 100%; }
+    .login-btn {
+      padding: 16px;
+      background: var(--logo-violet);
+      color: var(--platinum);
+      font-family: 'Oswald', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      border: none;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all var(--t);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+      margin-top: 20px;
+      position: relative;
+      width: 100%;
+    }
+    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6); }
+    .login-btn:active { transform: translateY(0); }
+    .hidden { display: none !important; }
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+    .login-footer .badge-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--steel);
+      text-transform: uppercase;
+    }
+    .login-footer .badge-text::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    #toast.pill {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 999;
+      max-width: min(520px, calc(100% - 28px));
+      padding: 12px 24px;
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--r-md);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      box-shadow: var(--shadow-lg);
+    }
+    #toast.bad { border-color: var(--red); color: var(--red); }
+    #toast.good { border-color: var(--green); color: var(--green); }
+    #toast.warn { border-color: var(--amber); color: var(--amber); }
+  </style>
+</head>
+<body>
+
+<div id="toast" class="pill hidden"></div>
+
+<div class="admin-wrap">
+  <div class="card admin-card login-card">
+    <div class="pad">
+      <div class="login-logo">
+        <img src="img/logo_W.png" alt="SilicaChain">
+        <div class="console-tag">// ADMIN CONSOLE</div>
+      </div>
+
+      <h1 class="login-title">Admin Login</h1>
+
+      <!-- (2026-05-13 v331) Chrome '[DOM] Password field is not contained
+           in a form' 경고 해결 + Enter 키 제출 + 비밀번호 매니저 자동 채움
+           활성화. type="submit" 버튼으로 폼 제출 → 핸들러가 e.preventDefault()
+           로 정상 흐름 유지.
+           (2026-05-18 v564) 운영자 요청 — 로그인 화면 라벨/제목 영문 전용. -->
+      <form id="adminLoginForm" autocomplete="on" novalidate>
+        <!-- (2026-05-19 v584) 운영자 요청: '로그인 페이지에서 지갑 연결을
+             하지 않으면 로그인 자체가 되지 않도록.' 화이트리스트가 활성된
+             경우에만 이 섹션이 표시됨 (login.js 가 /api/admin/auth/wallet-required
+             응답에 따라 토글). 지갑 연결 시 다른 입력란이 활성화되고 Sign in
+             버튼이 해제된다. -->
+        <div id="adminWalletSection" class="field hidden">
+          <label>Admin Wallet</label>
+          <button id="adminWalletConnectBtn" class="btn block" type="button"
+                  style="display:flex; align-items:center; justify-content:center; gap:10px; padding:14px 16px; background:rgba(142,36,170,0.10); border:1.5px dashed rgba(142,36,170,0.50); color:#8e24aa; font-family:'Oswald',sans-serif; font-weight:700; letter-spacing:1.5px; font-size:13px; cursor:pointer; border-radius:var(--r-sm); width:100%; transition:all .15s">
+            <span style="font-size:18px">⚡</span>
+            <span id="adminWalletConnectLabel">CONNECT PHANTOM WALLET</span>
+          </button>
+          <div id="adminWalletStatus" class="help" style="margin-top:8px; color:var(--steel-dim)">관리자 화이트리스트에 등록된 지갑이 필요합니다.</div>
+          <div id="adminWalletAddressBox" class="hidden" style="margin-top:8px; padding:8px 12px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.30); border-radius:6px; font-family:'Space Grotesk',monospace; font-size:11px; color:#047857; word-break:break-all">
+            <span style="font-weight:700; margin-right:6px">CONNECTED ·</span>
+            <span id="adminWalletAddressText">—</span>
+            <button id="adminWalletDisconnectBtn" type="button" style="float:right; background:transparent; border:none; color:#dc2626; font-size:11px; cursor:pointer; font-weight:700">disconnect</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="adminUser">Username</label>
+          <input id="adminUser" class="input" placeholder="admin" autocomplete="username">
+        </div>
+
+        <div class="field">
+          <label for="adminPass">Password</label>
+          <input id="adminPass" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <div class="field hidden">
+          <label for="adminApiBase">API Base (선택)</label>
+          <input id="adminApiBase" class="input" placeholder="비우면 same-origin" autocomplete="off">
+          <div class="help">프론트와 백엔드가 다른 도메인일 때만 입력</div>
+        </div>
+
+        <!-- (2026-05-19 v587) OTP 필드 제거 — 운영자 결정: '관리자는 지갑으로
+             로그인 하기 때문에 OTP 인증은 더 이상 필요하지 않다.' 지갑 화이트
+             리스트 (v583/v584) 가 2-factor 게이트. -->
+
+        <button id="adminLoginBtn" class="btn primary block login-btn" type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const token = String(Date.now());
+  window.__ADMIN_ASSET_TOKEN = token;
+
+  const showBootError = (message) => {
+    let box = document.getElementById('adminLoginBootError');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'adminLoginBootError';
+      box.className = 'card';
+      box.style.maxWidth = '440px';
+      box.style.margin = '16px auto 0';
+      box.innerHTML = '<div class="pad"><div style="font-weight:900;color:#ef4444;margin-bottom:6px">관리자 로그인 스크립트 로드 실패</div><div class="muted" id="adminLoginBootErrorMsg"></div><div class="row" style="margin-top:12px"><button type="button" class="btn primary block" id="adminLoginBootErrorReload">다시 불러오기</button></div></div>';
+      const wrap = document.querySelector('.admin-wrap') || document.body;
+      wrap.appendChild(box);
+      box.querySelector('#adminLoginBootErrorReload')?.addEventListener('click', () => location.reload());
+    }
+    const msg = box.querySelector('#adminLoginBootErrorMsg');
+    if (msg) msg.textContent = message || '관리자 로그인 스크립트를 불러오지 못했습니다.';
+  };
+
+  const load = (src, retries = 2) => new Promise((resolve, reject) => {
+    const baseSrc = `${src}?v=${encodeURIComponent(token)}`;
+    const tryOnce = (attempt) => {
+      const s = document.createElement('script');
+      s.src = attempt === 0 ? baseSrc : baseSrc + '&r=' + Date.now();
+      s.async = false;
+      s.onload = resolve;
+      s.onerror = () => {
+        try { s.remove(); } catch {}
+        if (attempt < retries) {
+          const delay = 500 * (attempt + 1);
+          console.warn('[admin-load] retry', attempt + 1, 'of', retries, 'after', delay, 'ms —', src);
+          setTimeout(() => tryOnce(attempt + 1), delay);
+        } else {
+          reject(new Error(src + ' load failed (' + (retries + 1) + ' attempts)'));
+        }
+      };
+      document.body.appendChild(s);
+    };
+    tryOnce(0);
+  });
+
+  load('js/admin.i18n.js')
+    .then(() => load('js/admin.core.js'))
+    .then(() => load('js/login.js'))
+    .catch((e) => {
+      console.error('[admin.login] boot failed', e);
+      showBootError(e?.message || 'script load failed');
+    });
+})();
+</script>
+</body>
+</html>

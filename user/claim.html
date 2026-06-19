@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Claim · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+
+<style>
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v778) claim.html MOBILE RAIL UNIFICATION
+     운영자 보고: '클레임 페이지에서 좌우 폭을 꽉 채울 수 있도록. 너무 좁다.'
+     원인: <div class='container' style='padding: 32px'> 인라인 padding 이
+     모바일에서도 32px 그대로 적용 → 360px viewport 에서 콘텐츠 영역 296px.
+     해결: mobile @media + 인라인 style override + rail 16px 적용.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="claim"] { --mobile-rail: 16px; }
+
+    /* 인라인 padding: 32px override */
+    body[data-page="claim"] > .container,
+    body[data-page="claim"] > div.container {
+      padding: 16px var(--mobile-rail) !important;
+    }
+
+    /* 페이지 타이틀 */
+    body[data-page="claim"] .heading-lg,
+    body[data-page="claim"] h1 { font-size: 22px !important; letter-spacing: 0.5px; }
+    body[data-page="claim"] .mb-xl { margin-bottom: 16px !important; }
+    body[data-page="claim"] .eyebrow { font-size: 10px !important; letter-spacing: 1.5px !important; }
+
+    /* Cumulative cards (CUMULATIVE INTEREST / DIVIDEND / TOTAL REWARD) */
+    body[data-page="claim"] .card { padding: 14px var(--mobile-rail) !important; }
+
+    /* 클레임 액션 카드 (INTEREST CLAIM, CLAIM NOW 버튼) */
+    body[data-page="claim"] .card .pad { padding: 0 !important; }
+    body[data-page="claim"] .btn { font-size: 13px !important; padding: 10px 14px !important; }
+
+    /* 탭 (INTEREST MONTHLY / DIVIDEND ANNUAL) */
+    body[data-page="claim"] .tabs { gap: 6px !important; flex-wrap: wrap; }
+    body[data-page="claim"] .tab {
+      padding: 8px 12px !important;
+      font-size: 12px !important;
+      letter-spacing: 0.5px !important;
+      flex: 1 1 auto;
+    }
+
+    /* NEXT INTEREST 카드 — 'MONTHLY INTEREST · 2026-06-15' 헤더 + USDT amount */
+    /* 'Expected Receipt' 같은 label / value 강제 wrap */
+    body[data-page="claim"] .text-mono,
+    body[data-page="claim"] code {
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    /* MONTHLY FIXED INTEREST PAYOUT HISTORY 테이블 — 모바일 가로 scroll */
+    body[data-page="claim"] table {
+      font-size: 11px !important;
+      min-width: 480px;  /* 6 컬럼 fit */
+    }
+    body[data-page="claim"] table th,
+    body[data-page="claim"] table td {
+      padding: 6px 8px !important;
+      letter-spacing: 0.2px;
+      white-space: nowrap;  /* 컬럼 헤더 'INTEREST RATE' 등이 세로 깨짐 차단 */
+    }
+    /* 테이블 wrapping card — 가로 scroll 활성화 */
+    body[data-page="claim"] .card:has(table),
+    body[data-page="claim"] .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Form inputs (있다면) iOS 자동 줌 방지 */
+    body[data-page="claim"] input,
+    body[data-page="claim"] select,
+    body[data-page="claim"] textarea {
+      font-size: 16px !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    /* 안전망 */
+    body[data-page="claim"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="claim"] *,
+    body[data-page="claim"] *::before,
+    body[data-page="claim"] *::after { box-sizing: border-box; }
+    body[data-page="claim"] img,
+    body[data-page="claim"] video { max-width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body data-page="claim">
+<div class="container" style="padding: 32px;">
+  <!-- (2026-05-12 v315) 운영자: '이전에 우리는 Claim History 를 제거 하기로
+       했지 않았나?' v310 에서 Portfolio 서브의 "Claim History" 링크를 지웠지만
+       claim.html 자체의 H1 이 그대로 "Claim History" 였다. 페이지가 단순 이력이
+       아니라 누적·예정·클레임 액션을 모두 포함하므로 "Claims" (메뉴 "Claim" 과
+       일치하는 plural) 로 변경. -->
+  <div class="mb-xl">
+    <div class="eyebrow mb-md">◆ INTEREST & DIVIDEND CLAIMS</div>
+    <h1 class="heading-lg">Claims</h1>
+  </div>
+
+  <div class="grid grid-3 mb-xl">
+    <div class="stat">
+      <div class="stat-label">Cumulative Interest</div>
+      <div class="stat-value text-success" id="claimCumulInterest">$0<small>.00</small></div>
+      <div class="stat-unit" id="claimCumulInterestUnit">USDT</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Cumulative Dividend</div>
+      <div class="stat-value text-cyan" id="claimCumulDividend">0<small>.00</small></div>
+      <div class="stat-unit">SILICA</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Total Reward Value</div>
+      <div class="stat-value" id="claimTotalValue">$0<small>.00</small></div>
+      <div class="stat-unit">USDT Equivalent</div>
+    </div>
+  </div>
+
+  <!--
+    (2026-05-08) Tabs are now interactive. Each <button class="tab"> has
+    a data-claim-tab attribute matching the panel ID below; click handler
+    at the bottom of this file toggles .active + panel visibility.
+    Earlier the buttons were static and the Dividend / Referral Bonus
+    panels weren't rendered at all — clicking did nothing visible.
+  -->
+  <div class="tabs">
+    <button class="tab active" data-claim-tab="interest" type="button">Interest (Monthly)</button>
+    <button class="tab" data-claim-tab="dividend" type="button">Dividend (Annual)</button>
+    <button class="tab" data-claim-tab="referral" type="button">Referral Bonus</button>
+  </div>
+
+  <!-- Interest panel (default visible) -->
+  <div class="claim-panel" id="claimPanel-interest">
+    <!--
+      (2026-05-08) Claim hero card — ALWAYS VISIBLE. Earlier this was
+      display:none until pending > 0; users couldn't tell whether the
+      page was broken or whether they simply had nothing to claim, and
+      reported "이자 클레임 버튼이 없다" repeatedly. Now the card always
+      renders and silica-data-bind.js (page === 'claim') swaps the
+      label / button state based on pending vs zero.
+    -->
+    <div id="claimHeroCard" class="card" style="padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--line);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+          <div id="claimHeroEyebrow" class="eyebrow mb-sm">◆ INTEREST CLAIM</div>
+          <div id="claimHeroAmountWrap" class="text-mono" style="font-family: 'Unbounded'; font-weight: 800; font-size: 32px; line-height: 1;">
+            <span id="claimHeroAmount">0.00</span>
+            <span style="font-size: 16px; color: var(--steel); font-weight: 500;">USDT</span>
+          </div>
+          <div id="claimHeroRounds" class="text-muted mt-sm" style="font-size: 13px;"></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="claimHeroDetailBtn" type="button" class="btn btn-secondary" style="white-space:nowrap;">Details</button>
+          <button id="claimHeroBtn" type="button" class="btn btn-primary" style="white-space:nowrap; min-width:140px; font-weight:700;" disabled>Claim Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- (2026-05-15 v364) Next interest schedule card — 배당 panel 과 동일
+         패턴. 다음 지급일 + 본인 expected USDT 표시. silica-data-bind.js 가
+         /api/silica/interest/next 로 채움. -->
+    <div class="card-aurora card" style="margin-bottom: 16px;">
+      <div class="flex-between">
+        <div>
+          <div class="eyebrow mb-sm">◆ NEXT INTEREST</div>
+          <h3 class="heading-sm" style="font-size: 24px;" id="nextInterestTitle">Monthly Interest Payout Info</h3>
+          <p class="text-muted mt-sm" style="font-size: 14px;" id="nextInterestDate">Schedule will appear after staking</p>
+        </div>
+        <div class="text-right">
+          <div class="text-muted" style="font-size: 11px; letter-spacing: 1px;">Expected Receipt</div>
+          <div class="heavy-num text-cyan" style="font-size: 32px;" id="nextInterestAmount">— USDT</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 0;">
+      <div style="padding: 16px 24px; border-bottom: 1px solid var(--line);">
+        <h3 class="heading-sm" style="font-size: 22px;">Monthly Fixed Interest Payout History</h3>
+      </div>
+      <table class="table table-mono">
+        <thead>
+          <tr><th>Cycle</th><th>Period</th><th>Interest Rate</th><th>Avg Staked</th><th>Payout</th><th>Status</th><th>Tx</th></tr>
+        </thead>
+        <tbody id="claimHistoryBody">
+          <tr><td colspan="7" class="text-center text-muted" style="padding:32px 0">-</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Dividend panel -->
+  <div class="claim-panel" id="claimPanel-dividend" style="display:none">
+    <!-- (2026-05-15 v367) Claim Dividend 카드 — pending 분이 있을 때만 활성.
+         이자 클레임 카드와 동일 패턴. 동시 받기 부하 분산 + 사용자 자율. -->
+    <div id="dividendClaimCard" class="card" style="padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--line);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+          <div id="dividendClaimEyebrow" class="eyebrow mb-sm">◆ DIVIDEND CLAIM</div>
+          <div class="text-mono" style="font-family: 'Unbounded'; font-weight: 800; font-size: 32px; line-height: 1;">
+            <span id="dividendClaimAmount">0.00</span>
+            <span style="font-size: 16px; color: var(--steel); font-weight: 500;">Silica</span>
+          </div>
+          <div id="dividendClaimRounds" class="text-muted mt-sm" style="font-size: 13px;"></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="dividendClaimBtn" type="button" class="btn btn-primary" style="white-space:nowrap; min-width:140px; font-weight:700;" disabled>Claim Now</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-aurora card">
+      <div class="flex-between">
+        <div>
+          <div class="eyebrow mb-sm">◆ NEXT DIVIDEND</div>
+          <h3 class="heading-sm" style="font-size: 24px;" id="nextDividendTitle">Annual Dividend Payout Info</h3>
+          <p class="text-muted mt-sm" style="font-size: 14px;" id="nextDividendDate">Schedule will appear after staking</p>
+        </div>
+        <div class="text-right">
+          <div class="text-muted" style="font-size: 11px; letter-spacing: 1px;">Expected Receipt</div>
+          <div class="heavy-num text-cyan" style="font-size: 32px;" id="nextDividendAmount">— Silica</div>
+          <div class="text-muted" style="font-size: 12px;">Based on payout date price</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral Bonus panel -->
+  <!-- (2026-05-16 v412) 운영자 우려: '서버 부하 걱정.' 기존 즉시 지급
+       방식을 클레임 방식으로 전환. Interest/Dividend 와 동일 패턴 적용. -->
+  <div class="claim-panel" id="claimPanel-referral" style="display:none">
+    <!-- Claim hero card -->
+    <div id="referralClaimCard" class="card" style="padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--line);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+          <div id="referralClaimEyebrow" class="eyebrow mb-sm">◆ REFERRAL BONUS</div>
+          <div class="text-mono" style="font-family: 'Unbounded'; font-weight: 800; font-size: 32px; line-height: 1;">
+            <span id="referralClaimAmount">0.00</span>
+            <span style="font-size: 16px; color: var(--steel); font-weight: 500;">USDT</span>
+          </div>
+          <div id="referralClaimRounds" class="text-muted mt-sm" style="font-size: 13px;"></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="referralClaimBtn" type="button" class="btn btn-primary" style="white-space:nowrap; min-width:140px; font-weight:700;" disabled>Claim Now</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // (2026-05-08) Claim page tab switcher. Toggles .active on the button
+  //   and shows the matching panel; everything else is hidden. Runs at
+  //   parse time since all panels are present in the DOM above.
+  (function () {
+    const tabs = document.querySelectorAll('.tabs .tab[data-claim-tab]');
+    if (!tabs.length) return;
+    tabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-claim-tab');
+        tabs.forEach((b) => b.classList.toggle('active', b === btn));
+        document.querySelectorAll('.claim-panel').forEach((p) => {
+          p.style.display = (p.id === `claimPanel-${key}`) ? '' : 'none';
+        });
+      });
+    });
+  })();
+
+  // (2026-05-19 v595) 운영자 재요청 — 추천인 승인된 유저가 아니면 Referral
+  //   Bonus 탭/패널 숨김. 기존엔 nav 의 #navReferral 만 setReferralMenuVisible
+  //   로 가렸고, claim 페이지의 탭은 노출돼 있어 불일치.
+  //   /api/referral/my-status (is_referrer && referrer_active) 결과로 토글.
+  //   미승인이면 탭 버튼 + 패널 둘 다 display:none. 활성 탭이었으면 interest
+  //   탭으로 폴백.
+  (async function () {
+    const tabBtn = document.querySelector('.tabs .tab[data-claim-tab="referral"]');
+    const panel = document.getElementById('claimPanel-referral');
+    if (!tabBtn || !panel) return;
+
+    // 기본은 일단 숨김 — wallet 미연결 / API 실패 / 미승인 모두 동일 처리.
+    tabBtn.style.display = 'none';
+    panel.style.display = 'none';
+
+    const switchToInterest = () => {
+      const interestBtn = document.querySelector('.tabs .tab[data-claim-tab="interest"]');
+      const interestPanel = document.getElementById('claimPanel-interest');
+      if (interestBtn) {
+        document.querySelectorAll('.tabs .tab').forEach((b) => b.classList.remove('active'));
+        interestBtn.classList.add('active');
+      }
+      if (interestPanel) {
+        document.querySelectorAll('.claim-panel').forEach((p) => { p.style.display = 'none'; });
+        interestPanel.style.display = '';
+      }
+    };
+
+    // RwaCore 가 부팅된 후에 API 호출이 안정적.
+    const tryCheck = async () => {
+      if (!window.RwaCore?.api) return false;
+      try {
+        const r = await window.RwaCore.api('/api/referral/my-status', { auth: true });
+        const approved = !!(r?.is_referrer && r?.referrer_active);
+        if (approved) {
+          tabBtn.style.display = '';
+          // 패널 display 는 클릭 핸들러가 관리 — 여기서 강제 표시 안 함.
+        } else {
+          tabBtn.style.display = 'none';
+          panel.style.display = 'none';
+          if (tabBtn.classList.contains('active')) switchToInterest();
+        }
+        return true;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    // RwaCore 준비 대기 — 최대 5초 폴링.
+    for (let i = 0; i < 50; i++) {
+      if (await tryCheck()) return;
+      await new Promise((res) => setTimeout(res, 100));
+    }
+  })();
+</script>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

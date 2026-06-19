@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="기본 자산 이미지">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" rx="36" fill="url(#g)"/>
+  <g fill="none" stroke="#cbd5e1" stroke-width="18">
+    <rect x="120" y="150" width="960" height="500" rx="28"/>
+    <path d="M240 560l170-170 130 120 220-230 200 280"/>
+  </g>
+  <circle cx="360" cy="280" r="48" fill="#dbeafe"/>
+  <text x="600" y="640" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#64748b">RECON </text>
+</svg>

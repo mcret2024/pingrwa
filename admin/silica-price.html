@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Silica 시세 관리 · SilicaChain</title>
+  <link rel="shortcut icon" href="img/favicon.png">
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <style>
+    .admin-shell { max-width: 1400px; margin: 0 auto; padding: 24px 32px; position: relative; z-index: 1; }
+
+    /* (2026-05-07) Mode-aware 시세 변경 패널 — 한 번에 한 view 만 노출 */
+    .price-update-view { display: none; }
+    .price-update-view.is-active { display: block; }
+    .price-update-view code {
+      background: var(--glass-2);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .price-hero {
+      padding: 48px 32px;
+      background: var(--panel);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: var(--r-md);
+      margin-bottom: 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .price-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--logo-violet);
+    }
+    .price-hero::after {
+      content: '';
+      position: absolute;
+      top: -150px; right: -150px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 70%);
+      pointer-events: none;
+    }
+    .price-hero-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: var(--aurora-3);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .price-hero-value {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900;
+      font-size: clamp(56px, 7vw, 96px);
+      line-height: 1;
+      letter-spacing: -3px;
+      background: var(--logo-blue);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+    .price-hero-meta {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      color: var(--steel);
+      margin-top: 16px;
+      letter-spacing: 1px;
+      position: relative;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card-aurora {
+      padding: 28px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .card-sub {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      color: var(--steel);
+      margin-top: 4px;
+    }
+
+    .mode-option {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all var(--t);
+    }
+    .mode-option:hover { border-color: var(--aurora-3); }
+    .mode-option.active {
+      background: rgba(139, 92, 246, 0.08);
+      border-color: var(--aurora-1);
+    }
+    .mode-option.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .mode-option input[type="radio"] {
+      width: 18px; height: 18px; margin-top: 2px;
+      accent-color: var(--aurora-1);
+    }
+    .mode-option-title { font-weight: 700; margin-bottom: 4px; color: var(--text); font-size: 14px; }
+    .mode-option-desc { font-size: 12px; color: var(--steel); line-height: 1.6; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--aurora-3);
+      margin-bottom: 8px;
+    }
+    .field .help, .help {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--steel-dim);
+    }
+    .input, input[type="number"], input[type="text"], select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-feature-settings: 'tnum' 1;
+    }
+    .input:focus, input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--aurora-3);
+      background: rgba(6, 182, 212, 0.05);
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    .input-suffix {
+      display: flex;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+    }
+    .input-suffix input { flex: 1; background: transparent; border: none; padding: 12px 14px; }
+    .input-suffix .suffix {
+      padding: 12px 14px;
+      border-left: 1px solid var(--border);
+      color: var(--aurora-3);
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      letter-spacing: 1px;
+      font-size: 12px;
+    }
+
+    .impact-list {
+      padding: 16px;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      margin-top: 16px;
+    }
+    .impact-list strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--aurora-3);
+    }
+    .impact-list ol {
+      padding-left: 20px;
+      font-size: 13px;
+      color: var(--steel);
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body data-page="silica-price">
+
+<div id="toast" class="pill hidden"></div>
+<div id="adminHeaderMount"></div>
+
+<div class="admin-shell">
+
+  <div class="admin-page-header">
+    <div>
+      <h1 class="admin-page-title">Silica 시세 관리</h1>
+      <div class="admin-page-subtitle">// 이 시세가 배당·스왑·거래 기준 가격에 동시 적용됩니다.</div>
+    </div>
+    <span class="badge badge-aurora">NEW · Token 2 Price</span>
+  </div>
+
+  <!-- Hero: Current Price -->
+  <div class="price-hero">
+    <div class="price-hero-eyebrow">◆ CURRENT SILICA PRICE</div>
+    <div class="price-hero-value" id="currentPriceDisplay">0.05 USDT</div>
+    <div class="price-hero-meta">관리자 직접 설정 · <span id="priceUpdatedAt">마지막 업데이트 4일 전</span></div>
+  </div>
+
+  <div class="grid-2">
+
+    <!-- Mode Selection -->
+    <div class="card-aurora">
+      <div class="card-head">
+        <div>
+          <div class="card-title">시세 결정 모드</div>
+          <div class="card-sub">// A: 관리자 직접 / B: MEA 연동 (테스트용) / C: 거래소 API</div>
+        </div>
+      </div>
+
+      <label class="mode-option active">
+        <input type="radio" name="mode" value="manual" checked>
+        <div>
+          <div class="mode-option-title">A. 관리자 직접 설정</div>
+          <div class="mode-option-desc">관리자가 시세를 직접 입력합니다. 거래소 미상장 단계에서 사용.</div>
+        </div>
+      </label>
+
+      <!--
+        (2026-05-07) 임시 옵션 — Silica 가 거래소에 상장되기 전까지 MECCA(MEA)
+        시세를 가져와 그대로 Silica 시세로 사용. CoinLore 의 ticker?id=161989 호출.
+      -->
+      <label class="mode-option">
+        <input type="radio" name="mode" value="linked_mea">
+        <div>
+          <div class="mode-option-title">B. MECCA(MEA) 시세 연동 (테스트용)</div>
+          <div class="mode-option-desc">CoinLore 의 MEA 시세를 Silica 시세로 그대로 사용합니다. 상장 전 테스트 단계 한정.</div>
+        </div>
+      </label>
+
+      <label class="mode-option disabled">
+        <input type="radio" name="mode" value="exchange_api" disabled>
+        <div>
+          <div class="mode-option-title">C. 거래소 API 자동 (미래 옵션)</div>
+          <div class="mode-option-desc">Silica가 거래소 상장 후 활성화. Binance/Upbit 시세 자동 호출.</div>
+        </div>
+      </label>
+
+      <div class="impact-list" style="margin-top:14px;">
+        <strong>이 시세가 적용되는 곳</strong>
+        <ol>
+          <li>연 배당 계산 (USDT 풀 → Silica 수량 환산)</li>
+          <li>단방향 스왑 비율 (Silica → SilicaSTO)</li>
+          <li>거래 페이지 기준 시세 표시</li>
+        </ol>
+      </div>
+    </div>
+
+    <!--
+      (2026-05-07) Mode-aware 시세 변경 패널.
+      좌측 모드 라디오에 따라 1) manual, 2) linked_mea, 3) exchange_api 중 하나만 표시.
+      JS 의 syncModeRadio() 가 .is-active 클래스 토글로 가시성 제어.
+    -->
+    <div class="card-aurora" id="priceUpdateCard">
+
+      <!-- ───── 모드 A: 관리자 직접 입력 ───── -->
+      <div class="price-update-view is-active" data-view="manual">
+        <div class="card-head">
+          <div>
+            <div class="card-title">시세 변경 — 관리자 직접 입력</div>
+            <div class="card-sub">// 새 시세를 직접 입력하고 즉시 반영합니다</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="currentPriceField">현재 시세 (읽기 전용)</label>
+          <div class="input-suffix">
+            <input id="currentPriceField" type="text" value="0.05" readonly>
+            <span class="suffix">USDT</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="newPriceField">새 시세</label>
+          <div class="input-suffix">
+            <input id="newPriceField" type="number" step="0.0001" min="0" value="0.06">
+            <span class="suffix">USDT</span>
+          </div>
+          <div class="help" id="changePreview">변경: 0.05 → 0.06 (+20.00%)</div>
+        </div>
+
+        <div class="field">
+          <label>스왑 비율 (자동 계산)</label>
+          <div class="input-suffix">
+            <input type="text" id="swapRateField" value="16.67 Silica = 1 SilicaSTO" readonly>
+          </div>
+          <div class="help">1 SilicaSTO = 1 USDT, 새 Silica 시세 / 1 USDT 기준</div>
+        </div>
+
+        <div class="field">
+          <label for="changeReason">변경 사유 (감사 로그용)</label>
+          <textarea id="changeReason" placeholder="예: 광산 채굴 진척에 따른 가치 평가 조정"></textarea>
+        </div>
+
+        <div class="alert alert-info">
+          <div class="alert-icon">ℹ</div>
+          <div class="alert-content">
+            <div class="alert-title">즉시 반영</div>
+            <div class="alert-message">시세 변경은 즉시 ① 배당 계산 ② 스왑 비율 ③ 거래 화면에 반영됩니다.</div>
+          </div>
+        </div>
+
+        <button id="priceSaveBtn" class="btn primary btn-block" type="button" style="margin-top: 16px;">시세 업데이트</button>
+      </div>
+
+      <!-- ───── 모드 B: MECCA(MEA) 연동 ───── -->
+      <div class="price-update-view" data-view="linked_mea">
+        <div class="card-head">
+          <div>
+            <div class="card-title">시세 변경 — MECCA(MEA) 연동</div>
+            <div class="card-sub">// CoinLore 의 MEA 시세를 즉시 Silica 시세로 복사합니다</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>현재 Silica 시세</label>
+          <div class="input-suffix">
+            <input id="meaCurrentPriceField" type="text" value="-" readonly>
+            <span class="suffix">USDT</span>
+          </div>
+          <div class="help" id="meaCurrentPriceHelp">아직 동기화되지 않았습니다. 아래 버튼을 눌러 가져오세요.</div>
+        </div>
+
+        <div class="field">
+          <label>마지막 동기화</label>
+          <div class="input-suffix">
+            <input id="meaLastSyncedField" type="text" value="-" readonly>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <div class="alert-icon">🔗</div>
+          <div class="alert-content">
+            <div class="alert-title">CoinLore MEA 연동</div>
+            <div class="alert-message">
+              <code>api.coinlore.net/api/ticker/?id=161989</code> 에서 MEA 시세를 가져옵니다.<br>
+              가져온 값은 그대로 ① 배당 계산 ② 스왑 비율 ③ 거래 화면에 즉시 반영됩니다.<br>
+              자동 갱신은 없으며 관리자가 수동으로 동기화 시점을 선택합니다.
+            </div>
+          </div>
+        </div>
+
+        <button id="meaSyncBtn" class="btn primary btn-block" type="button" style="margin-top: 16px;">MEA 시세로 동기화</button>
+        <div id="meaSyncStatus" class="text-muted text-center" style="font-size:12px; margin-top:8px;">아직 동기화되지 않았습니다.</div>
+      </div>
+
+      <!-- ───── 모드 C: 거래소 API (미활성) ───── -->
+      <div class="price-update-view" data-view="exchange_api">
+        <div class="card-head">
+          <div>
+            <div class="card-title">시세 변경 — 거래소 API 자동</div>
+            <div class="card-sub">// Silica 거래소 상장 후 활성화 예정</div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top:12px;">
+          <div class="alert-icon">⏳</div>
+          <div class="alert-content">
+            <div class="alert-title">상장 대기 중</div>
+            <div class="alert-message">
+              Silica 가 Binance / Upbit 등 거래소에 상장되면 이 모드가 활성화되어<br>
+              거래소 공개 가격 API 를 자동 폴링해 시세를 갱신합니다.<br>
+              지금은 모드 A (관리자 직접) 또는 모드 B (MEA 연동) 를 사용해 주세요.
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-block" type="button" disabled style="margin-top:16px; opacity:0.6; cursor:not-allowed;">상장 후 활성화</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Price History -->
+  <div class="card-aurora">
+    <div class="card-head">
+      <div>
+        <div class="card-title">시세 변경 이력 (감사 로그)</div>
+        <div class="card-sub">// 관리자 직접 설정 기록만 로그에 남습니다</div>
+      </div>
+      <div class="flex gap-md">
+        <button class="btn small" id="historyRefreshBtn">⟳ 새로고침</button>
+        <button class="btn small" id="historyExportBtn">📥 CSV</button>
+      </div>
+    </div>
+
+    <table class="table" id="priceHistoryTable">
+      <thead>
+        <tr>
+          <th>변경 시간</th>
+          <th>이전</th>
+          <th>이후</th>
+          <th>변동</th>
+          <th>변경자</th>
+          <th>사유</th>
+        </tr>
+      </thead>
+      <!-- (2026-05-18 v523) 운영자 보고: 임의 더미 데이터 노출. 실제 로그가
+           아니면 제거. tbody 는 JS (loadPriceHistory) 가 /api/admin/silica/
+           price/history 에서 채움. 비어있으면 '기록 없음' 표시. -->
+      <tbody id="priceHistoryBody">
+        <tr><td colspan="6" class="text-center text-muted" style="padding:20px">로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    window.AdminHeader?.loadHeader?.();
+
+    const currentInput = document.getElementById('currentPriceField');
+    const newInput     = document.getElementById('newPriceField');
+    const preview      = document.getElementById('changePreview');
+    const swapRate     = document.getElementById('swapRateField');
+    const heroPriceEl  = document.getElementById('currentPriceDisplay');
+    const heroMetaEl   = document.getElementById('priceUpdatedAt');
+    // hero meta 의 모드 라벨 prefix 노드 (정적 텍스트 "관리자 직접 설정 · ")
+    // 현재 구조: <div class="price-hero-meta">관리자 직접 설정 · <span id="priceUpdatedAt">...</span></div>
+    // 모드별로 prefix 까지 갱신하기 위해 부모 노드를 통째로 다시 그린다.
+    const heroMetaParent = heroMetaEl?.parentElement || null;
+    const meaSyncBtn   = document.getElementById('meaSyncBtn');
+    const meaStatusEl  = document.getElementById('meaSyncStatus');
+
+    function showToast(msg, ok = true) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.classList.remove('hidden', ok ? 'bad' : 'good');
+      t.classList.add(ok ? 'good' : 'bad');
+      t.textContent = msg;
+      setTimeout(() => t.classList.add('hidden'), 2800);
+    }
+
+    function fmtPrice(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n) || n <= 0) return '-';
+      // Silica 시세는 매우 작아질 수 있으므로 (예: 0.002897) 6자리까지 허용.
+      return n.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+    }
+
+    function setHeroPrice(price, mode, source, fetchedAt) {
+      if (heroPriceEl && Number.isFinite(price) && price > 0) {
+        heroPriceEl.textContent = `${fmtPrice(price)} USDT`;
+      }
+      if (heroMetaParent) {
+        const modeLabel = mode === 'linked_mea' ? 'CoinLore MEA 연동'
+                        : mode === 'exchange_api' ? '거래소 API'
+                        : '관리자 직접 설정';
+        const updatedTxt = fetchedAt
+          ? new Date(fetchedAt).toLocaleString()
+          : '아직 동기화 안됨';
+        // 통째로 갱신 — 기존 #priceUpdatedAt span 도 같이 새로 그려진다.
+        heroMetaParent.innerHTML =
+          `${modeLabel}${source ? ` (${source})` : ''} · <span id="priceUpdatedAt">${updatedTxt}</span>`;
+      }
+    }
+
+    function syncModeRadio(mode) {
+      // 1) 라디오 active 상태 동기화
+      const radios = document.querySelectorAll('input[name="mode"]');
+      radios.forEach((r) => {
+        const parent = r.closest('.mode-option');
+        if (!parent) return;
+        const isActive = r.value === mode;
+        r.checked = isActive;
+        parent.classList.toggle('active', isActive);
+      });
+      // 2) 우측 패널 view 전환 — data-view 속성 매칭.
+      //    유효하지 않은 mode 면 fallback 으로 manual view 노출.
+      const views = document.querySelectorAll('.price-update-view');
+      let matched = false;
+      views.forEach((v) => {
+        const isActive = v.dataset.view === mode;
+        v.classList.toggle('is-active', isActive);
+        if (isActive) matched = true;
+      });
+      if (!matched) {
+        const fallback = document.querySelector('.price-update-view[data-view="manual"]');
+        fallback?.classList.add('is-active');
+      }
+    }
+
+    // ───── MEA view 의 표시 갱신 (현재 시세 / 마지막 동기화 시각)
+    function refreshMeaView(price, mode, fetchedAt) {
+      const cur = document.getElementById('meaCurrentPriceField');
+      const help = document.getElementById('meaCurrentPriceHelp');
+      const last = document.getElementById('meaLastSyncedField');
+      const isLinked = mode === 'linked_mea' && Number.isFinite(price) && price > 0;
+      if (cur) cur.value = isLinked ? fmtPrice(price) : '-';
+      if (help) {
+        help.textContent = isLinked
+          ? 'CoinLore 의 MEA 시세가 적용되어 있습니다.'
+          : '아직 동기화되지 않았습니다. 아래 버튼을 눌러 가져오세요.';
+      }
+      if (last) {
+        last.value = (isLinked && fetchedAt)
+          ? new Date(fetchedAt).toLocaleString()
+          : '-';
+      }
+    }
+
+    function updatePreview() {
+      const current = parseFloat(currentInput.value) || 0;
+      const next = parseFloat(newInput.value) || 0;
+      if (current > 0 && next > 0) {
+        const diff = ((next - current) / current * 100).toFixed(2);
+        const sign = diff >= 0 ? '+' : '';
+        preview.textContent = `변경: ${current} → ${next} (${sign}${diff}%)`;
+        preview.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+      }
+      if (next > 0 && swapRate) {
+        const ratio = (1 / next).toFixed(2);
+        swapRate.value = `${ratio} Silica = 1 SilicaSTO`;
+      }
+    }
+    newInput?.addEventListener('input', updatePreview);
+
+    // ───── 페이지 로드 시 현재 시세/모드 GET
+    async function loadCurrentPrice() {
+      try {
+        for (let i = 0; i < 30 && !window.AdminCore?.api; i++) {
+          await new Promise((r) => setTimeout(r, 100));
+        }
+        const r = await window.AdminCore.api('/api/admin/silica/price', { method: 'GET' });
+        const price = Number(r?.price_usdt || 0);
+        const mode  = (r?.mode || 'manual');
+        if (currentInput && price > 0) currentInput.value = fmtPrice(price);
+        if (newInput && (!newInput.value || parseFloat(newInput.value) <= 0)) {
+          newInput.value = price > 0 ? fmtPrice(price) : '';
+        }
+        syncModeRadio(mode);
+        setHeroPrice(price, mode, r?.source, r?.updated_at);
+        refreshMeaView(price, mode, r?.updated_at);
+        updatePreview();
+      } catch (e) {
+        console.warn('[silica.price] load failed', e?.message || e);
+      }
+    }
+    loadCurrentPrice();
+
+    // ───── 저장 버튼 — POST /api/admin/silica/price
+    document.getElementById('priceSaveBtn')?.addEventListener('click', async () => {
+      const next = parseFloat(newInput?.value) || 0;
+      const reason = document.getElementById('changeReason')?.value?.trim() || '';
+      if (next <= 0) { showToast('시세는 0보다 커야 합니다.', false); return; }
+      const selectedMode = document.querySelector('input[name="mode"]:checked')?.value || 'manual';
+      try {
+        const r = await window.AdminCore.api('/api/admin/silica/price', {
+          method: 'POST',
+          body: { price_usdt: next, mode: selectedMode, reason },
+        });
+        const pct = r?.change_pct;
+        const tail = (pct !== null && pct !== undefined) ? ` (${pct > 0 ? '+' : ''}${pct}%)` : '';
+        showToast(`시세 저장 완료: ${next} USDT${tail}`, true);
+        await loadCurrentPrice();
+      } catch (e) {
+        showToast('저장 실패: ' + (e?.message || String(e)), false);
+        console.error('[silica.price] save failed', e);
+      }
+    });
+
+    // ───── (2026-05-07) MEA 시세로 즉시 동기화
+    meaSyncBtn?.addEventListener('click', async () => {
+      if (meaSyncBtn.dataset.busy === '1') return;
+      meaSyncBtn.dataset.busy = '1';
+      meaSyncBtn.disabled = true;
+      const original = meaSyncBtn.textContent;
+      meaSyncBtn.textContent = '동기화 중…';
+      if (meaStatusEl) meaStatusEl.textContent = 'CoinLore 호출 중…';
+      try {
+        const r = await window.AdminCore.api('/api/admin/silica/price/sync-mea', { method: 'POST' });
+        const newPrice = Number(r?.new_price_usdt || 0);
+        const pct = r?.change_pct;
+        const tail = (pct !== null && pct !== undefined) ? ` (${pct > 0 ? '+' : ''}${pct}%)` : '';
+        if (meaStatusEl) {
+          meaStatusEl.textContent = `최근 동기화: ${new Date(r?.fetched_at || Date.now()).toLocaleString()} · MEA = $${fmtPrice(newPrice)}`;
+        }
+        showToast(`MEA → Silica 동기화 완료: ${fmtPrice(newPrice)} USDT${tail}`, true);
+        await loadCurrentPrice();
+      } catch (e) {
+        const msg = e?.message || String(e);
+        if (meaStatusEl) meaStatusEl.textContent = '동기화 실패: ' + msg;
+        showToast('MEA 동기화 실패: ' + msg, false);
+        console.error('[silica.price] mea sync failed', e);
+      } finally {
+        meaSyncBtn.dataset.busy = '';
+        meaSyncBtn.disabled = false;
+        meaSyncBtn.textContent = original;
+      }
+    });
+
+    // 모드 라디오 변경 시 active class 동기화
+    document.querySelectorAll('input[name="mode"]').forEach((r) => {
+      r.addEventListener('change', () => syncModeRadio(r.value));
+    });
+
+    // (2026-05-18 v523) 시세 변경 이력 (감사 로그) 로더 — 실제 DB 에서만 표기.
+    const historyBody = document.getElementById('priceHistoryBody');
+    const historyRefreshBtn = document.getElementById('historyRefreshBtn');
+    const historyExportBtn = document.getElementById('historyExportBtn');
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+    const fmtTs = (s) => String(s || '').replace('T',' ').slice(0,16);
+    const fmtPct = (p) => {
+      const n = Number(p);
+      if (!Number.isFinite(n)) return '-';
+      const sign = n > 0 ? '+' : '';
+      return sign + n.toFixed(2) + '%';
+    };
+
+    let __historyCache = [];
+    async function loadPriceHistory() {
+      if (!historyBody) return;
+      historyBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:20px">로딩 중...</td></tr>';
+      try {
+        const base = (localStorage.getItem('rwa_api_base_v1') || '').replace(/\/+$/, '');
+        const token = localStorage.getItem('rwa_admin_token_v1') || '';
+        // (2026-05-26 v835) X-Admin-Wallet 헤더 누락 fix — 화이트리스트 활성 시
+        //   직접 fetch 호출이 admin.core.js requestJson 우회로 헤더 안 보내져
+        //   403 발생. v824 의 admin/js/{assets,docs,notices,sales}.js 와 동일 패턴.
+        const adminWallet = localStorage.getItem('rwa_admin_wallet_v1') || '';
+        const headers = {};
+        if (token) headers.Authorization = 'Bearer ' + token;
+        if (adminWallet) headers['X-Admin-Wallet'] = adminWallet;
+        const res = await fetch(base + '/api/admin/silica/price/history?limit=200', { headers });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.message || '요청 실패 (' + res.status + ')');
+        const rows = Array.isArray(data?.history) ? data.history : [];
+        __historyCache = rows;
+        if (!rows.length) {
+          historyBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:20px">기록 없음 — 관리자 직접 설정 시 자동으로 기록됩니다.</td></tr>';
+          return;
+        }
+        historyBody.innerHTML = rows.map((r) => {
+          const prev = r.prev_price_usdt;
+          const next = r.new_price_usdt;
+          const pct = fmtPct(r.change_pct);
+          const pctClass = Number(r.change_pct) > 0 ? 'text-success' : (Number(r.change_pct) < 0 ? 'text-danger' : 'text-muted');
+          return `<tr>
+            <td>${esc(fmtTs(r.changed_at))}</td>
+            <td class="text-mono">${prev != null ? esc(prev) : '—'}</td>
+            <td class="text-mono"><strong>${esc(next)}</strong></td>
+            <td class="text-mono ${pctClass}">${esc(pct)}</td>
+            <td>${esc(r.changed_by || '-')}</td>
+            <td>${esc(r.reason || '')}</td>
+          </tr>`;
+        }).join('');
+      } catch (e) {
+        historyBody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding:20px;color:#dc2626">로딩 실패: ${esc(e?.message || e)}</td></tr>`;
+      }
+    }
+
+    historyRefreshBtn?.addEventListener('click', loadPriceHistory);
+    historyExportBtn?.addEventListener('click', () => {
+      if (!__historyCache.length) { showToast('내보낼 이력이 없습니다.', false); return; }
+      const header = ['변경시간','이전','이후','변동(%)','변경자','사유'];
+      const lines = [header.join(',')];
+      __historyCache.forEach((r) => {
+        const cells = [
+          fmtTs(r.changed_at),
+          r.prev_price_usdt ?? '',
+          r.new_price_usdt ?? '',
+          r.change_pct ?? '',
+          r.changed_by ?? '',
+          (r.reason ?? '').replace(/[",\n]/g, ' '),
+        ];
+        lines.push(cells.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
+      });
+      const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'silica_price_history_' + new Date().toISOString().slice(0,10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    loadPriceHistory();
+  });
+</script>
+
+</body>
+</html>

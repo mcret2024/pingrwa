@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Trade Chart Concepts · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+<style>
+  body { background: #F8FAFC; }
+  .concepts-page { max-width: 1100px; margin: 0 auto; padding: 32px; }
+  .concept-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  }
+  .concept-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    border-bottom: 1px solid #E2E8F0;
+    padding-bottom: 14px; margin-bottom: 20px;
+    gap: 16px;
+  }
+  .concept-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: linear-gradient(135deg, #7C3AED, #A855F7);
+    color: #FFFFFF;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    border-radius: 100px;
+    margin-bottom: 6px;
+  }
+  .concept-name { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 18px; color: #0F172A; }
+  .concept-sub  { color: #64748B; font-size: 13px; margin-top: 4px; line-height: 1.55; max-width: 600px; }
+  .concept-pick {
+    flex: 0 0 auto;
+    padding: 10px 18px;
+    border: 2px solid #7C3AED;
+    background: #FFFFFF;
+    color: #7C3AED;
+    border-radius: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all .15s;
+  }
+  .concept-pick:hover { background: #7C3AED; color: #FFFFFF; }
+
+  .mock-area {
+    background: #FAFAFA;
+    border: 1.5px dashed #CBD5E1;
+    border-radius: 12px;
+    padding: 24px;
+    min-height: 260px;
+    position: relative;
+  }
+  .mock-label {
+    position: absolute;
+    top: -10px; left: 16px;
+    background: #FAFAFA;
+    padding: 0 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #94A3B8;
+    text-transform: uppercase;
+  }
+
+  /* ========= Option A — Peg Reference + Premium ========= */
+  .peg-hero {
+    text-align: center;
+    padding: 28px 16px;
+  }
+  .peg-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 3px;
+    color: #7C3AED; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .peg-anchor {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    color: #0F172A;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .peg-anchor small { font-size: 14px; color: #64748B; font-weight: 500; }
+  .peg-deviation {
+    margin: 18px auto 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 100px;
+    color: #059669;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .peg-deviation.discount {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #DC2626;
+  }
+  .peg-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #E2E8F0;
+  }
+  .peg-stat { text-align: center; }
+  .peg-stat-label { font-size: 10px; letter-spacing: 1.5px; color: #94A3B8; text-transform: uppercase; }
+  .peg-stat-val { font-family: 'Unbounded', monospace; font-weight: 700; font-size: 16px; color: #0F172A; margin-top: 4px; }
+  .peg-liquidity {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #E2E8F0;
+  }
+  .peg-liquidity-label { font-size: 11px; color: #64748B; margin-bottom: 8px; }
+  .peg-liquidity-bar {
+    display: flex;
+    gap: 3px;
+    height: 8px;
+  }
+  .peg-liquidity-bar div {
+    flex: 1;
+    background: #E2E8F0;
+    border-radius: 2px;
+  }
+  .peg-liquidity-bar div.on {
+    background: linear-gradient(90deg, #7C3AED, #A855F7);
+  }
+
+  /* ========= Option B — Order Book Depth ========= */
+  .depth-chart {
+    position: relative;
+    height: 220px;
+    display: flex;
+    align-items: flex-end;
+  }
+  .depth-half {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+  }
+  .depth-half.bids { justify-content: flex-end; }
+  .depth-half.asks { justify-content: flex-start; }
+  .depth-bar {
+    flex: 1;
+    border-bottom: 0;
+  }
+  .bids .depth-bar { background: linear-gradient(180deg, rgba(16,185,129,0.45), rgba(16,185,129,0.85)); }
+  .asks .depth-bar { background: linear-gradient(180deg, rgba(220,38,38,0.45), rgba(220,38,38,0.85)); }
+  .depth-center {
+    position: absolute;
+    left: 50%; top: 0; bottom: 0;
+    width: 2px;
+    background: #7C3AED;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+  .depth-center::before {
+    content: '$1.00 PEG';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    background: #7C3AED;
+    color: #FFFFFF;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .depth-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94A3B8;
+    margin-top: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .depth-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: #64748B;
+  }
+  .depth-legend span:before {
+    content: ''; display: inline-block;
+    width: 10px; height: 10px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+  .depth-legend .bid:before { background: #10B981; }
+  .depth-legend .ask:before { background: #DC2626; }
+
+  /* ========= Option C — Stats + Recent Trades ========= */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-tile {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .stat-tile-label { font-size: 10px; letter-spacing: 1.5px; color: #94A3B8; text-transform: uppercase; }
+  .stat-tile-val { font-family: 'Unbounded', monospace; font-weight: 700; font-size: 18px; color: #0F172A; margin-top: 6px; }
+  .stat-tile-sub { font-size: 11px; color: #64748B; margin-top: 4px; }
+  .recent-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+  }
+  .recent-table thead th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    border-bottom: 1px solid #E2E8F0;
+    font-weight: 600;
+  }
+  .recent-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .recent-table tbody tr:last-child td { border-bottom: none; }
+  .recent-table .side-buy { color: #059669; font-weight: 700; }
+  .recent-table .side-sell { color: #DC2626; font-weight: 700; }
+
+  /* ========= Option D — Hidden / Placeholder ========= */
+  .placeholder-lg {
+    text-align: center;
+    padding: 48px 16px;
+    color: #94A3B8;
+  }
+  .placeholder-lg .ico { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
+  .placeholder-lg .h { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 16px; color: #475569; margin-bottom: 8px; }
+  .placeholder-lg .sub { font-size: 13px; line-height: 1.55; max-width: 380px; margin: 0 auto; }
+  .placeholder-cta {
+    margin-top: 18px;
+    display: inline-block;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #7C3AED, #A855F7);
+    color: #FFFFFF;
+    border-radius: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  /* ========= Option E — 7D/30D Range ========= */
+  .range-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .range-tab {
+    padding: 6px 14px;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #64748B;
+    cursor: pointer;
+  }
+  .range-tab.active { background: #7C3AED; color: #FFFFFF; border-color: #7C3AED; }
+  .range-tab.muted { opacity: 0.5; }
+  .range-chart {
+    height: 200px;
+    background:
+      linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+      #FFFFFF;
+    background-size: 100% 25px, 30px 100%;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .range-trade-dots {
+    position: absolute; inset: 12px;
+    display: flex;
+    align-items: flex-end;
+  }
+  .range-peg-line {
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    border-top: 2px dashed #7C3AED;
+  }
+  .range-peg-tag {
+    position: absolute;
+    top: 50%; right: 8px;
+    transform: translateY(-50%);
+    background: #7C3AED;
+    color: #FFFFFF;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .trade-dot {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .trade-dot.buy { background: #10B981; }
+  .trade-dot.sell { background: #DC2626; }
+</style>
+</head>
+<body>
+
+<div class="concepts-page">
+  <div style="margin-bottom: 28px;">
+    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; color: #0F172A;">Trade 차트 시안</div>
+    <p style="color: #64748B; line-height: 1.55;">
+      SilicaSTO 는 1:1 USDT 페그라 기존 캔들차트는 거의 수평선만 그립니다. 거래량까지 적은 초기 단계에 적합한 6가지 대안.
+      각 카드에서 <strong>이 안 선택</strong> 누르시면 해당 안으로 통합 진행.
+    </p>
+  </div>
+
+  <!-- ============ A ============ -->
+  <div class="concept-card">
+    <div class="concept-head">
+      <div>
+        <span class="concept-tag">Option A</span>
+        <div class="concept-name">Peg Reference + Premium/Discount 게이지</div>
+        <div class="concept-sub">차트를 숨기고 1:1 페그를 큰 숫자로 anchor. 직전 거래가가 페그 대비 얼마나 벗어났는지 +/- 게이지로 표시. 거래 1건만 발생해도 의미 있게 보임.</div>
+      </div>
+      <button class="concept-pick" onclick="alert('A 선택. 운영자에게 알려주세요.');">이 안 선택</button>
+    </div>
+    <div class="mock-area">
+      <div class="mock-label">차트 영역 자리</div>
+      <div class="peg-hero">
+        <div class="peg-eyebrow">◆ PEG REFERENCE</div>
+        <div class="peg-anchor">1 SilicaSTO ≈ <span style="color: #7C3AED;">1.00</span> <small>USDT</small></div>
+        <div class="peg-deviation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l7-7 7 7M12 5v14"/></svg>
+          Last 1.02 USDT · +2.0% premium
+        </div>
+        <div class="peg-stats">
+          <div class="peg-stat"><div class="peg-stat-label">24h Volume</div><div class="peg-stat-val">342 STO</div></div>
+          <div class="peg-stat"><div class="peg-stat-label">24h Trades</div><div class="peg-stat-val">12</div></div>
+          <div class="peg-stat"><div class="peg-stat-label">Spread</div><div class="peg-stat-val">±1.8%</div></div>
+        </div>
+        <div class="peg-liquidity">
+          <div class="peg-liquidity-label">Liquidity ramping (last 30d)</div>
+          <div class="peg-liquidity-bar">
+            <div class="on"></div><div class="on"></div><div class="on"></div><div class="on"></div><div class="on"></div><div class="on"></div>
+            <div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ B ============ -->
+  <div class="concept-card">
+    <div class="concept-head">
+      <div>
+        <span class="concept-tag">Option B</span>
+        <div class="concept-name">Order Book Depth Chart</div>
+        <div class="concept-sub">가격 캔들차트 → 매수/매도 호가 누적 깊이 그래프. Uniswap·Binance Pro 패턴. 거래가 0 건이어도 호가만 있으면 시각화 가능.</div>
+      </div>
+      <button class="concept-pick" onclick="alert('B 선택. 운영자에게 알려주세요.');">이 안 선택</button>
+    </div>
+    <div class="mock-area">
+      <div class="mock-label">차트 영역 자리</div>
+      <div class="depth-chart">
+        <div class="depth-half bids">
+          <div class="depth-bar" style="height:12%"></div>
+          <div class="depth-bar" style="height:24%"></div>
+          <div class="depth-bar" style="height:36%"></div>
+          <div class="depth-bar" style="height:48%"></div>
+          <div class="depth-bar" style="height:62%"></div>
+          <div class="depth-bar" style="height:74%"></div>
+          <div class="depth-bar" style="height:88%"></div>
+        </div>
+        <div class="depth-center"></div>
+        <div class="depth-half asks">
+          <div class="depth-bar" style="height:80%"></div>
+          <div class="depth-bar" style="height:68%"></div>
+          <div class="depth-bar" style="height:54%"></div>
+          <div class="depth-bar" style="height:42%"></div>
+          <div class="depth-bar" style="height:30%"></div>
+          <div class="depth-bar" style="height:18%"></div>
+          <div class="depth-bar" style="height:8%"></div>
+        </div>
+      </div>
+      <div class="depth-axis">
+        <span>0.94</span><span>0.97</span><span>1.00</span><span>1.03</span><span>1.06</span>
+      </div>
+      <div class="depth-legend">
+        <span class="bid">Bids (cumulative)</span>
+        <span class="ask">Asks (cumulative)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ C ============ -->
+  <div class="concept-card">
+    <div class="concept-head">
+      <div>
+        <span class="concept-tag">Option C</span>
+        <div class="concept-name">Stats Grid + Recent Trades</div>
+        <div class="concept-sub">차트 영역을 통째로 4-stat 그리드 + 최근 거래 리스트로 교체. 차트가 없어도 페이지가 정보로 채워짐. 초기 운영에 가장 안전.</div>
+      </div>
+      <button class="concept-pick" onclick="alert('C 선택. 운영자에게 알려주세요.');">이 안 선택</button>
+    </div>
+    <div class="mock-area">
+      <div class="mock-label">차트 영역 자리</div>
+      <div class="stats-grid">
+        <div class="stat-tile"><div class="stat-tile-label">Last Trade</div><div class="stat-tile-val">1.02 USDT</div><div class="stat-tile-sub">2 min ago</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">24h Volume</div><div class="stat-tile-val">342 STO</div><div class="stat-tile-sub">~342 USDT</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">24h Range</div><div class="stat-tile-val">0.99 ~ 1.04</div><div class="stat-tile-sub">5% spread</div></div>
+        <div class="stat-tile"><div class="stat-tile-label">Total Trades</div><div class="stat-tile-val">128</div><div class="stat-tile-sub">all-time</div></div>
+      </div>
+      <table class="recent-table">
+        <thead><tr><th>Time</th><th>Side</th><th>Price</th><th>Amount</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td>04:46:12</td><td><span class="side-buy">BUY</span></td><td>1.02</td><td>1 STO</td><td>1.02 USDT</td></tr>
+          <tr><td>04:30:08</td><td><span class="side-buy">BUY</span></td><td>1.01</td><td>10 STO</td><td>10.10 USDT</td></tr>
+          <tr><td>03:58:42</td><td><span class="side-sell">SELL</span></td><td>0.99</td><td>5 STO</td><td>4.95 USDT</td></tr>
+          <tr><td>03:24:15</td><td><span class="side-buy">BUY</span></td><td>1.00</td><td>50 STO</td><td>50.00 USDT</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ D ============ -->
+  <div class="concept-card">
+    <div class="concept-head">
+      <div>
+        <span class="concept-tag">Option D</span>
+        <div class="concept-name">Placeholder + Stake CTA</div>
+        <div class="concept-sub">차트 자체를 숨기고 "거래량 누적되면 차트 표시" 안내 + 페그 한 줄 + 스테이킹 유도 CTA. 가장 미니멀. 단점: 화면 절반이 빈 공간으로 유지될 수 있음.</div>
+      </div>
+      <button class="concept-pick" onclick="alert('D 선택. 운영자에게 알려주세요.');">이 안 선택</button>
+    </div>
+    <div class="mock-area">
+      <div class="mock-label">차트 영역 자리</div>
+      <div class="placeholder-lg">
+        <div class="ico">📊</div>
+        <div class="h">Chart will appear once trade volume picks up</div>
+        <div class="sub">SilicaSTO is pegged 1:1 to USDT. Reference price stays at <strong>1.00 USDT</strong> until market trades create deviation.</div>
+        <a href="staking.html" class="placeholder-cta">Stake & earn 5% APR →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ E ============ -->
+  <div class="concept-card">
+    <div class="concept-head">
+      <div>
+        <span class="concept-tag">Option E</span>
+        <div class="concept-name">7D/30D 기본 + Peg 기준선 오버레이</div>
+        <div class="concept-sub">기본 시간대를 1D → 7D 로 늘려 1-2 건 거래도 시각적으로 보이게. 페그선 (1.00 USDT) 을 점선 오버레이로 표시 → 거래 도트가 위/아래로 흩어져 직관적. 차트 컴포넌트 그대로 활용.</div>
+      </div>
+      <button class="concept-pick" onclick="alert('E 선택. 운영자에게 알려주세요.');">이 안 선택</button>
+    </div>
+    <div class="mock-area">
+      <div class="mock-label">차트 영역 자리</div>
+      <div class="range-tabs">
+        <button class="range-tab muted">1D</button>
+        <button class="range-tab active">7D</button>
+        <button class="range-tab">30D</button>
+        <button class="range-tab">All</button>
+      </div>
+      <div class="range-chart">
+        <div class="range-peg-line"></div>
+        <div class="range-peg-tag">$1.00 PEG</div>
+        <div class="trade-dot buy"  style="left:12%; top:35%"></div>
+        <div class="trade-dot buy"  style="left:24%; top:48%"></div>
+        <div class="trade-dot sell" style="left:38%; top:62%"></div>
+        <div class="trade-dot buy"  style="left:52%; top:42%"></div>
+        <div class="trade-dot sell" style="left:65%; top:58%"></div>
+        <div class="trade-dot buy"  style="left:78%; top:38%"></div>
+        <div class="trade-dot buy"  style="left:90%; top:46%"></div>
+      </div>
+      <div style="margin-top:12px; font-size:11px; color:#64748B; text-align:center;">
+        7개 거래 · 페그 대비 평균 -1.2% (점선 = 1.00 USDT 기준선)
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ A+C 조합 ============ -->
+  <div class="concept-card" style="border: 2px solid #7C3AED; box-shadow: 0 8px 32px rgba(124, 58, 237, 0.15);">
+    <div class="concept-head">
+      <div>
+        <span class="concept-tag" style="background: linear-gradient(135deg, #059669, #10B981);">Recommended</span>
+        <div class="concept-name">A + C 조합 (Peg Reference 위 + Recent Trades 아래)</div>
+        <div class="concept-sub">상단에 페그 anchor + premium/discount 게이지, 하단에 최근 거래 리스트. 페그 자산 특성을 강조하면서도 거래 흐름을 즉시 확인 가능. 가장 정보 밀도 높음.</div>
+      </div>
+      <button class="concept-pick" onclick="alert('A+C 선택. 운영자에게 알려주세요.');" style="border-color:#059669; color:#059669;">이 안 선택</button>
+    </div>
+    <div class="mock-area">
+      <div class="mock-label">차트 영역 자리</div>
+      <!-- Top: peg hero (compact) -->
+      <div class="peg-hero" style="padding: 18px 16px;">
+        <div class="peg-eyebrow">◆ PEG REFERENCE</div>
+        <div class="peg-anchor" style="font-size: 28px;">1 SilicaSTO ≈ <span style="color: #7C3AED;">1.00</span> <small>USDT</small></div>
+        <div class="peg-deviation" style="margin-top: 12px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l7-7 7 7M12 5v14"/></svg>
+          Last 1.02 USDT · +2.0% premium
+        </div>
+        <div class="peg-stats" style="margin-top: 18px; padding-top: 16px;">
+          <div class="peg-stat"><div class="peg-stat-label">24h Volume</div><div class="peg-stat-val">342 STO</div></div>
+          <div class="peg-stat"><div class="peg-stat-label">24h Trades</div><div class="peg-stat-val">12</div></div>
+          <div class="peg-stat"><div class="peg-stat-label">Spread</div><div class="peg-stat-val">±1.8%</div></div>
+        </div>
+      </div>
+
+      <!-- Bottom: recent trades list -->
+      <div style="margin-top: 18px;">
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 11px; letter-spacing: 2px; color: #94A3B8; text-transform: uppercase; margin-bottom: 8px;">◆ Recent Trades</div>
+        <table class="recent-table">
+          <thead><tr><th>Time</th><th>Side</th><th>Price</th><th>Amount</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td>04:46</td><td><span class="side-buy">BUY</span></td><td>1.02</td><td>1 STO</td><td>1.02</td></tr>
+            <tr><td>04:30</td><td><span class="side-buy">BUY</span></td><td>1.01</td><td>10 STO</td><td>10.10</td></tr>
+            <tr><td>03:58</td><td><span class="side-sell">SELL</span></td><td>0.99</td><td>5 STO</td><td>4.95</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; padding: 24px 0; color:#94A3B8; font-size:13px;">
+    선호하는 안의 ID (A / B / C / D / E / A+C) 만 알려주시면 trade.html 에 통합 적용합니다.
+  </div>
+</div>
+
+</body>
+</html>

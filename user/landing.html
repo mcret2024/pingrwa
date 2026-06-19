@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- (2026-05-21 v754) 모바일 브라우저가 이전 HTML 을 장기 캐시하여 v750/v752
+     CSS 변경이 사용자에게 반영 안 되는 문제. cache-control no-cache 로 항상
+     서버에서 fresh fetch. ETag/If-Modified-Since 기반 304 응답으로 실 전송량은
+     변경 없을 때 최소화. Revert: 이 두 줄 삭제하면 브라우저 기본 캐시 동작 복귀. -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>About · SilicaChain</title>
+<link rel="shortcut icon" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<!-- i18n boot (RECON-compatible) -->
+<script>
+  (function () {
+    try {
+      var key = 'rwa_lang_user_v1';
+      var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+      var lang = /^(ko|en)$/.test(raw) ? raw : 'ko';
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute('data-rwa-lang', lang);
+      de.setAttribute('data-rwa-i18n-ready', '1');
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+
+<!-- (2026-05-19 v589) 운영자 요청: '로그인 하면 이 페이지와 About 메뉴 보이지
+     않게 숨기기.' core.js 가 wallet 상태를 'rwa_wallet_v3' 키로 저장 (
+     STORAGE.wallet). connected:true 이면 즉시 index.html 로 replace 하여
+     랜딩 페이지가 노출되지 않게 함. ?force=1 쿼리로 우회 가능 (개발 목적). -->
+<script>
+  (function () {
+    try {
+      if (new URLSearchParams(location.search).get('force') === '1') return;
+      var raw = localStorage.getItem('rwa_wallet_v3') || '';
+      if (!raw) return;
+      var w = JSON.parse(raw);
+      if (w && w.connected === true && w.address) {
+        location.replace('index.html');
+      }
+    } catch (_) {}
+  })();
+</script>
+
+<style>
+  /* ============ LANDING PAGE — STELLAR AURORA ============ */
+  body[data-page="landing"] { background: var(--void); color: var(--text); min-height: 100vh; }
+
+  /* Hero Section — Concept G1: Cinematic Overlay (영상 효과) */
+  .silica-hero {
+    padding: 32px 32px 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-text-col { display: none; } /* G1 에서는 사진 안에 텍스트 오버레이 */
+
+  /* 컬러풀 라벨 row (5색) */
+  .hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #FFFFFF;
+  }
+  .hero-tag.tag-violet { background: var(--logo-violet); }
+  .hero-tag.tag-red    { background: var(--logo-red); }
+  .hero-tag.tag-orange { background: var(--logo-orange); }
+  .hero-tag.tag-green  { background: var(--logo-green); }
+  .hero-tag.tag-blue   { background: var(--logo-blue); }
+  .hero-tag .dot {
+    width: 6px; height: 6px;
+    background: #FFFFFF;
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* 호환용 hero-pill (deprecated) */
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 14px;
+    background: var(--logo-green);
+    border: none;
+    border-radius: 100px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #FFFFFF;
+    margin: 0;
+    width: fit-content;
+    font-weight: 800;
+  }
+  .hero-pill::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: #FFFFFF;
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+
+  /* === Concept G1: Cinematic Overlay — 영상처럼 보이는 효과 === */
+  .hero-mine-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 12px 0 0 var(--logo-violet-dark), 0 16px 32px rgba(15, 23, 42, 0.18);
+    background: #0F172A;
+  }
+  /* 사진 자체 — 100% pixel-perfect (animation 제거, 선명도 최우선) */
+  .hero-mine-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* 사진 선명도 부스트 — 대비 + 채도 강화 */
+    filter: contrast(1.08) saturate(1.12);
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: high-quality;
+  }
+
+  /* === 사진 선명도 최우선 — 모든 오버레이 제거 === */
+  /* 1. Letterbox 제거 */
+  .hero-mine-photo::before,
+  .hero-mine-photo::after { display: none; }
+  /* 2. Vignette 제거 */
+  .hero-vignette { display: none; }
+  /* 3. Scan line 제거 */
+  .hero-scanlines { display: none; }
+  /* 4. 좌측 어두운 그라데이션만 유지 — 텍스트 가독성용 (사진 우측은 100% 선명) */
+  .hero-overlay-left {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.68) 0%, rgba(15, 23, 42, 0.30) 25%, transparent 45%);
+    pointer-events: none;
+    z-index: 5;
+  }
+  /* 5. 우상단 라벨 (실시간 자산 상태) */
+  .hero-rec {
+    position: absolute; top: 24px; right: 24px;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    padding: 8px 14px;
+    border-radius: 6px;
+    z-index: 7;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #FFFFFF;
+    text-transform: uppercase;
+  }
+  .hero-rec::before {
+    content: '';
+    width: 9px; height: 9px;
+    background: #10B981;
+    border-radius: 50%;
+    animation: rec-blink 1.6s infinite;
+    box-shadow: 0 0 8px #10B981;
+  }
+  @keyframes rec-blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0.35; } }
+  /* 좌상단 라벨 (광산 좌표/번호) */
+  .hero-timecode {
+    position: absolute; top: 24px; left: 24px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    padding: 8px 14px;
+    border-radius: 6px;
+    z-index: 7;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #FFFFFF;
+  }
+
+  /* 사진 위 텍스트 콘텐츠 (오버레이) */
+  .hero-content-overlay {
+    position: absolute;
+    top: 50%; left: 5%; transform: translateY(-50%);
+    max-width: 50%;
+    z-index: 8;
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .hero-content-overlay .hero-tags { margin: 0 0 4px; }
+  .hero-content-overlay .hero-title {
+    color: #FFFFFF !important;
+    font-size: clamp(36px, 4.6vw, 64px) !important;
+    line-height: 0.96 !important;
+    margin: 0 !important;
+  }
+  .hero-content-overlay .hero-title b { color: #F87171 !important; }
+  .hero-content-overlay .hero-title i { color: #93C5FD !important; }
+  .hero-content-overlay .hero-title em { color: #C4B5FD !important; }
+  .hero-content-overlay .hero-sub { color: rgba(255,255,255,0.92) !important; max-width: none !important; font-size: 15px !important; }
+  .hero-content-overlay .hero-cta .btn-secondary {
+    background: rgba(255,255,255,0.10) !important;
+    color: #FFFFFF !important;
+    border-color: #FFFFFF !important;
+  }
+  .hero-content-overlay .hero-cta .btn-secondary:hover {
+    background: #FFFFFF !important;
+    color: var(--logo-violet) !important;
+  }
+
+  /* === 큰 stat pills (사용자 요청: 더 크게) === */
+  /* (v620) 운영자: '메인 섹션내 카드 위치 + 텍스트 카드/텍스트 벗어남'.
+     기존 bottom:6% + right:5% + max-width:60% + 4col grid 는 좌측 CTA 버튼
+     (INVEST NOW / VIEW ASSET DETAILS) 와 수평으로 겹쳐 'VIEW ASSET D...'
+     처럼 텍스트가 카드에 가려졌다. 수정:
+     - 카드 수와 일치하는 3-col grid (markup 은 3개인데 4-col 이라 빈 칸 발생).
+     - max-width 60 → 42% (좌측 overlay max-width:50% 와 우측 5% 여백 사이에
+       fit 하도록).
+     - bottom 6 → 14% 으로 상향. CTA 버튼이 사진 하단에서 ~10-15% 영역을
+       차지하므로 그 위에 stat 들이 위치. + right 5 → 4%, gap 14 → 10. */
+  .hero-stat-strip {
+    position: absolute;
+    bottom: 14%; right: 4%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    z-index: 8;
+    max-width: 42%;
+  }
+  /* (v620) 카드 padding 16×20 → 12×14, 폰트 약간 축소 — 좁은 max-width 42% 안에 fit. */
+  .hero-stat {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border-left: 4px solid;
+    box-shadow: 0 4px 0 0 rgba(15, 23, 42, 0.18);
+    min-width: 0;
+  }
+  .hero-stat .l {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hero-stat .v {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--platinum);
+    letter-spacing: -1px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .hero-stat:nth-child(1) { border-left-color: var(--logo-violet); }
+  .hero-stat:nth-child(1) .l { color: var(--logo-violet); }
+  .hero-stat:nth-child(2) { border-left-color: var(--logo-red); }
+  .hero-stat:nth-child(2) .l { color: var(--logo-red); }
+  .hero-stat:nth-child(3) { border-left-color: var(--logo-blue); }
+  .hero-stat:nth-child(3) .l { color: var(--logo-blue); }
+  .hero-stat:nth-child(4) { border-left-color: var(--logo-orange); }
+  .hero-stat:nth-child(4) .l { color: var(--logo-orange); }
+
+  @media (max-width: 1000px) {
+    .hero-mine-photo { aspect-ratio: 16 / 10; }
+    .hero-content-overlay { max-width: 90%; left: 5%; right: 5%; }
+    /* (v620) 1000px ↓ 에서는 stat-strip 을 사진 아래로 분리 + 3-col. */
+    .hero-stat-strip {
+      position: relative;
+      bottom: auto; right: auto;
+      max-width: 100%;
+      margin-top: 24px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .hero-stat-strip { grid-template-columns: repeat(2, 1fr); }
+    .hero-stat { padding: 10px 12px; }
+    .hero-stat .v { font-size: 18px; }
+    .hero-rec, .hero-timecode { font-size: 9px; padding: 6px 10px; }
+  }
+
+  /* ============================================================
+     (2026-05-12 v317) Operator: '모바일 헤더 조정이 필요해보인다.
+     아울러 테블릿 등도 점검해라.' Screenshot showed the hero-content-
+     overlay (50% max-width, vertically centered) overlapping the
+     hero-tags pills row because 21/9 aspect ratio collapses to
+     ~150px tall at 360px viewport — no vertical room for the full
+     title + tags. Fix: bottom-anchor the overlay full-width with
+     a readability gradient, hide tags, drop floating corner labels,
+     and hide the in-photo stat-strip (the stats grid below the
+     hero already covers that content). ============================================================ */
+  @media (max-width: 900px) {
+    .silica-hero { padding: 12px 0; }
+    .hero-mine-photo { aspect-ratio: 16 / 11; }
+    .hero-content-overlay {
+      position: absolute !important;
+      top: auto !important;
+      bottom: 0 !important;
+      left: 0 !important; right: 0 !important;
+      transform: none !important;
+      max-width: 100% !important;
+      padding: 18px 18px 20px;
+      background: linear-gradient(180deg, transparent 0%, rgba(15,23,42,0.55) 35%, rgba(15,23,42,0.94) 100%);
+      gap: 8px;
+    }
+    .hero-content-overlay .hero-tags { display: none; }
+    .hero-content-overlay .hero-title {
+      font-size: 30px !important;
+      line-height: 1.05 !important;
+    }
+    .hero-content-overlay .hero-sub {
+      font-size: 13px !important;
+      line-height: 1.45 !important;
+      margin: 0;
+    }
+    .hero-content-overlay .hero-cta { display: flex; flex-wrap: wrap; gap: 6px; }
+    .hero-content-overlay .hero-cta .btn {
+      padding: 8px 14px !important;
+      font-size: 11px !important;
+      letter-spacing: 0.5px !important;
+    }
+    /* Hide the in-photo stat strip — the silica-spec grid below the
+       hero already shows Purity/Reserves/Area/Recovery. */
+    .hero-stat-strip { display: none !important; }
+  }
+
+  @media (max-width: 768px) {
+    .hero-rec, .hero-timecode { display: none; }
+    /* (2026-05-21 v746) 운영자 요청 — 메인 배너 이미지 영역 확대.
+       4/3 → 1/1 로 변경 (모바일에서 정사각형 가까운 비율로 산악 배경
+       이미지를 더 크게 노출). 콘텐츠 overlay 도 비례 확대 표현 가능.
+       (2026-05-21 v748) 운영자 요청 — 메인 섹션 좌우 여백 제거, 화면 꽉 채움.
+       .silica-hero 좌우 padding 0 + .hero-mine-photo border-radius 0. */
+    .silica-hero { padding: 0 0 24px !important; }
+    .hero-mine-photo { aspect-ratio: 1 / 1; border-radius: 0 !important; box-shadow: none !important; }
+    .hero-content-overlay .hero-title { font-size: 28px !important; }
+  }
+
+  @media (max-width: 480px) {
+    /* (v746) 더 작은 모바일에서는 약간 짧은 5:6 으로 — 1:1 이 너무 크면 답답함. */
+    .hero-mine-photo { aspect-ratio: 5 / 6; }
+    .hero-content-overlay { padding: 14px 14px 16px; }
+    .hero-content-overlay .hero-title { font-size: 24px !important; }
+    .hero-content-overlay .hero-cta .btn { padding: 8px 14px !important; font-size: 11px !important; }
+  }
+
+  .hero-orbit {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+  }
+  .orbit {
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--logo-violet);
+    border-radius: 50%;
+    animation: orbit-rotate 40s linear infinite;
+  }
+  .orbit-2 { inset: 40px; border-color: var(--logo-red); animation-duration: 30s; animation-direction: reverse; }
+  .orbit-3 { inset: 80px; border-color: var(--logo-blue); animation-duration: 50s; }
+  .orbit::before {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    background: var(--logo-violet);
+    border-radius: 50%;
+    top: -10px; left: 50%;
+    transform: translateX(-50%);
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 4px 8px rgba(142, 36, 170, 0.30);
+  }
+  .orbit-2::before { background: var(--logo-red); top: auto; bottom: -10px; box-shadow: 0 4px 8px rgba(229, 57, 53, 0.30); }
+  .orbit-3::before { background: var(--logo-blue); top: 50%; left: -10px; transform: translateY(-50%); box-shadow: 0 4px 8px rgba(25, 118, 210, 0.30); }
+  @keyframes orbit-rotate { to { transform: rotate(360deg); } }
+  .orbit-center {
+    position: absolute;
+    /* 보라 원 지름 = container - inset*2. 480 - 130*2 = 220px (충분한 여유) */
+    inset: 26%;
+    background: var(--logo-violet);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-shadow: 0 8px 0 0 var(--logo-violet-dark);
+  }
+  .orbit-center .label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(10px, 1.1vw, 13px);
+    letter-spacing: 2px;
+    color: #FFFFFF;
+    margin-bottom: 6px;
+    font-weight: 800;
+    text-transform: uppercase;
+    opacity: 0.95;
+    white-space: nowrap;
+  }
+  .orbit-center .val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(34px, 4.5vw, 54px);
+    line-height: 1;
+    letter-spacing: -2px;
+    color: #FFFFFF;
+    white-space: nowrap;
+  }
+  .orbit-center .unit {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(10px, 1.1vw, 13px);
+    letter-spacing: 3px;
+    color: #FFFFFF;
+    margin-top: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.9;
+    white-space: nowrap;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(38px, 4.6vw, 64px);
+    line-height: 0.96;
+    letter-spacing: 1.5px;
+    margin: 0;
+    text-transform: uppercase;
+    color: var(--platinum);
+  }
+  .hero-title b {
+    color: var(--logo-red);   /* '실물자산' 강조: 빨강 */
+    font-weight: inherit;
+  }
+  .hero-title i {
+    color: var(--logo-blue);  /* '채굴' 강조: 파랑 */
+    font-style: normal;
+  }
+  .hero-title em {
+    font-family: 'Unbounded', sans-serif;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 0.8em;
+    letter-spacing: -2px;
+    color: var(--logo-violet); /* '안정 수익' 강조: 보라 */
+  }
+  /* CTA 두 번째 버튼 다양화 (주황 outline) */
+  .hero-cta .btn-secondary {
+    border-color: var(--logo-orange) !important;
+    color: var(--logo-orange) !important;
+    background: #FFFFFF !important;
+  }
+  .hero-cta .btn-secondary:hover {
+    background: var(--logo-orange) !important;
+    color: #FFFFFF !important;
+  }
+  .hero-sub {
+    font-size: 15px;
+    color: var(--steel);
+    max-width: 560px;
+    margin: 0;
+    line-height: 1.65;
+  }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin: 0; }
+  .hero-cta .btn-lg { padding: 12px 24px; font-size: 13px; }
+  @media (max-width: 1000px) {
+    .hero-sub { margin-left: auto; margin-right: auto; }
+    .hero-cta { justify-content: center; }
+  }
+
+  /* Stats strip */
+  .stats-strip {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px 60px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+  @media (max-width: 800px) { .stats-strip { grid-template-columns: repeat(2, 1fr); } }
+  .stat-cell {
+    padding: 32px 24px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-cell .label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--steel);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .stat-cell .val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(28px, 3.5vw, 44px);
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-bottom: 6px;
+    color: var(--logo-violet);
+  }
+  .stat-cell:nth-child(2) .val { color: var(--logo-red); }
+  .stat-cell:nth-child(3) .val { color: var(--logo-blue); }
+  .stat-cell:nth-child(4) .val { color: var(--logo-orange); }
+
+  /* Section helpers */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5.5vw, 72px);
+    letter-spacing: 1px;
+    line-height: 1;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .section-title em {
+    font-family: 'Unbounded', sans-serif;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 0.8em;
+    letter-spacing: -2px;
+    color: var(--logo-violet);
+  }
+
+  /* Asset section */
+  .asset-section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 100px 32px;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  @media (max-width: 1000px) { .asset-section { grid-template-columns: 1fr; gap: 40px; } }
+  .asset-flavor {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--aurora-3);
+    margin-bottom: 24px;
+    padding-left: 16px;
+    border-left: 3px solid var(--aurora-3);
+  }
+  .asset-text { color: var(--steel); font-size: 16px; line-height: 1.8; margin-bottom: 32px; }
+  .asset-attrs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+  .attr-cell {
+    padding: 16px;
+    background: var(--glass);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .attr-cell:nth-child(2n) { border-right: none; }
+  .attr-cell:nth-last-child(-n+2) { border-bottom: none; }
+  /* (2026-05-18 v468) cell count 가 홀수면 마지막 cell 이 양쪽 컬럼을 span 하여
+     공백 셀이 발생하지 않도록 한다. (Until 셀 제거로 6 → 5 셀이 된 시점부터 적용.) */
+  .attr-cell:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    border-right: none;
+  }
+  .attr-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--aurora-3);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .attr-val {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--platinum);
+  }
+
+  .asset-vis {
+    aspect-ratio: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .asset-vis-ring {
+    position: absolute; inset: 0;
+    border: 1px solid var(--aurora-3);
+    border-radius: 50%;
+    opacity: 0.3;
+  }
+  .asset-vis-ring-2 { inset: 30px; opacity: 0.2; border-color: var(--aurora-1); }
+  .asset-vis-ring-3 { inset: 60px; opacity: 0.15; }
+  .asset-vis-core {
+    position: absolute; inset: 90px;
+    background: var(--logo-violet);
+    clip-path: polygon(50% 0, 95% 25%, 100% 70%, 50% 100%, 0% 70%, 5% 25%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .asset-vis-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(11px, 1.2vw, 14px);
+    letter-spacing: 2px;
+    color: #FFFFFF;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-weight: 800;
+    opacity: 0.95;
+    white-space: nowrap;
+  }
+  .asset-vis-val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(44px, 5.5vw, 72px);
+    line-height: 1;
+    letter-spacing: -3px;
+    color: #FFFFFF;
+    white-space: nowrap;
+  }
+  .asset-vis-unit {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(11px, 1.3vw, 16px);
+    letter-spacing: 3px;
+    color: #FFFFFF;
+    margin-top: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.95;
+    white-space: nowrap;
+  }
+
+  /* Yield section */
+  .yield-section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 100px 32px;
+    position: relative;
+    z-index: 1;
+  }
+  .yield-header { text-align: center; margin-bottom: 60px; }
+  .yield-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 800px) { .yield-cards { grid-template-columns: 1fr; } }
+  .yield-card {
+    padding: 40px;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .yield-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--accent);
+  }
+  .yield-card.fixed { --accent: var(--aurora-3); }
+  .yield-card.dividend { --accent: var(--aurora-2); }
+  .yield-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 100px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .yield-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .yield-big {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(56px, 6.5vw, 88px);
+    line-height: 1;
+    letter-spacing: -3px;
+    margin-bottom: 24px;
+    color: var(--accent);
+  }
+  .yield-big small { font-size: 0.42em; font-weight: 700; }
+  .yield-text { color: var(--steel); font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+  .yield-meta { display: flex; gap: 16px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .yield-meta-item { flex: 1; }
+  .yield-meta-label { font-family: 'Space Grotesk', sans-serif; font-size: 10px; letter-spacing: 2px; color: var(--steel-dim); text-transform: uppercase; margin-bottom: 4px; }
+  .yield-meta-val { font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: var(--platinum); letter-spacing: 1px; }
+
+  /* Token cards */
+  .token-section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 100px 32px;
+    position: relative;
+    z-index: 1;
+  }
+  .token-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 800px) { .token-cards { grid-template-columns: 1fr; } }
+  .token-card {
+    padding: 32px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .token-card .token-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--platinum);
+    letter-spacing: 1px;
+  }
+  .token-card.sto .token-icon { background: var(--logo-violet); }
+  .token-card.silica .token-icon { background: var(--logo-blue); }
+  .token-card h4 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .token-card .ticker {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    color: var(--aurora-3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .token-card p { color: var(--steel); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+  .token-card ul { list-style: none; padding: 0; }
+  .token-card ul li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--steel);
+    display: flex;
+    justify-content: space-between;
+  }
+  .token-card ul li:last-child { border-bottom: none; }
+  .token-card ul li span { color: var(--platinum); font-weight: 600; }
+
+  /* CTA */
+  .cta-section {
+    max-width: 1100px;
+    margin: 60px auto 100px;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+  }
+  .cta-box {
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    padding: 64px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: var(--logo-violet);
+  }
+  /* radial-gradient 글로우 제거 */
+  .cta-box h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 5vw, 64px);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    position: relative;
+    color: var(--text);
+  }
+  .cta-box p { color: var(--steel); font-size: 16px; margin-bottom: 32px; position: relative; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; border-radius: var(--r-sm); transition: all var(--t); text-decoration: none; }
+  .btn-primary {
+    background: var(--logo-violet) !important;
+    color: #FFFFFF !important;
+    border: 2px solid var(--logo-violet) !important;
+    box-shadow: 0 4px 0 0 var(--logo-violet-dark) !important;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    background: var(--logo-violet-dark) !important;
+    border-color: var(--logo-violet-dark) !important;
+    box-shadow: 0 6px 0 0 var(--logo-violet-dark) !important;
+    color: #FFFFFF !important;
+  }
+  .btn-primary:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 0 var(--logo-violet-dark) !important;
+  }
+  .btn-secondary {
+    background: #FFFFFF !important;
+    color: var(--logo-violet) !important;
+    border: 2px solid var(--logo-violet) !important;
+  }
+  .btn-secondary:hover {
+    background: var(--logo-violet) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+  }
+  .btn-lg { padding: 16px 36px; font-size: 14px; }
+
+  /* ============================================================ */
+  /* === SiO₂ Hex Crystal Animated Background (전 페이지 스크롤) === */
+  /* ============================================================ */
+  /* body 가 positioning context — hex 가 페이지 전체 세로에 걸쳐 분포 */
+  body[data-page="landing"] {
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* (2026-05-21 v743) 운영자 보고: KakaoTalk 인앱 브라우저에서 가로 스크롤
+     (좌우 움직임) 발생. 일부 in-app browser 는 body 의 overflow-x:hidden 만
+     으로는 부족 → html 에도 명시.
+     (2026-05-21 v747) universal '* {max-width:100%}' 규칙이 절대위치된
+     .asset-vis-ring / .asset-vis-core 의 폭을 0 으로 만들어 애니메이션
+     사라짐. → 절대위치 자식 제외 + img/video/iframe 만 명시.
+     (2026-05-21 v755) 운영자 보고: F12 데스크탑 모바일 뷰는 정상이지만
+     실제 모바일은 우측 쏠림/중앙 미정렬/폭 좁음 잔존. → 모바일 브라우저
+     (Samsung Internet, Chrome 모바일) 의 text-size-adjust 자동 스케일링이
+     v752 의 px 폰트 축소를 무효화하는 것이 원인. text-size-adjust: 100% 로
+     자동 스케일링 차단 (사용자 zoom 은 그대로 존중).
+     Revert: -webkit-text-size-adjust / text-size-adjust 라인만 삭제하면
+     v754 상태 복귀. */
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  /* (v755) box-sizing 글로벌 — 일부 모바일 브라우저는 default content-box
+     라 padding/border 가 width 에 추가되어 컨테이너 폭 초과 → overflow.
+     border-box 로 통일하면 width 계산이 padding+border 포함이라 안전.
+     landing 페이지 한정 적용 (다른 페이지 영향 없음). */
+  body[data-page="landing"] *,
+  body[data-page="landing"] *::before,
+  body[data-page="landing"] *::after { box-sizing: border-box; }
+  body[data-page="landing"] img,
+  body[data-page="landing"] video,
+  body[data-page="landing"] iframe { max-width: 100%; height: auto; }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v756) MOBILE RAIL UNIFICATION — 보안감사 후 디자인 정리
+     ════════════════════════════════════════════════════════════════
+     배경: v744-v755 패치 누적으로 섹션마다 padding 값이 무작위로 섞이며
+     'F12 모바일 뷰는 정상, 실제 모바일은 우측 쏠림/비대칭' 문제 발생.
+     ChatGPT 권장 — '추가 overflow/max-width/!important 누적이 아니라
+     모바일 단일 기준 레일을 다시 잡는 것' 채택.
+
+     핵심 원칙:
+     1) 모든 섹션의 좌우 콘텐츠 시작점 = --mobile-rail (16px)
+     2) Hero 사진만 full-bleed (좌우 0), 하지만 사진 안의 텍스트도 rail 정렬
+     3) 카드 내부 padding 도 동일 rail 사용 — 콘텐츠 시작점 일관
+     4) asset-section 은 단일 컬럼, asset-vis 는 독립 행 centered
+     5) 데코레이션 (hex bg) 모바일 완전 숨김
+     6) eyebrow 의 wide letter-spacing 축소
+     7) 안전망 (overflow-x clip, text-size-adjust 등) 은 그대로 유지
+
+     이전 패치 흔적은 모두 삭제됨 (단일 source of truth). 디자인 의도와
+     일치하는 코드만 남음. Revert: backup-2026-05-21-before-rail-refactor
+     (생성 예정) 또는 git revert <이 커밋 hash>.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    /* ─── Single mobile rail (모든 좌우 정렬의 기준) ──────────────── */
+    body[data-page="landing"] { --mobile-rail: 16px; }
+
+    /* ─── 데코레이션 — 모바일에서 완전 숨김 (가독성 + 시각 안정) ──── */
+    .silica-hex-bg { display: none !important; }
+
+    /* ─── Hero — 사진 full-bleed, 텍스트는 rail 정렬 ─────────────── */
+    .silica-hero { padding: 0 0 24px !important; max-width: 100% !important; }
+    .hero-mine-photo { border-radius: 0 !important; box-shadow: none !important; aspect-ratio: 1 / 1; }
+    .hero-mine-photo img { object-position: center center; }
+    .hero-content-overlay {
+      position: absolute !important;
+      top: auto !important; bottom: 0 !important;
+      left: 0 !important; right: 0 !important;
+      transform: none !important;
+      max-width: 100% !important;
+      padding: 24px var(--mobile-rail) 24px var(--mobile-rail) !important;
+      background: linear-gradient(180deg, transparent 0%, rgba(15,23,42,0.55) 35%, rgba(15,23,42,0.94) 100%);
+      gap: 10px;
+    }
+    .hero-content-overlay .hero-tags { display: none; }
+    .hero-content-overlay .hero-title { font-size: 28px !important; line-height: 1.05 !important; }
+    .hero-content-overlay .hero-sub { font-size: 13px !important; line-height: 1.45 !important; margin: 0; }
+    .hero-content-overlay .hero-cta {
+      display: flex !important;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-start;  /* rail 좌측 시작 일관 */
+    }
+    .hero-content-overlay .hero-cta .btn {
+      padding: 8px 14px !important;
+      font-size: 11px !important;
+      letter-spacing: 0.5px !important;
+    }
+    .hero-rec, .hero-timecode { display: none; }
+    .hero-stat-strip { display: none !important; }
+
+    /* ─── 모든 컨텐츠 섹션 — 단일 rail padding ───────────────────── */
+    .stats-strip,
+    .asset-section,
+    .yield-section,
+    .token-section,
+    .cta-section {
+      padding-left: var(--mobile-rail) !important;
+      padding-right: var(--mobile-rail) !important;
+      max-width: 100% !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+    .stats-strip { padding-top: 0 !important; padding-bottom: 32px !important; }
+    .asset-section,
+    .yield-section,
+    .token-section { padding-top: 48px !important; padding-bottom: 48px !important; }
+    .cta-section { padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 32px !important; margin-bottom: 48px !important; }
+
+    /* ─── stat-cell (PURITY / RESERVES 등) ───────────────────────── */
+    /* (v757) text-align:center 만으로는 letter-spacing 의 trailing space +
+       small 자식 ('%', 'M' 등) 의 시각 무게 비대칭 → 우측 쏠림 인상.
+       flex 로 강제 중앙 정렬 + letter-spacing 0 화하여 시각 완벽 정렬. */
+    .stat-cell {
+      padding: 20px 8px !important;
+      display: flex !important;
+      flex-direction: column;
+      align-items: center !important;
+      justify-content: center;
+      text-align: center !important;
+    }
+    .stat-cell > * {
+      width: 100%;
+      text-align: center !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+    .stat-cell .val {
+      font-size: 26px !important;
+      letter-spacing: 0 !important;   /* 음수 letter-spacing 시각 artifact 제거 */
+    }
+    .stat-cell .label {
+      font-size: 9px;
+      letter-spacing: 1px;             /* 1.5 → 1 (trailing space 축소) */
+      margin-bottom: 6px;
+    }
+
+    /* ─── Asset section — 단일 컬럼, asset-vis 독립 centered ─────── */
+    .asset-section { display: block !important; }
+    .asset-section > div { width: 100% !important; max-width: 100% !important; }
+    .asset-vis {
+      width: 240px !important;
+      height: 240px !important;
+      max-width: 100% !important;
+      margin: 40px auto 0 !important;
+      aspect-ratio: 1 !important;
+      display: block !important;
+    }
+    .asset-vis-ring,
+    .asset-vis-ring-2,
+    .asset-vis-ring-3 { max-width: none !important; }
+    .asset-vis-ring-2 { inset: 8% !important; }
+    .asset-vis-ring-3 { inset: 16% !important; }
+    .asset-vis-core { inset: 22% !important; padding: 12px !important; max-width: none !important; }
+    .asset-vis-label { font-size: 10px !important; margin-bottom: 6px; letter-spacing: 1.2px; }
+    .asset-vis-val { font-size: 32px !important; letter-spacing: -1.5px; }
+    .asset-vis-unit { font-size: 10px !important; margin-top: 6px; letter-spacing: 2px; }
+
+    /* ─── Section title — uniform font + reduced letter-spacing ─── */
+    .section-title {
+      font-size: clamp(22px, 7vw, 32px) !important;
+      letter-spacing: 0.3px !important;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      max-width: 100%;
+    }
+    .section-title em {
+      font-size: 0.78em;
+      letter-spacing: -1.2px;
+    }
+
+    /* ─── Inline eyebrow (인라인 letter-spacing 4px 강제 축소) ──── */
+    [style*="letter-spacing:4px"] { letter-spacing: 1.5px !important; }
+    [style*="letter-spacing: 4px"] { letter-spacing: 1.5px !important; }
+
+    /* ─── Asset flavor — 좌우 대칭 + 작은 letter-spacing ─────────── */
+    .asset-flavor {
+      font-size: 11px !important;
+      letter-spacing: 0.3px !important;
+      padding: 6px 10px !important;
+      word-break: break-word;
+      white-space: normal;
+      max-width: 100%;
+    }
+    .asset-text {
+      font-size: 13px !important;
+      line-height: 1.6 !important;
+      margin-bottom: 24px !important;
+      word-break: break-word;
+    }
+
+    /* ─── Attribute grid cells ───────────────────────────────────── */
+    .attr-cell { padding: 12px 12px !important; }
+    .attr-label { font-size: 8.5px !important; letter-spacing: 0.6px !important; margin-bottom: 4px; }
+    .attr-val { font-size: 13px !important; word-break: break-word; }
+
+    /* ─── Yield / Token / CTA cards — 카드 내부 padding 도 rail 사용 ─ */
+    .yield-card,
+    .token-card,
+    .cta-box {
+      padding: 24px var(--mobile-rail) !important;
+    }
+
+    /* (v758) 운영자 보고: token-card 의 label/value 가 너무 가깝고 줄바꿈
+       부적절. 원인: 'display:flex; justify-content:space-between' 가 긴
+       value 가 wrap 될 때 label 우측에 붙어 'PriceVariable (currently...)'
+       처럼 글자 연결 인상. 모바일에서는 vertical stack (label 위, value 아래)
+       으로 명확한 분리. */
+    .token-card ul li {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 4px;
+      padding: 12px 0 !important;
+    }
+    .token-card ul li span {
+      width: 100% !important;
+      text-align: left !important;
+      font-size: 14px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .yield-header { margin-bottom: 28px !important; }
+    .yield-big { font-size: clamp(40px, 12vw, 64px) !important; letter-spacing: -2px; margin-bottom: 16px; }
+    .yield-name { font-size: 28px !important; margin-bottom: 12px; }
+    .yield-text { font-size: 13px; line-height: 1.55 !important; margin-bottom: 18px; }
+    .yield-meta { padding-top: 14px; gap: 12px; }
+    .yield-tag {
+      display: inline-flex !important;
+      flex-wrap: wrap !important;
+      max-width: 100% !important;
+      font-size: 9px !important;
+      letter-spacing: 1px !important;
+      padding: 5px 10px !important;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+    .cta-box h2 { font-size: clamp(26px, 8vw, 36px) !important; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .cta-box p { font-size: 14px !important; margin-bottom: 20px; }
+
+    /* ─── 안전망 (v754/v755 유지) ─────────────────────────────────── */
+    body[data-page="landing"] > main {
+      max-width: 100vw !important;
+      overflow-x: clip;
+    }
+    body[data-page="landing"] > main > section,
+    body[data-page="landing"] > main > div.stats-strip {
+      max-width: 100vw !important;
+      box-sizing: border-box;
+    }
+    .asset-text, .yield-text, .token-card p, .cta-box p {
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+  }
+  .silica-hex-bg {
+    position: absolute;       /* fixed 아닌 absolute → 스크롤과 함께 흐름 */
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;             /* body 전체 높이 */
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  /* 콘텐츠는 hex(0) 위 */
+  body[data-page="landing"] > main,
+  body[data-page="landing"] > footer,
+  body[data-page="landing"] > #site-footer {
+    position: relative;
+    z-index: 1;
+  }
+  /* 헤더는 z-index: 1000 (드롭다운이 hero 이미지를 덮어야 함) */
+  /* position 은 명시 안함 — site-header.html 의 position: sticky 보존 */
+  body[data-page="landing"] header.site-header,
+  body[data-page="landing"] .site-header,
+  body[data-page="landing"] > #site-header {
+    z-index: 1000 !important;
+  }
+  /* 드롭다운 자체도 z-index 높임 (사이트 기본 200 → 1100) */
+  body[data-page="landing"] header.site-header .nav-sub,
+  body[data-page="landing"] .site-header .nav-sub {
+    z-index: 1100 !important;
+  }
+
+  .silica-hex-bg .hex {
+    position: absolute;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    will-change: transform, opacity;
+  }
+  .silica-hex-bg .hex.outline::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: #FFFFFF;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+
+  /* 색상 (5색 로고 팔레트) */
+  .silica-hex-bg .hex.h-violet { background: #8E24AA; }
+  .silica-hex-bg .hex.h-red    { background: #E53935; }
+  .silica-hex-bg .hex.h-blue   { background: #1976D2; }
+  .silica-hex-bg .hex.h-orange { background: #F57C00; }
+  .silica-hex-bg .hex.h-green  { background: #2E7D32; }
+
+  /* 강도 — 더 또렷한 컬러 (강화됨) */
+  .silica-hex-bg .hex.solid   { opacity: 0.40; }
+  .silica-hex-bg .hex.outline { opacity: 0.72; }
+  .silica-hex-bg .hex.ghost   { opacity: 0.22; }
+  .silica-hex-bg .hex.outline { border: none; }
+  /* 외곽선 두께도 강화 (3px → 4px) → 더 또렷한 컬러 라인 */
+  .silica-hex-bg .hex.outline::before { inset: 4px; }
+
+  /* 위치 — 페이지 세로 0%~100% 전체 분포 (양 가장자리 16개) */
+  .silica-hex-bg .h1  { top: 2%;  right: -3%; width: 180px; height: 207px; }
+  .silica-hex-bg .h2  { top: 5%;  left: 4%;   width: 70px;  height: 80px;  }
+  .silica-hex-bg .h3  { top: 11%; right: 6%;  width: 90px;  height: 104px; }
+  .silica-hex-bg .h4  { top: 16%; left: -3%;  width: 130px; height: 150px; }
+  .silica-hex-bg .h5  { top: 22%; right: 3%;  width: 65px;  height: 75px;  }
+  .silica-hex-bg .h6  { top: 28%; left: 7%;   width: 80px;  height: 92px;  }
+  .silica-hex-bg .h7  { top: 35%; right: -2%; width: 140px; height: 162px; }
+  .silica-hex-bg .h8  { top: 42%; left: 5%;   width: 75px;  height: 86px;  }
+  .silica-hex-bg .h9  { top: 48%; right: 8%;  width: 60px;  height: 70px;  }
+  .silica-hex-bg .h10 { top: 55%; left: -2%;  width: 110px; height: 127px; }
+  .silica-hex-bg .h11 { top: 62%; right: 4%;  width: 85px;  height: 98px;  }
+  .silica-hex-bg .h12 { top: 70%; left: 8%;   width: 70px;  height: 80px;  }
+  .silica-hex-bg .h13 { top: 77%; right: -3%; width: 150px; height: 173px; }
+  .silica-hex-bg .h14 { top: 83%; left: 3%;   width: 95px;  height: 109px; }
+  .silica-hex-bg .h15 { top: 90%; right: 6%;  width: 75px;  height: 86px;  }
+  .silica-hex-bg .h16 { top: 96%; left: -2%;  width: 120px; height: 138px; }
+
+  /* === 애니메이션 키프레임 (강화 — amplitude + speed 더 강하게) === */
+  @keyframes hex-breathe {
+    0%   { transform: translate3d(0, 0, 0)     rotate(0deg)  scale(1); }
+    100% { transform: translate3d(0, -55px, 0) rotate(40deg) scale(1.18); }
+  }
+  @keyframes hex-drift {
+    0%   { transform: translate3d(0, 0, 0)       rotate(0deg)   scale(1); }
+    100% { transform: translate3d(40px, 30px, 0) rotate(-50deg) scale(0.85); }
+  }
+  @keyframes hex-spin {
+    from { transform: rotate(0deg)   scale(1); }
+    50%  { transform: rotate(180deg) scale(1.10); }
+    to   { transform: rotate(360deg) scale(1); }
+  }
+  @keyframes hex-pulse {
+    0%, 100% { transform: scale(1)    rotate(0deg); }
+    50%      { transform: scale(1.32) rotate(25deg); }
+  }
+  /* 좌우 흔들림 — 새 키프레임 추가 */
+  @keyframes hex-sway {
+    0%   { transform: translate3d(-25px, 0, 0) rotate(-15deg) scale(0.95); }
+    100% { transform: translate3d(25px, -20px, 0) rotate(20deg) scale(1.12); }
+  }
+
+  /* 각 hex 마다 다른 timing/delay/direction — duration 더 빠르게 (5~12s) */
+  .silica-hex-bg .h1  { animation: hex-breathe  9s ease-in-out infinite alternate; }
+  .silica-hex-bg .h2  { animation: hex-drift    7s ease-in-out infinite alternate; }
+  .silica-hex-bg .h3  { animation: hex-spin    18s ease-in-out infinite; }
+  .silica-hex-bg .h4  { animation: hex-sway   10s ease-in-out infinite alternate-reverse; animation-delay: -2s; }
+  .silica-hex-bg .h5  { animation: hex-pulse    6s ease-in-out infinite; }
+  .silica-hex-bg .h6  { animation: hex-drift    8s ease-in-out infinite alternate;          animation-delay: -1s; }
+  .silica-hex-bg .h7  { animation: hex-breathe 11s ease-in-out infinite alternate;          animation-delay: -3s; }
+  .silica-hex-bg .h8  { animation: hex-spin    22s ease-in-out infinite reverse; }
+  .silica-hex-bg .h9  { animation: hex-pulse    5s ease-in-out infinite;                    animation-delay: -1s; }
+  .silica-hex-bg .h10 { animation: hex-sway     9s ease-in-out infinite alternate;          animation-delay: -3s; }
+  .silica-hex-bg .h11 { animation: hex-breathe  7s ease-in-out infinite alternate;          animation-delay: -2s; }
+  .silica-hex-bg .h12 { animation: hex-pulse    6.5s ease-in-out infinite;                  animation-delay: -2s; }
+  .silica-hex-bg .h13 { animation: hex-drift   10s ease-in-out infinite alternate;          animation-delay: -4s; }
+  .silica-hex-bg .h14 { animation: hex-spin    20s ease-in-out infinite; }
+  .silica-hex-bg .h15 { animation: hex-sway     8s ease-in-out infinite alternate-reverse;  animation-delay: -3s; }
+  .silica-hex-bg .h16 { animation: hex-drift   11s ease-in-out infinite alternate;          animation-delay: -5s; }
+
+  /* 모션 줄이기 선호 사용자 — 정적 표시 */
+  @media (prefers-reduced-motion: reduce) {
+    .silica-hex-bg .hex { animation: none !important; }
+  }
+
+  /* 모바일 — 작은 hex 일부 숨김 + 큰 hex 사이즈 축소 */
+  @media (max-width: 720px) {
+    .silica-hex-bg .h2,
+    .silica-hex-bg .h5,
+    .silica-hex-bg .h9,
+    .silica-hex-bg .h12,
+    .silica-hex-bg .h15 { display: none; }
+    .silica-hex-bg .h1,
+    .silica-hex-bg .h7,
+    .silica-hex-bg .h13,
+    .silica-hex-bg .h16 { width: 100px; height: 115px; }
+  }
+</style>
+</head>
+<body data-page="landing">
+
+<!-- === SiO₂ Hex Crystal 애니메이션 배경 (페이지 전체 세로 분포) === -->
+<div class="silica-hex-bg" aria-hidden="true">
+  <div class="hex h-violet outline h1"></div>
+  <div class="hex h-red    solid   h2"></div>
+  <div class="hex h-blue   outline h3"></div>
+  <div class="hex h-orange solid   h4"></div>
+  <div class="hex h-green  outline h5"></div>
+  <div class="hex h-violet solid   h6"></div>
+  <div class="hex h-red    outline h7"></div>
+  <div class="hex h-blue   solid   h8"></div>
+  <div class="hex h-orange outline h9"></div>
+  <div class="hex h-green  solid   h10"></div>
+  <div class="hex h-violet outline h11"></div>
+  <div class="hex h-red    ghost   h12"></div>
+  <div class="hex h-blue   outline h13"></div>
+  <div class="hex h-orange solid   h14"></div>
+  <div class="hex h-green  outline h15"></div>
+  <div class="hex h-violet solid   h16"></div>
+</div>
+
+<!-- site-header.html will be auto-mounted by core.js -->
+
+<main>
+  <section class="silica-hero">
+    <!-- === Concept G1: Cinematic Overlay (영상 효과) === -->
+    <div class="hero-mine-photo">
+      <!-- Ken Burns 효과로 천천히 zoom/pan 되는 사진 -->
+      <img src="assets/images/silica/mine-aerial.webp"
+           alt="SILICA CHAIN HOLDINGS — Rare Metal Smelting Facility"
+           onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+
+      <!-- 영상 효과 레이어 (zindex 낮은 순) -->
+      <div class="hero-vignette"></div>      <!-- 비네팅 -->
+      <div class="hero-scanlines"></div>     <!-- 스캔라인 -->
+      <div class="hero-overlay-left"></div>  <!-- 좌측 어두운 그라데이션 -->
+
+      <!-- (v866) 컨셉 전환: 채굴권 투자 → 광물 제련 사업 투자. -->
+
+      <!-- 사진 위 텍스트 오버레이 -->
+      <div class="hero-content-overlay">
+        <div class="hero-tags">
+          <div class="hero-tag tag-green"><span class="dot"></span>LIVE</div>
+          <div class="hero-tag tag-violet">SOLANA</div>
+          <div class="hero-tag tag-red">RWA</div>
+          <div class="hero-tag tag-blue">KOREA</div>
+        </div>
+
+        <h1 class="hero-title">
+          <b>Real-World Assets</b> <i>Refined</i> for<br>
+          <em>Stable Yield.</em>
+        </h1>
+
+        <p class="hero-sub">
+          Korean rare metal smelting operation — iridium &amp; multi-metal recovery for semiconductor, AI, and aerospace. Monthly USDT fixed interest + annual dividend.
+        </p>
+
+        <div class="hero-cta">
+          <a href="assets.html" class="btn btn-primary btn-lg" data-wallet-gate="1">Invest Now →</a>
+          <a href="assets.html" class="btn btn-secondary btn-lg" data-wallet-gate="1">View Asset Details</a>
+        </div>
+      </div>
+
+      <!-- (v866) hero stat strip — 채굴 spec (SiO₂/Reserves/Area) 에서 제련
+           spec (Recovery / Refined Purity / Annual Capacity) 로 전환. -->
+      <div class="hero-stat-strip">
+        <div class="hero-stat"><div class="l">Recovery</div><div class="v">95%</div></div>
+        <div class="hero-stat"><div class="l">Purity</div><div class="v">99.9%</div></div>
+        <div class="hero-stat"><div class="l">Capacity</div><div class="v">15,000t</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="label">RECOVERY</div>
+      <div class="val">95<small style="font-size:0.5em">%</small></div>
+      <div class="text-mono text-muted" style="font-size: 11px;">METAL RECOVERY RATE</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">PURITY</div>
+      <div class="val">99.9<small style="font-size:0.5em">%</small></div>
+      <div class="text-mono text-muted" style="font-size: 11px;">REFINED PRODUCT</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">CAPACITY</div>
+      <div class="val">15<small style="font-size:0.5em">K</small></div>
+      <div class="text-mono text-muted" style="font-size: 11px;">TONS / YEAR</div>
+    </div>
+    <div class="stat-cell">
+      <div class="label">IRIDIUM</div>
+      <div class="val">11<small style="font-size:0.5em">%</small></div>
+      <div class="text-mono text-muted" style="font-size: 11px;">ORE Ir CONTENT</div>
+    </div>
+  </div>
+
+  <section class="asset-section">
+    <div>
+      <div class="eyebrow mb-md" style="font-family:'Space Grotesk';font-size:11px;letter-spacing:4px;color:var(--aurora-3);text-transform:uppercase;font-weight:600;margin-bottom:16px;">◆ THE UNDERLYING BUSINESS</div>
+      <h2 class="section-title">
+        Rare Metal <em>Smelting.</em><br>
+        Iridium &amp; Multi-Metal Recovery.
+      </h2>
+      <div class="asset-flavor">// Recovery 95% · Refined Purity ≥99.9%</div>
+      <p class="asset-text">
+        Smelting and refining of polymetallic ore — recovering iridium (Ir), gold (Au), silver (Ag), iron (Fe), and PGMs — for the global semiconductor, AI infrastructure, and aerospace supply chain.
+        We issue Investment Certificates to fund smelting operations, and investors share in the operation's revenue.
+      </p>
+      <div class="asset-attrs">
+        <div class="attr-cell"><div class="attr-label">Operator</div><div class="attr-val">Silica Chain Holdings</div></div>
+        <div class="attr-cell"><div class="attr-label">Jurisdiction</div><div class="attr-val">Korea</div></div>
+        <div class="attr-cell"><div class="attr-label">Annual Capacity</div><div class="attr-val">15,000 t</div></div>
+        <div class="attr-cell"><div class="attr-label">Network</div><div class="attr-val">Solana</div></div>
+        <div class="attr-cell"><div class="attr-label">End Use</div><div class="attr-val">Semiconductor · AI · Aerospace</div></div>
+      </div>
+    </div>
+    <div class="asset-vis">
+      <div class="asset-vis-ring"></div>
+      <div class="asset-vis-ring asset-vis-ring-2"></div>
+      <div class="asset-vis-ring asset-vis-ring-3"></div>
+      <div class="asset-vis-core">
+        <div class="asset-vis-label">◆ REFINED PURITY</div>
+        <div class="asset-vis-val">99.9</div>
+        <div class="asset-vis-unit">PERCENT</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="yield-section">
+    <div class="yield-header">
+      <div style="font-family:'Space Grotesk';font-size:11px;letter-spacing:4px;color:var(--aurora-3);text-transform:uppercase;font-weight:600;margin-bottom:16px;">◆ TWO YIELD STREAMS</div>
+      <h2 class="section-title text-center" style="text-align:center">Two <em>Yield Streams</em></h2>
+      <p style="color:var(--steel)">Monthly stable income + annual smelting performance dividend</p>
+    </div>
+    <div class="yield-cards">
+      <!-- (2026-05-18 v508) 운영자 요청: '현재 이자율 표기 및 변동이라는
+           텍스트 작게 함께 표기'. 기존 정적 5.00% 를 동적 (silica_apr_pct)
+           으로 변경 + 'Variable (may change per cycle)' 작은 부제 추가.
+           실제 갱신은 페이지 하단 inline JS (#landingStakingApr 와 동일
+           source) 가 #landingHeroApr 에 채워서. -->
+      <div class="yield-card fixed">
+        <div class="yield-tag">● Monthly · USDT · Variable per cycle</div>
+        <h3 class="yield-name">Monthly Interest</h3>
+        <div class="yield-big" id="landingHeroApr">—<small>.--%</small></div>
+        <div class="muted" style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-top:-8px;margin-bottom:12px;color:var(--steel)">
+          Current cycle · Variable (subject to admin update)
+        </div>
+        <p class="yield-text">
+          Automatically paid out in USDT on the 15th of every month. The interest rate is adjustable by the operator,
+          and any updated rate applies from the next cycle (current cycle is unaffected).
+        </p>
+        <div class="yield-meta">
+          <div class="yield-meta-item">
+            <div class="yield-meta-label">Payout</div>
+            <div class="yield-meta-val">15th of every month</div>
+          </div>
+          <div class="yield-meta-item">
+            <div class="yield-meta-label">Currency</div>
+            <div class="yield-meta-val">USDT</div>
+          </div>
+        </div>
+      </div>
+      <div class="yield-card dividend">
+        <div class="yield-tag">● Variable · Annual · Silica</div>
+        <h3 class="yield-name">Annual Dividend</h3>
+        <div class="yield-big">+VAR</div>
+        <p class="yield-text">
+          Distributed in April~May after Korean fiscal year close. Smelting operation revenue is shared as Silica tokens
+          and allocated only to investors actively staking on the payout date (15th).
+        </p>
+        <div class="yield-meta">
+          <div class="yield-meta-item">
+            <div class="yield-meta-label">Frequency</div>
+            <div class="yield-meta-val">Annually · April~May</div>
+          </div>
+          <div class="yield-meta-item">
+            <div class="yield-meta-label">Token</div>
+            <div class="yield-meta-val">Silica</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="token-section">
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="font-family:'Space Grotesk';font-size:11px;letter-spacing:4px;color:var(--aurora-3);text-transform:uppercase;font-weight:600;margin-bottom:16px;">◆ DUAL TOKEN ARCHITECTURE</div>
+      <h2 class="section-title">Dual Token <em>Architecture.</em></h2>
+    </div>
+    <div class="token-cards">
+      <div class="token-card sto">
+        <div class="token-icon">S</div>
+        <h4>SilicaSTO</h4>
+        <p>An Investment Certificate issued when you invest in the smelting operation. The company maintains its reference value at 1:1 to USDT (not a guarantee of principal).</p>
+        <ul>
+          <li>Price <span>1 SilicaSTO = 1 USDT</span></li>
+          <li>Issuance <span>At investment</span></li>
+          <!-- (2026-05-18 v471) Staking APR 동적 바인딩 — /api/public/config
+               의 silica_apr_pct (interest_rate_history 기준 현재 회차 요율).
+               admin 설정 변경 시 즉시 반영. fetch 실패 / null 시 폴백. -->
+          <li>Staking <span id="landingStakingApr">Available (— % USDT Interest)</span></li>
+          <li>Withdrawal <span>External wallet supported</span></li>
+        </ul>
+      </div>
+      <div class="token-card silica">
+        <div class="token-icon">◆</div>
+        <h4>Silica</h4>
+        <p>A reward token paid out as the annual dividend. Market price is established upon exchange listing, and it can be swapped one-way into SilicaSTO.</p>
+        <ul>
+          <!-- (2026-05-18 v469) Silica 토큰 시세 동적 바인딩. 기존엔 'Variable
+               (currently 0.05 USDT)' 정적 텍스트 + i18n 매핑. 이제 페이지
+               하단 inline JS 가 /api/public/config 의 silica_price_usdt 를
+               읽어 #landingSilicaPrice 를 갱신. fetch 실패 시 fallback 으로
+               '—' 표기. -->
+          <li>Price <span id="landingSilicaPrice">Variable (currently — USDT)</span></li>
+          <li>Issuance <span>Annual dividend / Reward</span></li>
+          <li>Trading <span>Order book</span></li>
+          <li>Swap <span>Silica → SilicaSTO (one-way)</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-box">
+      <div style="font-family:'Space Grotesk';font-size:11px;letter-spacing:4px;color:var(--aurora-3);text-transform:uppercase;font-weight:600;margin-bottom:16px;">◆ READY TO INVEST</div>
+      <h2>Hold Real-World Assets<br>In Your Wallet.</h2>
+      <p>Connect your Phantom wallet and get started in under a minute.</p>
+      <div class="hero-cta">
+        <a href="assets.html" class="btn btn-primary btn-lg">Create Account</a>
+        <a href="landing.html#ir" class="btn btn-secondary btn-lg">View IR Materials</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="siteFooterMount"></div>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<!-- (2026-05-18 v469/v471) DUAL TOKEN ARCHITECTURE 섹션 라이브 바인딩.
+     /api/public/config 1회 fetch 로 두 필드 갱신:
+       - silica_price_usdt → #landingSilicaPrice  (Silica 토큰 시세, v469)
+       - silica_apr_pct    → #landingStakingApr   (SilicaSTO Staking APR, v471)
+     둘 다 admin 설정/사이클 변경 시 즉시 반영. 누락 시 폴백 텍스트. -->
+<script>
+  (function () {
+    const _lang = (() => {
+      try {
+        const v = String(localStorage.getItem('rwa_lang_user_v1') || 'en').trim().toLowerCase();
+        return v === 'ko' ? 'ko' : 'en';
+      } catch (_) { return 'en'; }
+    })();
+
+    const applyPrice = (val) => {
+      const el = document.getElementById('landingSilicaPrice');
+      if (!el) return;
+      const price = Number(val);
+      const hasPrice = isFinite(price) && price > 0;
+      const display = hasPrice
+        ? (price < 1 ? price.toFixed(4).replace(/0+$/, '').replace(/\.$/, '') : price.toFixed(2))
+        : '—';
+      if (_lang === 'ko') {
+        el.textContent = hasPrice
+          ? `변동 (현재 ${display} USDT)`
+          : `변동 (시세 미설정)`;
+      } else {
+        el.textContent = hasPrice
+          ? `Variable (currently ${display} USDT)`
+          : `Variable (price not set)`;
+      }
+    };
+
+    const applyApr = (val) => {
+      const el = document.getElementById('landingStakingApr');
+      const heroEl = document.getElementById('landingHeroApr'); // (v508) Hero APR 카드
+      const apr = Number(val);
+      const hasApr = isFinite(apr) && apr > 0;
+      // 정수면 정수 표기, 소수점 있으면 최대 2자리.
+      const display = hasApr
+        ? (Number.isInteger(apr) ? String(apr) : apr.toFixed(2).replace(/0+$/, '').replace(/\.$/, ''))
+        : '—';
+      if (el) {
+        if (_lang === 'ko') {
+          el.textContent = hasApr
+            ? `가능 (${display}% USDT 이자)`
+            : `가능 (이자율 미설정)`;
+        } else {
+          el.textContent = hasApr
+            ? `Available (${display}% USDT Interest)`
+            : `Available (rate not set)`;
+        }
+      }
+      // (v508) Hero APR 카드 — '5.00%' 형식의 큰 표기 + 소수부 small 태그
+      if (heroEl) {
+        if (hasApr) {
+          const intPart = Math.floor(apr);
+          const decPart = Math.round((apr - intPart) * 100);
+          const decStr = decPart > 0
+            ? '.' + (decPart < 10 ? '0' + decPart : decPart) + '%'
+            : '.00%';
+          heroEl.innerHTML = `${intPart}<small>${decStr}</small>`;
+        } else {
+          heroEl.innerHTML = '—<small>.--%</small>';
+        }
+      }
+    };
+
+    const apiBase = (() => {
+      try {
+        const v = localStorage.getItem('rwa_api_base_v1');
+        if (v) return String(v).replace(/\/+$/, '');
+      } catch (_) {}
+      return '';
+    })();
+    fetch(`${apiBase}/api/public/config`, { method: 'GET', cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => {
+        applyPrice(d?.silica_price_usdt);
+        applyApr(d?.silica_apr_pct);
+      })
+      .catch(err => {
+        console.warn('[landing] dual-token config fetch failed:', err?.message || err);
+        applyPrice(0);
+        applyApr(0);
+      });
+  })();
+</script>
+</body>
+</html>

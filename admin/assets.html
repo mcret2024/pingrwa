@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>자산 등록/관리 · SilicaChain</title>
+
+<link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+<link rel="shortcut icon" href="img/favicon.png">
+
+<style>
+.admin-shell{
+  max-width:1200px;
+  margin:0 auto;
+  padding:22px 16px
+}
+
+.admin-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px
+}
+
+.admin-grid{
+  display:grid;
+  grid-template-columns:260px 1fr;
+  gap:14px;
+  margin-top:14px
+}
+
+@media (max-width:900px){
+  .admin-grid{
+    grid-template-columns:1fr
+  }
+}
+
+.admin-menu{
+  display:flex;
+  flex-direction:column;
+  gap:10px
+}
+
+.admin-menu a{
+  width:100%!important;
+  display:flex!important;
+  justify-content:flex-start!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-decoration:none
+}
+
+.admin-menu a.active{
+  background:var(--accent-light, #fffbeb);
+  border:1px solid rgba(245,196,0,.24);
+  color:var(--text, #0f172a);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85)
+}
+
+.two-col{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:14px
+}
+
+.adm-col-stack{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-width:0
+}
+
+@media (max-width:900px){
+  .two-col{
+    grid-template-columns:1fr
+  }
+}
+
+.table{
+  width:100%
+}
+
+.table td{
+  word-break:break-all
+}
+
+#admAssetContracts td:nth-child(1){
+  max-width:280px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+#admAssetContracts tr:hover{
+  background:var(--surface2, #f8fafc);
+  cursor:pointer;
+}
+
+
+/* Contract template assignment on asset page */
+.adm-main-shell{
+  background:#ffffff;
+  border:1px solid #eef2f7;
+  box-shadow:0 12px 32px rgba(15,23,42,.05), 0 2px 10px rgba(15,23,42,.03)
+}
+
+.tmpl-assign-box{padding:16px;border:1px solid #e8eef5;border-radius:16px;background:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,.85);margin-bottom:14px}
+.tmpl-assign-box .tmpl-current{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tmpl-assign-box .tmpl-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:10px;background:var(--accent-light,rgba(245,196,0,.12));color:var(--accent-dark,#b8860b);font-weight:700;font-size:13px;border:1px solid rgba(245,196,0,.2)}
+.tmpl-assign-box .tmpl-tag .unlink{cursor:pointer;font-size:16px;opacity:.6}
+.tmpl-assign-box .tmpl-tag .unlink:hover{opacity:1;color:#dc2626}
+.tmpl-default-note{font-size:12px;color:var(--muted);padding:4px 0}
+
+.adm-subcard{
+  background:#ffffff;
+  border:1px solid #e8eef5;
+  box-shadow:0 10px 28px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.03);
+  border-radius:20px;
+}
+
+.adm-subcard .pad{
+  background:#ffffff;
+}
+
+.adm-subcard .hr{
+  border-color:#e8eef5;
+}
+
+.adm-section-title{
+  font-weight:900;
+  font-size:15px;
+  margin:0 0 10px
+}
+
+.adm-textarea{
+  width:100%;
+  min-height:120px;
+  resize:vertical;
+  border-radius:14px;
+  border:1px solid var(--border, rgba(255,255,255,.10));
+  background:var(--surface2, #f8f9fb) !important;
+  color:var(--text, #0f172a) !important;
+  padding:12px 14px;
+  outline:none;
+  font-size:14px;
+  font-family:inherit;
+}
+
+.adm-textarea:focus{
+  border-color:var(--accent, #f5c400);
+  background:var(--surface2, #f8f9fb) !important;
+  color:var(--text, #0f172a) !important;
+  box-shadow:0 0 0 3px rgba(245,196,0,.12);
+}
+
+.adm-upload-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:12px
+}
+
+@media (max-width:900px){
+  .adm-upload-grid{
+    grid-template-columns:1fr
+  }
+}
+
+.adm-preview-box{
+  border:1px solid #e8eef5;
+  border-radius:16px;
+  background:#ffffff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+  padding:12px
+}
+
+.adm-preview-box img{
+  width:100%;
+  height:220px;
+  object-fit:contain;
+  border-radius:14px;
+  background:#f8fafc;
+  border:1px solid #e8eef5;
+  display:none
+}
+
+.adm-file-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px
+}
+
+@media (max-width:900px){
+  .adm-file-row{
+    grid-template-columns:1fr
+  }
+}
+
+.adm-field-note{
+  font-size:12px;
+  color:var(--muted)
+}
+
+.adm-soft-box{
+  border:1px solid #e8eef5;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+  background:#ffffff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85)
+}
+
+
+#admFundingStatus,
+#admTokenIssueQty{
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  line-height:1.4;
+}
+
+#admAssetsTbody tr{
+  transition:background-color .15s ease, box-shadow .15s ease;
+}
+
+#admAssetsTbody tr:hover{
+  background:#f8fafc;
+}
+
+#admAssetsTbody tr.is-selected{
+  background:#FFFBEB;
+}
+
+#admAssetsTbody tr.is-selected td{
+  box-shadow:inset 0 1px 0 rgba(245,196,0,.16), inset 0 -1px 0 rgba(245,196,0,.16);
+}
+
+#admAssetsTbody tr.is-selected td:first-child strong{
+  color:var(--accent-dark, #a07800)
+}
+
+#admAssetsTbody td{
+  vertical-align:middle;
+  word-break:normal;
+}
+
+#admAssetsTbody td:first-child{
+  min-width:260px;
+  word-break:break-word;
+}
+
+#admAssetsTbody td:nth-child(2){
+  min-width:118px;
+}
+
+#admAssetsTbody td:nth-child(3),
+#admAssetsTbody td:nth-child(4),
+#admAssetsTbody td:nth-child(5){
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+.adm-immutable{
+  opacity:0.7;
+  pointer-events:none;
+  background:var(--surface2, #f0f0f0) !important;
+}
+
+.adm-immutable-badge{
+  display:inline-block;
+  font-size:10px;
+  background:var(--accent, #f5c400);
+  color:#000;
+  padding:1px 6px;
+  border-radius:8px;
+  margin-left:6px;
+  font-weight:700;
+}
+
+.detail-images-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+  gap:8px;
+  margin-top:8px;
+}
+
+.detail-images-grid img{
+  width:100%;
+  height:100px;
+  object-fit:cover;
+  border-radius:10px;
+  border:1px solid var(--border);
+}
+/* (2026-05-11 v271) Detail-image tile with delete X overlay. */
+.adm-detail-tile{
+  position:relative;
+  display:block;
+}
+.adm-detail-tile img{
+  width:100%;
+  height:100px;
+  object-fit:cover;
+  border-radius:10px;
+  border:1px solid var(--border);
+}
+.adm-detail-del-btn{
+  position:absolute;
+  top:4px;
+  right:4px;
+  width:24px;
+  height:24px;
+  padding:0;
+  border:none;
+  border-radius:50%;
+  background:rgba(220, 38, 38, 0.92);
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
+  transition:transform .12s ease, background .12s ease;
+}
+.adm-detail-del-btn:hover{
+  background:#b91c1c;
+  transform:scale(1.08);
+}
+
+/* ===== Template Picker Modal ===== */
+/* ===== Template Picker Modal (Light Theme) ===== */
+.tp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;justify-content:center;align-items:flex-start;padding:60px 16px 40px}
+.tp-overlay.show{display:flex}
+.tp-modal{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:20px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.08);animation:tpSlideIn .2s ease;color:var(--text,#0f172a)}
+@keyframes tpSlideIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.tp-header{padding:20px 24px 0;flex-shrink:0}
+.tp-header h3{margin:0 0 4px;font-size:18px;font-weight:900;color:var(--text,#0f172a)}
+.tp-header .tp-sub{font-size:13px;color:var(--muted,#64748b);margin-bottom:14px}
+.tp-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted,#64748b);line-height:1;padding:4px;border-radius:8px}
+.tp-close:hover{background:var(--surface3,#f0f2f5);color:var(--text,#0f172a)}
+.tp-search{width:100%;padding:10px 14px;border-radius:12px;border:2px solid var(--border,#e5e7eb);background:var(--surface2,#f8f9fb);color:var(--text,#0f172a);font-size:14px;outline:none;transition:border-color .15s}
+.tp-search:focus{border-color:var(--accent,#f5c400);box-shadow:0 0 0 3px rgba(245,196,0,.12)}
+.tp-search::placeholder{color:var(--muted-light,#94a3b8)}
+.tp-body{padding:8px 16px 16px;overflow-y:auto;flex:1;min-height:0}
+.tp-count-row{display:flex;justify-content:space-between;padding:6px 8px;font-size:12px;color:var(--muted,#64748b)}
+.tp-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border,#e5e7eb);border-radius:14px;margin-bottom:6px;cursor:pointer;transition:all .15s;background:#fff}
+.tp-item:hover{background:var(--surface2,#f8f9fb);border-color:var(--border-strong,#cbd5e1)}
+.tp-item.selected{background:var(--accent-lighter,#fef9e0);border-color:var(--accent,#f5c400);box-shadow:0 0 0 2px rgba(245,196,0,.15)}
+.tp-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;font-weight:700}
+.tp-icon.active{background:rgba(5,150,105,.1);color:#059669}
+.tp-icon.inactive{background:rgba(100,116,139,.1);color:#64748b}
+.tp-icon.default{background:rgba(217,119,6,.1);color:#d97706}
+.tp-info{flex:1;min-width:0}
+.tp-info .tp-name{font-weight:700;font-size:14px;color:var(--text,#0f172a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-info .tp-detail{font-size:12px;color:var(--muted,#64748b);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-info .tp-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tp-info .tp-asset-badge{font-size:10px;padding:1px 6px;border-radius:6px;background:var(--accent-light,#fffbeb);color:var(--accent-dark,#a07800);font-weight:600;border:1px solid rgba(245,196,0,.25)}
+.tp-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--border-strong,#cbd5e1);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:14px;color:transparent}
+.tp-item.selected .tp-check{background:var(--accent,#f5c400);border-color:var(--accent,#f5c400);color:#000}
+.tp-footer{padding:12px 24px 20px;flex-shrink:0;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border,#e5e7eb)}
+
+/* Create modal overlay */
+.adm-modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:1000;
+  display:none;
+  justify-content:center;
+  align-items:flex-start;
+  padding:40px 16px;
+  overflow-y:auto;
+}
+
+.adm-modal-overlay.show{
+  display:flex;
+}
+
+.adm-modal{
+  background:var(--bg, #fff);
+  border-radius:20px;
+  padding:24px;
+  max-width:700px;
+  width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+.adm-modal h2{
+  font-size:18px;
+  font-weight:900;
+  margin:0 0 16px;
+}
+
+.adm-list-card{margin-bottom:14px}
+.adm-filter-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 16px;border:1px solid #e8eef5;border-radius:16px;background:#ffffff}
+.adm-filter-summary-wrap{display:flex;flex-direction:column;gap:4px;min-width:0}
+.adm-filter-summary-title{font-weight:700;font-size:13px;color:var(--text,#0f172a)}
+.adm-list-meta{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--muted,#64748b)}
+.adm-list-meta strong{font-size:13px;color:var(--text,#0f172a)}
+.adm-search-summary{line-height:1.5;word-break:keep-all}
+.adm-status-note{font-size:12px;color:var(--muted,#64748b);margin-top:6px}
+
+</style>
+</head>
+
+<body data-page="assets">
+
+<div id="toast" class="pill hidden"></div>
+
+<div id="adminHeaderMount"></div>
+<div class="admin-shell">
+  <div class="admin-grid">
+
+    <!-- Left menu -->
+    <div class="card">
+      <div class="pad admin-menu">
+        <div class="muted">관리 메뉴</div>
+
+        <a class="btn block" href="dashboard.html">대시보드</a>
+        <a class="btn block active" href="assets.html">부동산 자산 등록/관리</a>
+        <a class="btn block" href="docs.html">문서 관리</a>
+        <a class="btn block" href="sales.html">매각 관리</a>
+        <a class="btn block" href="staking.html">스테이킹 설정</a>
+        <a class="btn block" href="users.html">유저 관리</a>
+        <a class="btn block" href="emails.html">단체 메일 발송</a>
+<a class="btn block" href="accounting.html">회계 통계</a>
+<a class="btn block" href="referrals.html">추천인 관리</a>
+        <a class="btn block" href="deposits.html">입금 승인 관리</a>
+<a class="btn block" href="withdrawals.html">출금 신청 (USDT)</a>
+        <a class="btn block" href="token-withdrawals.html">토큰 출금 관리</a>
+        <a class="btn block" href="transactions.html">입출금 내역</a>
+        <a class="btn block" href="contracts.html">전자계약 관리</a>
+        <a class="btn block" href="settings.html">환경설정</a>
+        <a class="btn block" href="fx-live.html">실시간 환율</a>
+      </div>
+    </div>
+
+    <!-- Right main -->
+    <div>
+
+      <div class="card adm-main-shell">
+        <div class="pad">
+
+          <!--
+            (2026-05-11) '자산 목록' 카드 전체 숨김 — 운영자 요청.
+            단일 자산 운영이므로 목록/검색/필터/건수 노출 불필요.
+            JS (assets.js) 는 qs() 로 이 안의 요소들 (admAssetsTbody,
+            admRefreshBtn, admListCount, admSearchSummary, 검색 모달
+            트리거 버튼 등) 을 참조하므로 DOM 자체는 유지하고
+            display:none 으로 화면에서만 가린다. 페이지 부트 시
+            assets[0] 가 자동 선택되도록 기존 로직이 동작 중이다.
+
+            (2026-05-18 v483) 운영자 요청: '어떤 자산이 등록 되어있는지
+            나타나게 해줘'. 자산 목록 카드 복귀. Silica 는 단일 고정
+            자산이지만 운영자가 현재 등록된 row 의 status / 카운터 등
+            을 한 눈에 확인 가능. 검색 / 새 자산 등록 버튼은 단일 자산
+            정책상 불필요하므로 숨김 (display:none 유지).
+          -->
+          <div class="card adm-subcard adm-list-card">
+            <div class="pad">
+              <!-- (v488) 단일자산 정책 — 부제목/카운터/안내 텍스트 제거 (운영자
+                   요청: 불필요한 내용 제거). 새로고침 버튼만 유지. 강제 시드는
+                   admin/settings 위급 도구로 이동 검토 가능 (지금은 숨김). -->
+              <div class="row" style="align-items:flex-end">
+                <div>
+                  <div style="font-weight:950;font-size:16px">등록 자산</div>
+                </div>
+
+                <div class="tagrow">
+                  <button id="admRefreshBtn" class="btn small">새로고침</button>
+                  <!-- (v488) 강제 시드 버튼 — 평소엔 숨김. JS 에서 자산 0개일 때만 자동 표시. -->
+                  <button id="admForceSeedBtn" class="btn small" type="button" style="display:none; background:#fef3c7;color:#92400e;border:1px solid #fbbf24">자산 강제 시드</button>
+                  <button id="admNewBtn" class="btn small primary" style="display:none">새 자산 등록</button>
+                </div>
+              </div>
+
+              <!-- (v483) 검색 / 필터는 단일 자산 정책상 의미 없음 — 숨김 -->
+              <div class="adm-filter-toolbar" style="margin-top:14px; display:none">
+                <div class="adm-filter-summary-wrap">
+                  <div class="adm-filter-summary-title">검색 / 필터</div>
+                  <div id="admSearchSummary" class="muted adm-search-summary">전체 자산을 표시 중입니다.</div>
+                </div>
+                <div class="tagrow">
+                  <button id="admOpenSearchModal" class="btn small">세부 검색</button>
+                  <button id="admClearFiltersBtn" class="btn small" type="button">필터 초기화</button>
+                </div>
+              </div>
+
+              <!-- (v488) 'N 건 등록됨' 카운터 제거 — 단일자산 정책상 불필요.
+                   JS 호환을 위해 hidden 으로 DOM 만 유지. -->
+              <div class="adm-list-meta" style="display:none">
+                <strong id="admListCount">0</strong>
+                <span>건 등록됨</span>
+              </div>
+
+              <div style="margin-top:12px;overflow:auto">
+                <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>자산</th>
+                      <th>상태</th>
+                      <th class="right">모금</th>
+                      <th class="right">목표</th>
+                      <th class="right">발행</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admAssetsTbody"></tbody>
+                </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="two-col" style="margin-top:14px">
+            <div class="adm-col-stack">
+              <!--
+                (2026-05-18 v505/v507) 계약서 연결은 admin/contracts.html
+                로 단일화. 여기서는 현재 어떤 템플릿이 연결되어 있는지만
+                read-only 로 표시 (loadAssetTemplate JS 가 채움). 편집/연결
+                해제 작업은 contracts.html 로 이동.
+              -->
+              <div class="card adm-subcard">
+                <div class="pad">
+                  <div class="row" style="align-items:flex-end">
+                    <div>
+                      <div style="font-weight:950;font-size:16px">전자계약서 템플릿</div>
+                    </div>
+                    <div class="tagrow">
+                      <a href="contracts.html" class="btn small">계약서 관리 페이지로 →</a>
+                    </div>
+                  </div>
+                  <div class="hr"></div>
+                  <div class="tmpl-assign-box">
+                    <div style="font-weight:700;font-size:13px;margin-bottom:8px">현재 연결된 계약서</div>
+                    <div id="admAssetTmplCurrent" class="tmpl-current">
+                      <span class="muted" style="font-size:13px">자산을 선택하면 계약서 정보가 표시됩니다.</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- JS 호환용 hidden 버튼 (옛 바인딩 null 참조 방지) -->
+                <div style="display:none">
+                  <button id="admAssetTmplAssignBtn" type="button"></button>
+                  <button id="admAssetTmplUnlinkBtn" type="button"></button>
+                  <button id="admAssetTmplCloneBtn" type="button"></button>
+                </div>
+              </div>
+
+              <!-- (2026-05-11 v282) 운영자 결정: 자산 페이지의 증빙문서
+                   관리 카드는 제거. 모든 일반 문서는 /admin/docs.html,
+                   매각 관련 문서는 /admin/sales.html 에서만 관리. -->
+              <div class="card adm-subcard">
+                <div class="pad">
+                  <div>
+                    <div style="font-weight:950;font-size:16px">문서 관리</div>
+                    <div class="muted" style="margin-top:6px">자산 관련 문서는 별도 페이지에서 관리합니다.</div>
+                  </div>
+                  <div class="hr"></div>
+                  <div class="adm-field-note">
+                    · 등기부등본 / 자산평가서 / 회계자료 / 공식문서 / 증빙문서 / 일반문서 →
+                    <a href="docs.html" class="btn small" style="margin-left:6px">문서 관리 페이지</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- (2026-05-11) '상태 관리' 카드 제거 — 운영자 요청.
+                   단일 자산 + 자동 상태 전이 모델이므로 admin이 수동
+                   조작할 필요 없음. -->
+
+              <!--
+                (2026-05-11) 토큰 로고 관리 카드.
+                USDT / SilicaSTO / Silica 세 가지 시스템 토큰 로고를
+                업로드하고 교체할 수 있다. 업로드된 URL 은
+                app_settings.silica_logo_* 에 저장되며 /api/public/config
+                를 통해 프론트에 노출된다. 비어있으면 기본 SVG 사용.
+              -->
+              <div class="card adm-subcard">
+                <div class="pad">
+                  <div>
+                    <div style="font-weight:950;font-size:16px">토큰 로고 관리</div>
+                    <div class="muted" style="margin-top:6px">USDT / SilicaSTO / Silica 토큰의 로고 이미지를 업로드합니다. PNG · JPG · WEBP · SVG (최대 2 MB).</div>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <div id="admTokenLogosWrap" style="display:flex;flex-direction:column;gap:14px">
+
+                    <!-- USDT -->
+                    <div class="adm-soft-box" data-logo-row="usdt">
+                      <div class="row" style="align-items:center;gap:12px">
+                        <div class="adm-preview-box" style="width:80px;height:80px;flex:0 0 80px;padding:6px;display:flex;align-items:center;justify-content:center">
+                          <img id="admLogoPrevUsdt" src="/user/assets/images/token-usdt.svg" alt="USDT 로고" style="display:block;width:100%;height:100%;object-fit:contain;background:transparent;border:0">
+                        </div>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-weight:800;font-size:14px">USDT</div>
+                          <div class="muted" style="font-size:12px;margin-top:2px" id="admLogoUrlUsdt">기본 로고</div>
+                          <div class="adm-field-note" style="margin-top:6px">결제 · 정산 통화</div>
+                        </div>
+                      </div>
+                      <div class="split" style="margin-top:10px">
+                        <div class="field">
+                          <label for="admLogoFileUsdt">파일 선택</label>
+                          <input id="admLogoFileUsdt" class="input" type="file" accept=".png,.jpg,.jpeg,.webp,.svg,image/*">
+                        </div>
+                        <div class="field" style="align-self:end">
+                          <div class="tagrow">
+                            <button class="btn small primary" type="button" data-logo-upload="usdt">업로드</button>
+                            <button class="btn small" type="button" data-logo-clear="usdt" style="background:#dc262622;color:#dc2626">기본으로</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- SilicaSTO -->
+                    <div class="adm-soft-box" data-logo-row="silicasto">
+                      <div class="row" style="align-items:center;gap:12px">
+                        <div class="adm-preview-box" style="width:80px;height:80px;flex:0 0 80px;padding:6px;display:flex;align-items:center;justify-content:center">
+                          <img id="admLogoPrevSilicasto" src="/user/assets/images/token-silicasto.svg" alt="SilicaSTO 로고" style="display:block;width:100%;height:100%;object-fit:contain;background:transparent;border:0">
+                        </div>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-weight:800;font-size:14px">SilicaSTO</div>
+                          <div class="muted" style="font-size:12px;margin-top:2px" id="admLogoUrlSilicasto">기본 로고</div>
+                          <div class="adm-field-note" style="margin-top:6px">증권형 토큰 (지분 증서)</div>
+                        </div>
+                      </div>
+                      <div class="split" style="margin-top:10px">
+                        <div class="field">
+                          <label for="admLogoFileSilicasto">파일 선택</label>
+                          <input id="admLogoFileSilicasto" class="input" type="file" accept=".png,.jpg,.jpeg,.webp,.svg,image/*">
+                        </div>
+                        <div class="field" style="align-self:end">
+                          <div class="tagrow">
+                            <button class="btn small primary" type="button" data-logo-upload="silicasto">업로드</button>
+                            <button class="btn small" type="button" data-logo-clear="silicasto" style="background:#dc262622;color:#dc2626">기본으로</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Silica -->
+                    <div class="adm-soft-box" data-logo-row="silica" style="margin-bottom:0">
+                      <div class="row" style="align-items:center;gap:12px">
+                        <div class="adm-preview-box" style="width:80px;height:80px;flex:0 0 80px;padding:6px;display:flex;align-items:center;justify-content:center">
+                          <img id="admLogoPrevSilica" src="/user/assets/images/token-silica.svg" alt="Silica 로고" style="display:block;width:100%;height:100%;object-fit:contain;background:transparent;border:0">
+                        </div>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-weight:800;font-size:14px">Silica</div>
+                          <div class="muted" style="font-size:12px;margin-top:2px" id="admLogoUrlSilica">기본 로고</div>
+                          <div class="adm-field-note" style="margin-top:6px">보상 · 배당 유틸리티 토큰</div>
+                        </div>
+                      </div>
+                      <div class="split" style="margin-top:10px">
+                        <div class="field">
+                          <label for="admLogoFileSilica">파일 선택</label>
+                          <input id="admLogoFileSilica" class="input" type="file" accept=".png,.jpg,.jpeg,.webp,.svg,image/*">
+                        </div>
+                        <div class="field" style="align-self:end">
+                          <div class="tagrow">
+                            <button class="btn small primary" type="button" data-logo-upload="silica">업로드</button>
+                            <button class="btn small" type="button" data-logo-clear="silica" style="background:#dc262622;color:#dc2626">기본으로</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="adm-col-stack">
+              <div class="card adm-subcard">
+                <div class="pad">
+                  <div class="row" style="align-items:flex-end">
+                    <div>
+                      <div style="font-weight:950;font-size:16px">자산 편집</div>
+                      <!--
+                        (2026-05-11) 단일 자산 모델 — '편집: SILICA-79907 (고순도 실리카 광산)'
+                        텍스트 제거. admEditingId 요소는 JS 호환을 위해 hidden 상태로 유지.
+                      -->
+                      <div class="muted" id="admEditingId" style="display:none"></div>
+                    </div>
+
+                    <div class="tagrow">
+                      <button id="admSaveBtn" class="btn small primary">저장</button>
+                      <span id="admSaveFeedback" class="adm-field-note" style="min-width:120px"></span>
+                      <!--
+                        (2026-05-11 v273) 자산 삭제 버튼 제거 — 운영자 요청.
+                        단일 자산 (SILICA-79907) 운영 모델에서 자산 자체를
+                        지우면 모든 거래 / 보유 / 계약 데이터가 고아 행이
+                        되므로 위험. id="admDeleteBtn" 만 hidden 상태로 보존
+                        (assets.js 가 qs() 로 참조하므로 null-ref 방지).
+                        백엔드 엔드포인트도 항상 403 으로 거부하도록 변경.
+                      -->
+                      <button id="admDeleteBtn" type="button" style="display:none" aria-hidden="true"></button>
+                    </div>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <!--
+                    (2026-05-11) 운영자 요청 — 단일 자산 + 항상공개 모델이므로
+                    자산 공개/비공개, 자산 ID, 마켓, 자산명, 물건지 국가, 정산통화 필드 숨김.
+                    JS에서 qs() 로 참조하므로 요소 자체는 유지 (display:none).
+                  -->
+                  <div style="display:none">
+                    <select id="admIsPublic">
+                      <option value="0">비공개 (Private)</option>
+                      <option value="1" selected>공개 (Public)</option>
+                    </select>
+                    <span id="admLockBadge">수정불가</span>
+                    <input id="admId">
+                    <!-- (2026-05-11 v266 → 2026-05-18 v489) admStatus 복원 +
+                         hardcoded 값 정정. 기존 value='운영중' 은 legacy
+                         status (db.php 마이그레이션에서 '활성'으로 변환되지만
+                         잠재 위험). 단일자산 정책상 '활성' 으로 통일. -->
+                    <input id="admStatus" value="활성">
+                    <input id="admMarket">
+                    <input id="admName" class="adm-lock-field">
+                    <select id="admCountry" class="adm-lock-field">
+                      <option value="KR" selected>대한민국</option>
+                      <option value="US">미국</option>
+                      <option value="KZ">카자흐스탄</option>
+                      <option value="PH">필리핀</option>
+                      <option value="GE">조지아</option>
+                      <option value="ID">인도네시아</option>
+                      <option value="VN">베트남</option>
+                    </select>
+                    <select id="admCurrency" class="adm-lock-field">
+                      <option value="USDT" selected>USDT</option>
+                      <option value="KRW">KRW</option>
+                      <option value="USD">USD</option>
+                      <option value="KZT">KZT</option>
+                      <option value="PHP">PHP</option>
+                      <option value="GEL">GEL</option>
+                      <option value="IDR">IDR</option>
+                      <option value="VND">VND</option>
+                    </select>
+                  </div>
+
+                  <!--
+                    (2026-05-11) 운영자 요청 — '종류 (mine) / 주소 (대한민국)'
+                    필드 제거. 단일 자산 운영이므로 수정 불필요.
+                    JS 호환을 위해 input 자체는 hidden 상태로만 유지.
+                  -->
+                  <div style="display:none">
+                    <input id="admType" class="adm-lock-field" readonly>
+                    <input id="admLocation" class="adm-lock-field">
+                  </div>
+
+                  <div class="adm-section-title">위치 / 지도</div>
+
+                  <div class="split">
+                    <div class="field">
+                      <label for="admMapQuery">지도 쿼리</label>
+                      <input id="admMapQuery" class="input" placeholder="예: 서울 강남구 테헤란로">
+                    </div>
+
+                    <div class="field">
+                      <label for="admGoogleMapUrl">구글지도 Embed URL</label>
+                      <input id="admGoogleMapUrl" class="input" placeholder="https://www.google.com/maps/embed?pb=... 또는 구글지도 공유 링크">
+                      <div class="adm-field-note">구글지도에서 '공유→지도 퍼가기'의 iframe src를 붙여넣으세요. 비어있으면 지도 쿼리로 자동 생성됩니다.</div>
+                    </div>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <!--
+                    (2026-05-11) 운영자 요청 — '토큰 이미지' 는 좌측 '토큰
+                    로고 관리' 카드 (USDT/SilicaSTO/Silica 3종) 와 기능이
+                    겹치므로 이 자산-스코프 토큰 이미지는 제거. 자산 이미지
+                    + 세부 이미지는 유지.
+                    JS 호환을 위해 토큰 관련 input 은 hidden 상태로 유지.
+                  -->
+                  <div class="adm-section-title">자산 이미지 / 세부 이미지</div>
+
+                  <div class="field">
+                    <label for="admImageUrl">자산 이미지 URL</label>
+                    <input id="admImageUrl" class="input" readonly placeholder="업로드 시 자동 설정">
+                    <!-- (2026-05-11 v271) 자산 이미지 삭제 버튼 — 운영자
+                         요청. 등록된 이미지가 있을 때만 표시 (JS 가
+                         #admImageUrl.value 유무 기반 토글). 클릭 시
+                         POST /api/admin/assets/:id/image/delete 호출. -->
+                    <div style="margin-top:8px; display:none" id="admImageDeleteRow">
+                      <button id="admImageDeleteBtn" class="btn small" type="button"
+                              style="background:#dc262622;color:#dc2626;border-color:transparent">
+                        ✕ 자산 이미지 삭제
+                      </button>
+                      <span class="adm-field-note" style="margin-left:8px">서버에서 파일도 함께 삭제됩니다.</span>
+                    </div>
+                  </div>
+
+                  <div style="display:none">
+                    <input id="admTokenImageUrl" readonly>
+                    <input id="admTokenImageFile" type="file">
+                    <img id="admTokenPreview" alt="토큰 이미지 미리보기">
+                  </div>
+
+                  <div class="field" style="margin-top:10px">
+                    <label for="admImageFile">자산 이미지 업로드</label>
+                    <input id="admImageFile" class="input" type="file" accept=".png,.jpg,.jpeg,.webp,.svg,image/*">
+                  </div>
+
+                  <div class="field" style="margin-top:10px">
+                    <label for="admDetailImages">세부 이미지 업로드 (여러 장)</label>
+                    <input id="admDetailImages" class="input" type="file" accept=".png,.jpg,.jpeg,.webp,image/*" multiple>
+                  </div>
+
+                  <!-- (2026-05-26 v836) '이미지 업로드' 버튼 제거 — 운영자 요청.
+                       이유: 카드 헤더의 '저장' 버튼이 이미 파일 업로드 + 자산 정보
+                       저장을 모두 처리하기 때문에 별도 업로드 버튼은 혼란만 야기.
+                       js 핸들러 (admUploadImagesBtn click) 는 #admUploadImagesBtn 이
+                       DOM 에 없으면 optional chaining 으로 silent skip → 안전. -->
+                  <div class="row" style="margin-top:10px;align-items:center">
+                    <div class="adm-field-note">파일 선택 후 카드 상단의 [저장] 버튼을 누르면 업로드 + 자산 정보가 함께 저장됩니다.</div>
+                  </div>
+
+                  <div class="adm-preview-box" style="margin-top:12px">
+                    <div class="muted" style="margin-bottom:8px">자산 이미지 미리보기</div>
+                    <img id="admImagePreview" alt="자산 이미지 미리보기">
+                  </div>
+
+                  <div id="admDetailImagesPreview" style="margin-top:12px">
+                    <div class="muted" style="margin-bottom:6px">세부 이미지</div>
+                    <div class="detail-images-grid" id="admDetailGrid"></div>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <!--
+                    (2026-05-17 v436) 운영자 요청: '영문 버전에서 자산명을 영문으로
+                    표기할 수 있도록 설정'. asset_key_info 의 name_en / name_ko
+                    row 로 저장 → contracts.php 다국어 후처리 (v435) → 사용자
+                    페이지의 My Pending Investments / 자산 카드에서 lang 분기.
+                    POST /api/admin/assets/:id/key-info { key, value } 로 전송.
+                  -->
+                  <div class="adm-section-title">자산명 (다국어 표시용)</div>
+                  <div class="field">
+                    <label for="admNameKo">자산명 (한국어)</label>
+                    <input id="admNameKo" class="input" placeholder="예: 고순도 실리카 광산" />
+                    <div class="adm-field-note">한국어 사용자에게 표시됩니다. 비워두면 기본 자산명(assets.name) 으로 폴백.</div>
+                  </div>
+                  <div class="field" style="margin-top:10px">
+                    <label for="admNameEn">Asset Name (English)</label>
+                    <input id="admNameEn" class="input" placeholder="e.g. High-Purity Silica Mine" />
+                    <div class="adm-field-note">영문 / 일본어 / 중국어 사용자에게 표시됩니다. 비워두면 한국어로 폴백.</div>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <div class="adm-section-title">자산 개요</div>
+                  <div class="field">
+                    <label for="admOverview">개요 (한국어)</label>
+                    <textarea id="admOverview" class="adm-textarea" placeholder="자산 소개, 입지, 수요, 특징 등을 입력하세요."></textarea>
+                    <div class="adm-field-note">사용자 측 IR 페이지 (ir.html) 의 ◆ OVERVIEW 카드에 그대로 표시됩니다 — 한국어 사용자.</div>
+                  </div>
+                  <!--
+                    (2026-05-11 v268) Overview (영문) — operator: 'admin 에 자산
+                    개요 (영문) 별도 입력 필드 추가 → asset_key_info.overview_en
+                    에 저장 → ir.html 영문 모드에서 노출'. 저장은 별도 endpoint
+                    POST /api/admin/assets/:id/key-info 로 전송. 비워두면
+                    영문 모드에선 ir.html 의 정적 영문 카피가 표시된다.
+                  -->
+                  <div class="field" style="margin-top:10px">
+                    <label for="admOverviewEn">Overview (English)</label>
+                    <textarea id="admOverviewEn" class="adm-textarea" placeholder="English description for international investors — appears on the EN view of ir.html. Leave blank to fall back to the static English marketing copy."></textarea>
+                    <div class="adm-field-note">사용자 측 IR 페이지 (ir.html) 의 ◆ OVERVIEW 카드에 표시됩니다 — 영문 모드 한정. 비워두면 정적 영문 카피로 폴백.</div>
+                  </div>
+
+                  <!--
+                    (2026-05-11) 운영자 요청 — 모금/참여 설정, 스테이킹 이자율 섹션,
+                    운영/정산/발행 정보 카드 전체 제거. 단일 자산 모델에서는 settings.html
+                    에서 일괄 관리하거나 시스템이 자동 산정한다.
+                    JS 호환을 위해 입력 요소는 hidden 상태로만 유지.
+                  -->
+                  <div style="display:none">
+                    <input id="admTarget" type="number">
+                    <input id="admExpectedBuy" type="number">
+                    <input id="admRaised" type="number" readonly>
+                    <input id="admMin" type="number">
+                    <input id="admApr" type="number">
+                    <div id="admAprNote"></div>
+                    <div id="admAprHistory"><div id="admAprHistoryList"></div></div>
+                    <button id="admOpsSaveBtn" type="button" disabled></button>
+                    <span id="admOpsSaveFeedback"></span>
+                    <input id="admFundEnd" type="date">
+                    <input id="admFxAtFunding" type="number" readonly>
+                    <span id="admFxCur">USDT</span>
+                    <input id="admOfficialKrw" type="number">
+                    <span id="admOfficialCur">USDT</span>
+                    <input id="admSupply" type="number" readonly>
+                    <input id="admSnapshot" type="number" readonly>
+                    <input id="admFeeBuyer" type="number">
+                    <input id="admFeeSeller" type="number">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Contracts list -->
+      <div class="card" style="margin-top:14px">
+        <div class="pad">
+          <div class="row" style="align-items:flex-end;margin-bottom:10px">
+            <div>
+              <div style="font-weight:900;font-size:16px">전자계약 목록</div>
+              <div class="muted" style="font-size:12px;margin-top:4px">참여 접수된 계약과 서명 완료 계약을 표시합니다</div>
+            </div>
+            <div class="muted" style="font-size:12px">계약번호를 클릭하면 상세 계약관리 페이지로 이동합니다.</div>
+          </div>
+
+          <div style="overflow-x:auto">
+            <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>계약번호</th>
+                  <th>지갑</th>
+                  <th class="right">금액</th>
+                  <th>상태</th>
+                  <th>시간</th>
+                </tr>
+              </thead>
+              <tbody id="admAssetContracts"></tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Asset Search Modal -->
+<div id="admSearchModal" class="adm-modal-overlay">
+  <div class="adm-modal" style="max-width:560px">
+    <h2>자산 목록 검색</h2>
+
+    <div class="field">
+      <label for="admFilterQuery">전체 검색</label>
+      <input id="admFilterQuery" class="input" placeholder="예: APT001, 강남, 오피스텔">
+      <div class="adm-field-note">자산 ID, 이름, 주소, 국가, 정산통화로 검색합니다.</div>
+    </div>
+
+    <div class="split" style="margin-top:10px">
+      <div class="field">
+        <label for="admFilterType">부동산 타입</label>
+        <select id="admFilterType" class="input">
+          <option value="">전체</option>
+          <option value="아파트">아파트</option>
+          <option value="오피스텔">오피스텔</option>
+          <option value="토지">토지</option>
+          <option value="빌딩">빌딩</option>
+          <option value="상가">상가</option>
+          <option value="공장">공장</option>
+          <option value="창고">창고</option>
+          <option value="숙박시설">숙박시설</option>
+          <option value="종교시설">종교시설</option>
+          <option value="리조트">리조트</option>
+          <option value="오피스">오피스</option>
+          <option value="레지던스">레지던스</option>
+          <option value="주택">주택</option>
+          <option value="농지">농지</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="admFilterStatus">현재 진행상태</label>
+        <select id="admFilterStatus" class="input">
+          <option value="">전체</option>
+          <option value="모집중">모집중</option>
+          <option value="구매진행">구매진행</option>
+          <option value="분배중">분배중</option>
+          <option value="운영중">운영중</option>
+          <option value="매각">매각</option>
+          <option value="모집실패">모집실패</option>
+          <option value="취소됨">취소됨</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:18px;justify-content:flex-end;gap:10px">
+      <button id="admSearchReset" class="btn" type="button">초기화</button>
+      <button id="admSearchCancel" class="btn" type="button">닫기</button>
+      <button id="admSearchApply" class="btn primary" type="button">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Picker Modal -->
+<div id="tmplPickerOverlay" class="tp-overlay">
+  <div class="tp-modal" style="position:relative">
+    <button class="tp-close" id="tpClose">&times;</button>
+    <div class="tp-header">
+      <h3 id="tpTitle">계약서 템플릿 선택</h3>
+      <div class="tp-sub" id="tpSubtitle">이 자산에 적용할 계약서 템플릿을 선택하세요.</div>
+      <input class="tp-search" id="tpSearch" placeholder="템플릿 이름 또는 코드 검색">
+    </div>
+    <div class="tp-body">
+      <div class="tp-count-row"><span>표시 템플릿</span><span id="tpCount">0</span></div>
+      <div id="tpList"></div>
+    </div>
+    <div class="tp-footer">
+      <button class="btn small" id="tpCancelBtn">취소</button>
+      <button class="btn small primary" id="tpConfirmBtn">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Asset Modal -->
+<div id="admCreateModal" class="adm-modal-overlay">
+  <div class="adm-modal">
+    <h2>새 자산 등록</h2>
+
+    <div class="split">
+      <div class="field">
+        <label for="admNewType">자산 종류 *</label>
+        <select id="admNewType" class="input">
+          <option value="">-- 선택 --</option>
+          <option value="아파트">아파트 (APT)</option>
+          <option value="오피스텔">오피스텔 (OFT)</option>
+          <option value="토지">토지 (LND)</option>
+          <option value="빌딩">빌딩 (BLD)</option>
+          <option value="상가">상가 (SHP)</option>
+          <option value="공장">공장 (FCT)</option>
+          <option value="창고">창고 (WRH)</option>
+          <option value="숙박시설">숙박시설 (HTL)</option>
+          <option value="종교시설">종교시설 (REL)</option>
+          <option value="리조트">리조트 (RST)</option>
+          <option value="오피스">오피스 (OFC)</option>
+          <option value="레지던스">레지던스 (RSD)</option>
+          <option value="주택">주택 (HSE)</option>
+          <option value="농지">농지 (FRM)</option>
+          <option value="기타">기타 (ETC)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>자동 생성 ID</label>
+        <input id="admNewId" class="input" readonly placeholder="종류 선택 시 자동 생성">
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label for="admNewName">자산명 *</label>
+      <input id="admNewName" class="input" placeholder="예: 서울 강남 오피스텔 101호">
+    </div>
+
+    <div class="split" style="margin-top:10px">
+      <div class="field">
+        <label for="admNewCountry">물건지 국가 *</label>
+        <select id="admNewCountry" class="input">
+          <option value="KR">대한민국</option>
+          <option value="US">미국</option>
+          <option value="KZ">카자흐스탄</option>
+          <option value="PH">필리핀</option>
+          <option value="GE">조지아</option>
+          <option value="ID">인도네시아</option>
+          <option value="VN">베트남</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="admNewCurrency">정산통화 *</label>
+        <!-- (2026-05-07) Silica USDT-fixed — 신규 자산은 기본 USDT. -->
+        <select id="admNewCurrency" class="input">
+          <option value="USDT" selected>USDT</option>
+          <option value="KRW">KRW</option>
+          <option value="USD">USD</option>
+          <option value="KZT">KZT</option>
+          <option value="PHP">PHP</option>
+          <option value="GEL">GEL</option>
+          <option value="IDR">IDR</option>
+          <option value="VND">VND</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:10px">
+      <div class="field">
+        <label for="admNewLocation">주소 *</label>
+        <input id="admNewLocation" class="input" placeholder="예: 서울 강남구 테헤란로">
+      </div>
+
+      <div class="field">
+        <label for="admNewMapQuery">지도 쿼리</label>
+        <input id="admNewMapQuery" class="input" placeholder="예: 서울 강남구 테헤란로">
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label for="admNewGoogleMapUrl">구글지도 Embed URL</label>
+      <input id="admNewGoogleMapUrl" class="input" placeholder="https://www.google.com/maps/embed?pb=... (선택)">
+    </div>
+
+    <div class="split" style="margin-top:10px">
+      <div class="field">
+        <label for="admNewTarget">목표 모금(USDT) *</label>
+        <input id="admNewTarget" class="input" type="number" step="0.01" placeholder="1200.00">
+      </div>
+
+      <div class="field">
+        <label for="admNewExpectedBuy">예상 매수가(USDT)</label>
+        <input id="admNewExpectedBuy" class="input" type="number" step="0.01">
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:10px">
+      <div class="field">
+        <label for="admNewApr">스테이킹 연 이율 APR(%)</label>
+        <input id="admNewApr" class="input" type="number" step="0.01" value="8.00" placeholder="예: 8.0 (연 8%)">
+      </div>
+
+      <div class="field">
+        <label for="admNewFundEnd">모금기간 종료일</label>
+        <input id="admNewFundEnd" class="input" type="date">
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label for="admNewOverview">자산 개요</label>
+      <textarea id="admNewOverview" class="adm-textarea" placeholder="자산 소개, 입지, 수요, 특징 등을 입력하세요."></textarea>
+    </div>
+
+    <div class="adm-file-row" style="margin-top:10px">
+      <div class="field">
+        <label for="admNewImage">자산 이미지</label>
+        <input id="admNewImage" class="input" type="file" accept=".png,.jpg,.jpeg,.webp,.svg,image/*">
+      </div>
+
+      <div class="field">
+        <label for="admNewTokenImage">토큰 이미지</label>
+        <input id="admNewTokenImage" class="input" type="file" accept=".png,.jpg,.jpeg,.webp,.svg,image/*">
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:16px;justify-content:flex-end;gap:10px">
+      <button id="admCreateCancel" class="btn">취소</button>
+      <button id="admCreateSubmit" class="btn primary">자산 등록</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/assets.js?v=20260526v850-image-swap"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  window.AdminHeader.loadHeader()
+})
+</script>
+
+</body>
+</html>

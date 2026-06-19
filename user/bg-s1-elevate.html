@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S1 보강 시안 5종 · SilicaChain</title>
+<style>
+  :root {
+    --logo-red: #E53935;
+    --logo-orange: #F57C00;
+    --logo-green: #2E7D32;
+    --logo-blue: #1976D2;
+    --logo-violet: #8E24AA;
+    --ink: #0F172A;
+    --paper: #FCFCFA;
+    --line: #E2E8F0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Pretendard", sans-serif;
+    background: #F1F5F9;
+    color: var(--ink);
+    padding: 40px 20px;
+  }
+  .page-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .page-subtitle {
+    text-align: center;
+    color: #64748B;
+    margin-bottom: 28px;
+    font-size: 14px;
+  }
+  .diagnose {
+    max-width: 760px;
+    margin: 0 auto 40px;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 24px;
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.7;
+  }
+  .diagnose strong { color: var(--ink); }
+  .diagnose b { color: var(--logo-red); font-weight: 700; }
+
+  .concept {
+    max-width: 1200px;
+    margin: 0 auto 50px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
+  }
+  .concept-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .concept-title {
+    font-size: 20px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    letter-spacing: -0.3px;
+  }
+  .concept-id {
+    background: var(--ink);
+    color: #FFFFFF;
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-family: 'Times New Roman', serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .concept-add {
+    color: var(--logo-violet);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .concept-desc {
+    color: #64748B;
+    font-size: 13px;
+    max-width: 540px;
+    text-align: right;
+    line-height: 1.6;
+  }
+  .concept-stage {
+    position: relative;
+    height: 480px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .mock-content {
+    position: relative;
+    z-index: 10;
+    padding: 60px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 40px;
+  }
+  .mock-text { flex: 1; max-width: 480px; }
+  .mock-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--ink);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-family: 'Times New Roman', serif;
+  }
+  .mock-h1 {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+  .mock-h1 b { color: var(--logo-red); }
+  .mock-h1 i { color: var(--logo-blue); font-style: normal; }
+  .mock-p {
+    color: #475569;
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  .mock-btn {
+    display: inline-block;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 4px 0 0 #6A1B7E;
+  }
+  .mock-photo {
+    flex: 1;
+    aspect-ratio: 21/9;
+    max-width: 460px;
+    background: url('assets/images/silica/silica_mine.png') center/cover, #1E293B;
+    border-radius: 14px;
+    box-shadow: 0 8px 0 0 rgba(15, 23, 42, 0.20);
+  }
+
+  /* === S1 베이스 (모든 시안 공통) === */
+  .bg-base { position: absolute; inset: 0; overflow: hidden; }
+  .bg-base .ghost-circle {
+    position: absolute;
+    width: 720px; height: 720px;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    opacity: 0.07;
+    top: -260px;
+    right: -200px;
+  }
+  .bg-base .h-line-1 {
+    position: absolute;
+    left: 0; right: 0;
+    top: 22%;
+    height: 1px;
+    background: var(--logo-red);
+    opacity: 0.45;
+  }
+  .bg-base .h-line-2 {
+    position: absolute;
+    right: 0;
+    width: 50%;
+    bottom: 32%;
+    height: 1px;
+    background: var(--logo-blue);
+    opacity: 0.45;
+  }
+  .bg-base .dot-accent {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--logo-orange);
+    top: 22%; left: 38%;
+    transform: translateY(-50%);
+  }
+  .bg-base .corner-tag {
+    position: absolute;
+    top: 28px; right: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: var(--logo-green);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* ============================================ */
+  /* +A: Editorial Folio — 거대 아웃라인 숫자       */
+  /* ============================================ */
+  .add-a .big-folio {
+    position: absolute;
+    bottom: -40px; left: -20px;
+    font-family: 'Times New Roman', serif;
+    font-size: 320px;
+    font-weight: 700;
+    line-height: 0.85;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--logo-violet);
+    opacity: 0.18;
+    letter-spacing: -10px;
+  }
+  .add-a .pct {
+    position: absolute;
+    bottom: 70px; left: 280px;
+    font-family: 'Times New Roman', serif;
+    font-size: 14px;
+    color: var(--logo-red);
+    letter-spacing: 4px;
+    font-weight: 700;
+  }
+  .add-a .pct-l {
+    position: absolute;
+    bottom: 50px; left: 280px;
+    font-family: 'Times New Roman', serif;
+    font-size: 10px;
+    color: rgba(15,23,42,0.5);
+    letter-spacing: 3px;
+  }
+
+  /* ============================================ */
+  /* +B: Hex Crystal — 육각 결정 모티프              */
+  /* ============================================ */
+  .add-b .hex {
+    position: absolute;
+    width: 80px; height: 92px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  .add-b .hex-outline {
+    width: 100px; height: 115px;
+    background: var(--logo-violet);
+    bottom: 12%; left: 8%;
+    opacity: 0.85;
+  }
+  .add-b .hex-outline::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: var(--paper);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  .add-b .hex-red {
+    background: var(--logo-red);
+    width: 70px; height: 80px;
+    bottom: 22%; left: 18%;
+    opacity: 0.85;
+  }
+  .add-b .hex-orange {
+    width: 90px; height: 104px;
+    background: var(--logo-orange);
+    opacity: 0.18;
+    bottom: 8%; left: 22%;
+  }
+  .add-b .hex-blue-out {
+    width: 60px; height: 70px;
+    background: var(--logo-blue);
+    bottom: 35%; left: 15%;
+    opacity: 0.92;
+  }
+  .add-b .hex-blue-out::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: var(--paper);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  .add-b .formula {
+    position: absolute;
+    bottom: 28px; left: 28px;
+    font-family: 'Times New Roman', serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--logo-blue);
+    font-weight: 700;
+  }
+  .add-b .formula sub { font-size: 0.7em; }
+
+  /* ============================================ */
+  /* +C: Data Ledger — 눈금 + 데이터 마크            */
+  /* ============================================ */
+  .add-c .ticks {
+    position: absolute;
+    left: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 14px;
+    background:
+      linear-gradient(to bottom,
+        rgba(15,23,42,0.3) 0px, rgba(15,23,42,0.3) 1px,
+        transparent 1px, transparent 24px) 0 0 / 100% 24px;
+  }
+  .add-c .data-row {
+    position: absolute;
+    font-family: 'Times New Roman', serif;
+    font-size: 11px;
+    color: rgba(15,23,42,0.65);
+    letter-spacing: 2px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .add-c .data-row .v {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    font-family: 'Times New Roman', serif;
+  }
+  .add-c .data-row .l {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .add-c .d1 { bottom: 28%; left: 60px; }
+  .add-c .d1 .v { color: var(--logo-red); }
+  .add-c .d2 { bottom: 19%; left: 60px; }
+  .add-c .d2 .v { color: var(--logo-blue); }
+  .add-c .d3 { bottom: 10%; left: 60px; }
+  .add-c .d3 .v { color: var(--logo-orange); }
+  .add-c .ledger-mark {
+    position: absolute;
+    bottom: 28px; right: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: rgba(15,23,42,0.5);
+  }
+
+  /* ============================================ */
+  /* +D: Dual Ghost — 두 개의 큰 흐린 도형 대화      */
+  /* ============================================ */
+  .add-d .ghost-circle-2 {
+    position: absolute;
+    width: 540px; height: 540px;
+    border-radius: 50%;
+    background: var(--logo-orange);
+    opacity: 0.07;
+    bottom: -260px;
+    left: -180px;
+  }
+  .add-d .ghost-rect {
+    position: absolute;
+    width: 360px; height: 360px;
+    background: var(--logo-red);
+    opacity: 0.05;
+    bottom: -120px;
+    right: 25%;
+    transform: rotate(15deg);
+  }
+  .add-d .anchor-line {
+    position: absolute;
+    width: 1px;
+    height: 60%;
+    background: var(--logo-violet);
+    opacity: 0.4;
+    top: 20%;
+    left: 50%;
+  }
+  .add-d .anchor-text {
+    position: absolute;
+    bottom: 28px; left: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--logo-orange);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* ============================================ */
+  /* +E: Concentric Medallion — 동심원 메달          */
+  /* ============================================ */
+  .add-e .medallion {
+    position: absolute;
+    bottom: 32px; right: 60px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 1px solid var(--logo-violet);
+    opacity: 0.95;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .add-e .medallion::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--logo-red);
+  }
+  .add-e .medallion::after {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--logo-orange);
+  }
+  .add-e .med-text {
+    position: absolute;
+    z-index: 2;
+    text-align: center;
+    font-family: 'Times New Roman', serif;
+  }
+  .add-e .med-text .y {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--logo-violet);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .add-e .med-text .l {
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: rgba(15,23,42,0.6);
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  .add-e .med-tick {
+    position: absolute;
+    width: 1px;
+    height: 8px;
+    background: var(--logo-blue);
+  }
+  .add-e .med-tick.t1 { top: -4px; left: 50%; transform: translateX(-50%); }
+  .add-e .med-tick.t2 { bottom: -4px; left: 50%; transform: translateX(-50%); }
+  .add-e .med-tick.t3 { left: -4px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+  .add-e .med-tick.t4 { right: -4px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+  .add-e .stamp-text {
+    position: absolute;
+    bottom: 28px; left: 32px;
+    font-family: 'Times New Roman', serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--logo-green);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .palette {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .palette .pd {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.10);
+  }
+
+  @media (max-width: 720px) {
+    .mock-content { flex-direction: column; padding: 24px; }
+    .mock-photo { display: none; }
+    .concept-stage { height: auto; min-height: 380px; }
+    .add-a .big-folio { font-size: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">S1 Editorial Restraint — 보강 5종</h1>
+<p class="page-subtitle">S1의 절제된 톤은 유지하면서 부족한 요소를 채운 5개 변주.</p>
+
+<div class="diagnose">
+  <strong>S1의 부족 진단:</strong>
+  ① 시각적으로 <b>보라색만 등록</b>됨 (다른 색은 hairline이라 약함)
+  ② <b>광산/실리카 정체성</b> 부재 — 어떤 RWA에도 쓸 수 있는 일반론
+  ③ <b>시각적 앵커 부족</b> — 큰 도형 1개 + 잔잔한 라인뿐, 시선 멈출 곳 없음
+  ④ <b>레이어 깊이 없음</b> — 단일 평면. 정보 밀도가 너무 낮음
+</div>
+
+<!-- =================== +A: Editorial Folio =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">+A</span>Editorial Folio <span class="concept-add">— 거대 아웃라인 숫자</span></div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">매거진 표지의 페이지 넘버처럼 거대한 아웃라인 "01"을 좌하단에 배치 + 핵심 데이터 캡션. 럭셔리 매거진의 레퍼런스 강함.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-base add-a">
+      <div class="ghost-circle"></div>
+      <div class="h-line-1"></div>
+      <div class="h-line-2"></div>
+      <div class="dot-accent"></div>
+      <div class="big-folio">01</div>
+      <div class="pct">SiO₂ · 97.04%</div>
+      <div class="pct-l">PURITY GRADE</div>
+      <div class="corner-tag">N° 01 — SILICA</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">+A · FOLIO</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== +B: Hex Crystal =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">+B</span>Hex Crystal <span class="concept-add">— SiO₂ 결정 모티프</span></div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">실리카는 화학적으로 <b>육각 결정 구조</b>. 좌하단에 5색 육각형(외곽선+솔리드 혼용)으로 결정 클러스터 배치 + SiO₂ 화학식. <strong>광산 정체성 가장 강함.</strong></div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-base add-b">
+      <div class="ghost-circle"></div>
+      <div class="h-line-1"></div>
+      <div class="h-line-2"></div>
+      <div class="dot-accent"></div>
+      <div class="hex hex-orange"></div>
+      <div class="hex hex-outline"></div>
+      <div class="hex hex-red"></div>
+      <div class="hex hex-blue-out"></div>
+      <div class="formula">Si O<sub>2</sub> · HEXAGONAL</div>
+      <div class="corner-tag">N° 01 — SILICA</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">+B · CRYSTAL</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== +C: Data Ledger =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">+C</span>Data Ledger <span class="concept-add">— 좌측 눈금 + 핵심 데이터</span></div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">좌측 세로 눈금 + 3개 핵심 수치(97.04% / 30.68M / 271ha) 5색으로 표기. 럭셔리 인포그래픽 톤. <b>RWA 데이터 신뢰감</b> 강조.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-base add-c">
+      <div class="ghost-circle"></div>
+      <div class="h-line-1"></div>
+      <div class="h-line-2"></div>
+      <div class="dot-accent"></div>
+      <div class="ticks"></div>
+      <div class="data-row d1"><span class="v">97.04%</span><span class="l">SiO₂</span></div>
+      <div class="data-row d2"><span class="v">30.68M</span><span class="l">RESERVES T</span></div>
+      <div class="data-row d3"><span class="v">271 ha</span><span class="l">AREA</span></div>
+      <div class="ledger-mark">— LEDGER · KR · 79907 —</div>
+      <div class="corner-tag">N° 01 — SILICA</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">+C · LEDGER</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== +D: Dual Ghost =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">+D</span>Dual Ghost <span class="concept-add">— 두 개의 큰 흐린 도형 대화</span></div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">우상 보라 원에 대응하는 좌하 주황 원 + 빨강 사각형(추가 흐린 레이어). 두 거대 컬러가 페이지를 사선으로 끌어 균형. 가장 절제된 보강.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-base add-d">
+      <div class="ghost-circle"></div>
+      <div class="ghost-circle-2"></div>
+      <div class="ghost-rect"></div>
+      <div class="h-line-1"></div>
+      <div class="h-line-2"></div>
+      <div class="dot-accent"></div>
+      <div class="anchor-line"></div>
+      <div class="anchor-text">EAST → WEST · 36.5° N</div>
+      <div class="corner-tag">N° 01 — SILICA</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">+D · DUAL GHOST</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== +E: Concentric Medallion =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">+E</span>Concentric Medallion <span class="concept-add">— 동심원 인증 메달</span></div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">우하단 5색 동심원 메달리언(연도/광업권 번호). 위스키·빈티지 와인 라벨처럼 인증·전통감. 코너 시선 정착점.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-base add-e">
+      <div class="ghost-circle"></div>
+      <div class="h-line-1"></div>
+      <div class="h-line-2"></div>
+      <div class="dot-accent"></div>
+      <div class="medallion">
+        <div class="med-tick t1"></div>
+        <div class="med-tick t2"></div>
+        <div class="med-tick t3"></div>
+        <div class="med-tick t4"></div>
+        <div class="med-text">
+          <div class="y">2026</div>
+          <div class="l">LIC · 79907</div>
+        </div>
+      </div>
+      <div class="stamp-text">GOVERNMENT · CERTIFIED</div>
+      <div class="corner-tag">N° 01 — SILICA</div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">+E · MEDALLION</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<div style="text-align:center; padding: 40px 20px; color:#64748B; font-size:14px; max-width:600px; margin:0 auto;">
+  <strong style="color:var(--ink);">+A · +B · +C · +D · +E</strong> 중 마음에 드는 보강 시안을 알려주시면 landing.html에 적용합니다.<br>
+  여러 요소 조합도 가능 (예: "+B 결정 + +C 데이터", "+A 숫자 + +E 메달").
+</div>
+
+</body>
+</html>

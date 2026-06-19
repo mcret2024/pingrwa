@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Redirecting to Trade Page…</title>
+  <meta http-equiv="refresh" content="0;url=trade.html">
+  <link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+  
+  <script>
+    (function () {
+      try {
+        var key = 'rwa_lang_user_v1';
+        var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+        var lang = /^(ko|en)$/.test(raw) ? raw : 'ko';
+        var de = document.documentElement;
+        de.lang = lang === 'zh' ? 'zh-CN' : lang;
+        de.setAttribute('data-rwa-lang', lang);
+        de.setAttribute('data-rwa-i18n-ready', lang === 'ko' ? '1' : '0');
+        // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+        de.classList.add("rwa-booting-early");
+        window.__RWA_I18N_BOOT_LANG__ = lang;
+      } catch (_) {}
+    })();
+  </script>
+  <style id="rwaI18nBootStyle">
+    html[data-rwa-i18n-ready="0"] body { visibility: hidden; }
+    html[data-rwa-i18n-ready="1"] body { visibility: visible; }
+  </style>
+  <script>
+    (function () {
+      var released = false;
+      function release() {
+        if (released) return;
+        released = true;
+        try {
+          document.documentElement.setAttribute('data-rwa-i18n-ready', '1');
+          document.documentElement.removeAttribute('data-rwa-i18n-pending');
+        } catch (_) {}
+      }
+      window.__RWA_I18N_BOOT_RELEASE__ = release;
+      window.addEventListener('load', function () { setTimeout(release, 0); }, { once: true });
+      setTimeout(release, 4500);
+    })();
+  </script>
+<script>
+    (function(){
+      try {
+        var target = 'trade.html' + (location.search || '');
+        location.replace(target);
+      } catch (e) {
+        location.href = 'trade.html';
+      }
+    })();
+  </script>
+</head>
+<body>
+  <main class="section">
+    <div class="container">
+      <div class="card"><div class="pad">
+        <h1 style="margin:0 0 10px">Redirecting to the trade page.</h1>
+        <div class="muted">If the page does not redirect automatically, please click the button below.</div>
+        <div class="tagrow" style="margin-top:12px"><a class="btn primary" href="trade.html">Open Unified Trade Page</a></div>
+      </div></div>
+    </div>
+  </main>
+</body>
+</html>

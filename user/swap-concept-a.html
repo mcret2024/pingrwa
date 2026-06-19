@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swap · Concept A · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+<!--
+  (v625) 운영자: 'Concept A 를 단독으로 다시 구성해봐.'
+  swap-concepts.html 의 Concept A (Stacked Compact) 를 실제 작동 가능한
+  단독 페이지로 확장. 기존 swap.html 의 로직 (silica-data-bind / funding /
+  swap 엔진) 과 호환되도록 같은 input id (swapFromAmount / swapToAmount 등)
+  를 유지.
+-->
+<style>
+  .page { max-width: 480px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+  .swap-head { text-align: center; margin-bottom: 18px; }
+  .swap-head h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1px;
+    color: var(--platinum);
+    margin: 0;
+  }
+
+  /* ============ Concept A — Stacked Compact ============ */
+  .sw-card {
+    background: #FFFFFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 0 0 #E2E8F0;
+  }
+
+  .sw-field {
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+  .sw-field:focus-within { border-color: var(--logo-violet); }
+  .sw-field.readonly { background: #F1F5F9; }
+
+  .sw-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .sw-lbl {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--platinum);
+    text-transform: uppercase;
+  }
+  .sw-balance {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ice);
+  }
+  .sw-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--platinum);
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: -1px;
+    min-width: 0;
+    width: 100%;
+    padding: 4px 0;
+  }
+  .sw-input:focus { outline: none; }
+  .sw-input::placeholder { color: #94A3B8; }
+
+  .sw-token-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 100px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--platinum);
+    flex-shrink: 0;
+  }
+  .sw-token-icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    color: #FFFFFF;
+  }
+  .sw-token-icon.silica { background: var(--logo-blue); }
+  .sw-token-icon.sto { background: var(--logo-violet); }
+
+  .sw-conv {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--steel);
+    margin-top: 4px;
+    text-align: right;
+  }
+  .sw-max-btn {
+    background: transparent;
+    border: 1px solid var(--logo-violet);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--logo-violet);
+    cursor: pointer;
+    margin-right: 8px;
+  }
+  .sw-max-btn:hover { background: var(--logo-violet); color: #FFFFFF; }
+
+  .sw-arrow {
+    width: 34px; height: 34px;
+    margin: -10px auto;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    box-shadow: 0 3px 0 0 var(--logo-violet-dark);
+    position: relative;
+    z-index: 2;
+    cursor: not-allowed;
+  }
+
+  .sw-rate-box {
+    background: #FAF5FF;
+    border: 1px solid #E9D5FF;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 10px 0;
+  }
+  .sw-rate-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ice);
+  }
+  .sw-rate-line.first {
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed #E9D5FF;
+    font-weight: 800;
+    color: var(--platinum);
+    font-size: 13px;
+  }
+  .sw-rate-line .v {
+    font-family: 'Space Grotesk', monospace;
+    color: var(--logo-violet);
+    font-weight: 800;
+  }
+  .sw-refresh-btn {
+    background: transparent;
+    border: none;
+    color: var(--logo-violet);
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 14px;
+    line-height: 1;
+    margin-left: 4px;
+    transition: transform 0.2s;
+  }
+  .sw-refresh-btn:hover { transform: rotate(180deg); }
+
+  .sw-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 4px 0 0 var(--logo-violet-dark);
+    transition: background 0.15s, transform 0.05s;
+  }
+  .sw-btn:hover:not(:disabled) {
+    background: var(--logo-violet-dark);
+  }
+  .sw-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--logo-violet-dark);
+  }
+  .sw-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #94A3B8;
+    box-shadow: 0 4px 0 0 #64748B;
+  }
+  .sw-status {
+    margin-top: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--steel);
+    text-align: center;
+    min-height: 16px;
+  }
+
+  /* TTL progress bar */
+  .sw-ttl-bar {
+    height: 3px;
+    background: #E2E8F0;
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .sw-ttl-fill {
+    height: 100%;
+    background: var(--logo-violet);
+    width: 0%;
+    transition: width 0.4s linear;
+  }
+
+  /* Inline notice (insufficient balance etc.) */
+  .sw-notice {
+    display: none;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-top: 8px;
+    background: #FFFBEB;
+    border: 1px solid #FCD34D;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #92400E;
+    line-height: 1.4;
+  }
+  .sw-notice.show { display: flex; }
+  .sw-notice.danger {
+    background: #FEF2F2;
+    border-color: #FCA5A5;
+    color: #991B1B;
+  }
+  .sw-notice .icon { flex-shrink: 0; font-size: 14px; }
+  .sw-notice .body { flex: 1; }
+
+  /* 모바일 폴백 — 폰트만 살짝 더 작게. */
+  @media (max-width: 480px) {
+    .page { padding: 16px; }
+    .swap-head h1 { font-size: 30px; }
+    .sw-input { font-size: 22px; }
+    .sw-card { padding: 14px; }
+  }
+</style>
+</head>
+<body data-page="swap-concept-a">
+
+<div id="siteHeaderMount"></div>
+
+<main>
+  <div class="page">
+    <div class="swap-head">
+      <h1>Swap</h1>
+    </div>
+
+    <div class="sw-card">
+      <!-- FROM (readonly — computed Silica payment) -->
+      <div class="sw-field readonly">
+        <div class="sw-row">
+          <span class="sw-lbl">From (You Pay)</span>
+          <span class="sw-balance" id="swapFromBalance">Balance: 0.00</span>
+        </div>
+        <div class="sw-row" style="margin-top: 6px">
+          <input type="text" class="sw-input" id="swapFromAmount" value="" placeholder="—" readonly>
+          <span class="sw-token-chip">
+            <span class="sw-token-icon silica">◆</span>
+            Silica
+          </span>
+        </div>
+        <div class="sw-conv" id="swapFromConv">≈ — USDT</div>
+        <div id="swapFromNotice" class="sw-notice" role="alert" aria-live="polite">
+          <span class="icon" aria-hidden="true">⚠</span>
+          <span class="body" id="swapFromNoticeText"></span>
+        </div>
+      </div>
+
+      <div class="sw-arrow" title="Locked direction (Silica → STO)">↓</div>
+
+      <!-- TO (editable — desired SilicaSTO) -->
+      <div class="sw-field" id="swapToBlock">
+        <div class="sw-ttl-bar"><div class="sw-ttl-fill" id="quoteTtlBar"></div></div>
+        <div class="sw-row">
+          <span class="sw-lbl">To (You Receive)</span>
+          <span class="sw-balance" id="swapToBalance">Balance: 0.00</span>
+        </div>
+        <div class="sw-row" style="margin-top: 6px">
+          <input type="text" class="sw-input" id="swapToAmount" value="" placeholder="0" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+          <button id="swapToMaxBtn" type="button" class="sw-max-btn">MAX</button>
+          <span class="sw-token-chip">
+            <span class="sw-token-icon sto">S</span>
+            STO
+          </span>
+        </div>
+        <div class="sw-conv" id="swapToConv">≈ — USDT (1:1 peg)</div>
+      </div>
+
+      <!-- Rate info — compact -->
+      <div class="sw-rate-box">
+        <div class="sw-rate-line first">
+          <span>Applied Rate</span>
+          <span>
+            <span class="v" data-applied-rate>—</span>
+            <button type="button" class="sw-refresh-btn" id="manualRefreshBtn" title="Refresh quote">↻</button>
+          </span>
+        </div>
+        <div class="sw-rate-line">
+          <span>Silica Price</span>
+          <span class="v" data-silica-price>—</span>
+        </div>
+        <div class="sw-rate-line">
+          <span id="swapFeeRowLabel">Swap Fee
+            <span id="swapFeeHint" style="display:none"></span>
+          </span>
+          <span class="v" id="swapFeeLabel">—</span>
+        </div>
+        <div class="sw-rate-line" id="swapUsdtBalanceRow">
+          <span id="swapUsdtBalanceLabel">Your USDT (fee)</span>
+          <span class="v" id="swapUsdtBalance">—</span>
+        </div>
+      </div>
+
+      <button id="executeSwapBtn" class="sw-btn" type="button" disabled>Execute Swap</button>
+      <div id="quoteCountdown" class="sw-status">Type the TO amount to fetch the latest swap rate.</div>
+    </div>
+  </div>
+</main>
+
+<div id="siteFooterMount"></div>
+
+<!-- (v625) 기존 swap.html 의 firm-quote modal / success modal 마크업은
+     별도 파일 분리하면 깔끔하지만 우선 단독 시안 목적이므로 생략. 실제
+     적용 시 swap.html 의 modal markup 을 그대로 가져오면 swap-engine.js
+     가 자연스럽게 인식한다. -->
+
+<script src="/user/assets/js/app.js?v=20260618v927-header-rwa" defer></script>
+</body>
+</html>

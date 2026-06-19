@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swap Concepts · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+<!--
+  (v622) 운영자 요청: '스왑 카드를 스크롤 하지 않고 한 화면에서 볼 수 없을까?
+  별도 링크에서 시안 3개를 만들어봐 (데스크롭, 모바일 함께).'
+  현재 swap.html 의 큰 FROM/Arrow/TO/Rate/Fee/Button 구조 가 모바일에서 600px+
+  를 차지해 스크롤 필요. 시안 A/B/C 를 폭/높이 다르게 압축.
+-->
+<style>
+  body { background: #F8FAFC; padding: 32px 24px 64px; }
+  .page-wrap { max-width: 1400px; margin: 0 auto; }
+  .page-head { text-align: center; margin-bottom: 32px; }
+  .page-head h1 { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 1px; color: var(--platinum); margin-bottom: 8px; }
+  .page-head p { font-size: 16px; color: var(--ice); font-weight: 500; }
+
+  .viewport-toggle {
+    display: inline-flex; gap: 0; background: #FFFFFF; border: 2px solid #CBD5E1;
+    border-radius: 12px; padding: 4px; margin: 0 auto 32px; box-shadow: 0 2px 0 0 #E2E8F0;
+  }
+  .viewport-toggle button {
+    padding: 10px 24px; border: none; background: transparent; cursor: pointer;
+    font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--steel);
+    border-radius: 8px; transition: all 0.15s;
+  }
+  .viewport-toggle button.active { background: var(--logo-violet); color: #FFFFFF; }
+  .viewport-toggle button:hover:not(.active) { background: #F1F5F9; }
+
+  .concepts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 1100px) { .concepts { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+  .concept-frame {
+    background: #FFFFFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 0 0 #E2E8F0;
+  }
+  .concept-head {
+    padding: 14px 18px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1.5px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .concept-head .tag {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: rgba(255,255,255,0.20);
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+  .concept-body {
+    padding: 20px;
+    min-height: 480px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  body.view-mobile .concept-body {
+    background: #0F172A;
+    padding: 24px 16px;
+  }
+  body.view-mobile .concepts { grid-template-columns: repeat(3, 360px); max-width: none; justify-content: center; }
+  body.view-mobile .concept-frame { box-shadow: 0 4px 0 0 #475569; }
+
+  /* ============================================================
+     COMMON swap card primitives — used by all 3 concepts
+     ============================================================ */
+  .sw-card {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 16px;
+    width: 100%;
+  }
+  body.view-mobile .sw-card { max-width: 320px; }
+
+  .sw-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .sw-lbl {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--platinum);
+    text-transform: uppercase;
+  }
+  .sw-balance {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ice);
+  }
+  .sw-token-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 100px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .sw-token-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    color: #FFFFFF;
+  }
+  .sw-token-icon.silica { background: var(--logo-blue); }
+  .sw-token-icon.sto { background: var(--logo-violet); }
+
+  .sw-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--platinum);
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -1px;
+    min-width: 0;
+    width: 100%;
+  }
+  .sw-input:focus { outline: none; }
+  .sw-conv {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--steel);
+    margin-top: 4px;
+  }
+
+  .sw-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 3px 0 0 var(--logo-violet-dark);
+  }
+  .sw-btn:hover { background: var(--logo-violet-dark); }
+  .sw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ============================================================
+     CONCEPT A — Stacked Compact (현재 디자인 50% 압축)
+     세로 흐름은 유지하되 모든 요소 폰트/패딩/높이 압축.
+     ============================================================ */
+  .concept-a .sw-card { padding: 14px; }
+  .concept-a .sw-field {
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .concept-a .sw-input { font-size: 22px; }
+  .concept-a .sw-arrow {
+    width: 28px; height: 28px;
+    margin: -10px auto;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 2px 0 0 var(--logo-violet-dark);
+    position: relative;
+    z-index: 2;
+  }
+  .concept-a .sw-rate-mini {
+    background: #FAF5FF;
+    border: 1px solid #E9D5FF;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin: 8px 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ice);
+    display: flex; justify-content: space-between;
+  }
+  .concept-a .sw-rate-mini .v { font-family: 'Space Grotesk', monospace; color: var(--logo-violet); font-weight: 800; }
+
+  /* ============================================================
+     CONCEPT B — Single-Input Inline (한 줄 입력)
+     입력 1개만 보여주고, 토큰 칩 클릭 시 FROM/TO 토글.
+     ============================================================ */
+  .concept-b .sw-card { padding: 14px; }
+  .concept-b .sw-toggle-bar {
+    display: flex; gap: 2px;
+    background: #F1F5F9;
+    border-radius: 100px;
+    padding: 3px;
+    margin-bottom: 12px;
+  }
+  .concept-b .sw-toggle-bar button {
+    flex: 1; border: none; background: transparent;
+    padding: 7px 12px;
+    border-radius: 100px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--steel);
+    cursor: pointer;
+  }
+  .concept-b .sw-toggle-bar button.active {
+    background: #FFFFFF;
+    color: var(--logo-violet);
+    box-shadow: 0 2px 6px rgba(0,0,0,.10);
+  }
+  .concept-b .sw-field-row {
+    display: flex; align-items: center; gap: 10px;
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .concept-b .sw-input { font-size: 22px; }
+  .concept-b .sw-from-conv {
+    text-align: center;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--logo-violet);
+    margin: 6px 0 8px;
+  }
+  .concept-b .sw-rate-line {
+    display: flex; justify-content: space-between;
+    padding: 6px 0;
+    font-size: 11px;
+    color: var(--steel);
+    border-top: 1px dashed #E2E8F0;
+  }
+  .concept-b .sw-rate-line:last-of-type { border-bottom: 1px dashed #E2E8F0; margin-bottom: 8px; }
+  .concept-b .sw-rate-line .v { color: var(--platinum); font-weight: 700; font-family: 'Space Grotesk', monospace; }
+
+  /* ============================================================
+     CONCEPT C — Horizontal Two-Column (좌우 분리)
+     FROM 칸 | 화살표 | TO 칸 을 가로로 배치 (모바일에선 세로 폴백).
+     ============================================================ */
+  .concept-c .sw-card { padding: 14px; }
+  .concept-c .sw-pair {
+    display: grid;
+    grid-template-columns: 1fr 28px 1fr;
+    gap: 6px;
+    align-items: stretch;
+    margin-bottom: 10px;
+  }
+  .concept-c .sw-side {
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+  .concept-c .sw-side .sw-input { font-size: 18px; letter-spacing: -0.5px; }
+  .concept-c .sw-arrow-mini {
+    align-self: center;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    box-shadow: 0 2px 0 0 var(--logo-violet-dark);
+  }
+  .concept-c .sw-summary {
+    background: #FAF5FF;
+    border: 1px solid #E9D5FF;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .concept-c .sw-summary .l { color: var(--ice); }
+  .concept-c .sw-summary .v { color: var(--logo-violet); font-family: 'Space Grotesk', monospace; font-weight: 800; }
+
+  /* 모바일 뷰포트 시 C 시안은 세로로 폴백. */
+  body.view-mobile .concept-c .sw-pair {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  body.view-mobile .concept-c .sw-arrow-mini {
+    margin: -8px auto;
+    transform: rotate(90deg);
+  }
+
+  /* Note panel */
+  .note {
+    padding: 10px 14px;
+    background: #FEF3C7;
+    border: 1px solid #FCD34D;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #92400E;
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body data-page="swap-concepts" class="view-desktop">
+
+<div class="page-wrap">
+  <div class="page-head">
+    <h1>Swap Card Concepts</h1>
+    <p>3 design variants — 스크롤 없이 한 화면에 들어가는 컴팩트 시안</p>
+  </div>
+
+  <div style="text-align:center">
+    <div class="viewport-toggle">
+      <button type="button" class="active" data-view="desktop">Desktop</button>
+      <button type="button" data-view="mobile">Mobile</button>
+    </div>
+  </div>
+
+  <div class="concepts">
+
+    <!-- ============================================================
+         CONCEPT A — Stacked Compact
+         ============================================================ -->
+    <div class="concept-frame concept-a">
+      <div class="concept-head">
+        <span>Concept A</span>
+        <span class="tag">Stacked Compact</span>
+      </div>
+      <div class="concept-body">
+        <div class="sw-card">
+          <div class="sw-field">
+            <div class="sw-row">
+              <span class="sw-lbl">From</span>
+              <span class="sw-balance">Bal: 12,345</span>
+            </div>
+            <div class="sw-row" style="margin-top:4px">
+              <input class="sw-input" type="text" value="0" readonly>
+              <span class="sw-token-chip">
+                <span class="sw-token-icon silica">◆</span>
+                Silica
+              </span>
+            </div>
+          </div>
+
+          <div class="sw-arrow">↓</div>
+
+          <div class="sw-field">
+            <div class="sw-row">
+              <span class="sw-lbl">To</span>
+              <span class="sw-balance">Bal: 0</span>
+            </div>
+            <div class="sw-row" style="margin-top:4px">
+              <input class="sw-input" type="text" placeholder="0">
+              <span class="sw-token-chip">
+                <span class="sw-token-icon sto">S</span>
+                SilicaSTO
+              </span>
+            </div>
+          </div>
+
+          <div class="sw-rate-mini">
+            <span>Rate</span><span class="v">1 STO = 377.93 Silica</span>
+          </div>
+          <div class="sw-rate-mini">
+            <span>Fee</span><span class="v">0.15% (min 1 USDT)</span>
+          </div>
+
+          <button class="sw-btn" disabled>Execute Swap</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         CONCEPT B — Single Input
+         ============================================================ -->
+    <div class="concept-frame concept-b">
+      <div class="concept-head">
+        <span>Concept B</span>
+        <span class="tag">Single Input</span>
+      </div>
+      <div class="concept-body">
+        <div class="sw-card">
+          <div class="sw-toggle-bar">
+            <button type="button">Pay Silica</button>
+            <button type="button" class="active">Buy STO</button>
+          </div>
+
+          <div class="sw-field-row">
+            <input class="sw-input" type="text" placeholder="0" value="100">
+            <span class="sw-token-chip">
+              <span class="sw-token-icon sto">S</span>
+              SilicaSTO
+            </span>
+          </div>
+          <div class="sw-from-conv">≈ 37,793 Silica · ≈ 100 USDT</div>
+
+          <div class="sw-rate-line">
+            <span>Silica Price</span><span class="v">0.002646 USDT</span>
+          </div>
+          <div class="sw-rate-line">
+            <span>Swap Fee</span><span class="v">1.00 USDT</span>
+          </div>
+          <div class="sw-rate-line" style="border-bottom:none;font-weight:800;color:var(--platinum);padding-top:8px;font-size:12px;">
+            <span>Total Pay</span><span class="v" style="color:var(--logo-violet)">101.00 USDT</span>
+          </div>
+
+          <button class="sw-btn">Confirm &amp; Swap</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         CONCEPT C — Horizontal Two-Column
+         ============================================================ -->
+    <div class="concept-frame concept-c">
+      <div class="concept-head">
+        <span>Concept C</span>
+        <span class="tag">Horizontal Pair</span>
+      </div>
+      <div class="concept-body">
+        <div class="sw-card">
+          <div class="sw-pair">
+            <div class="sw-side">
+              <div class="sw-lbl" style="font-size:10px;letter-spacing:1.5px">From</div>
+              <input class="sw-input" type="text" value="0" readonly>
+              <div class="sw-conv">Bal 12,345</div>
+              <span class="sw-token-chip" style="font-size:10px;padding:3px 8px;margin-top:6px">
+                <span class="sw-token-icon silica" style="width:16px;height:16px;font-size:9px">◆</span>
+                Silica
+              </span>
+            </div>
+
+            <div class="sw-arrow-mini">→</div>
+
+            <div class="sw-side">
+              <div class="sw-lbl" style="font-size:10px;letter-spacing:1.5px">To</div>
+              <input class="sw-input" type="text" placeholder="0">
+              <div class="sw-conv">Bal 0</div>
+              <span class="sw-token-chip" style="font-size:10px;padding:3px 8px;margin-top:6px">
+                <span class="sw-token-icon sto" style="width:16px;height:16px;font-size:9px">S</span>
+                SilicaSTO
+              </span>
+            </div>
+          </div>
+
+          <div class="sw-summary">
+            <span class="l">1 STO = 377.93 Silica · Fee 0.15%</span>
+          </div>
+          <div class="sw-summary">
+            <span class="l">Your USDT</span>
+            <span class="v">500.00</span>
+          </div>
+
+          <button class="sw-btn" disabled>Execute Swap</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>Note</strong> — 모든 시안은 스크롤 없이 540-580px 높이에 fit (현재 swap.html 은 700-800px+).
+    Desktop / Mobile 토글로 두 환경 비교 가능.<br>
+    Concept A: 기존 디자인 컴팩트 버전. 친숙도 ↑.<br>
+    Concept B: 단일 입력 + 토글 바. 신규 사용자 학습 곡선 ↓.<br>
+    Concept C: 좌우 분리. 한눈에 변환 방향 인식.
+  </div>
+
+</div>
+
+<script>
+  (function () {
+    const buttons = document.querySelectorAll('.viewport-toggle button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const view = btn.getAttribute('data-view');
+        document.body.classList.toggle('view-desktop', view === 'desktop');
+        document.body.classList.toggle('view-mobile', view === 'mobile');
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

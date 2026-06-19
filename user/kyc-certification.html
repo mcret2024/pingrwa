@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- (2026-05-23 v797) HTML 자체 캐시 방지 — Phantom WebView 가 HTML 을 캐시해
+     모달 element 가 DOM 에 누락 되어 click 시 무반응이 되던 문제 대응. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="x-rwa-version" content="20260524v818-toast-hidden-fix">
+<title>KYC Verification · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", lang === "ko" ? "1" : "0");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style id="rwaI18nBootStyle">
+  html[data-rwa-i18n-ready="0"] body { visibility: hidden; }
+  html[data-rwa-i18n-ready="1"] body { visibility: visible; }
+</style>
+<script>
+  (function () {
+    var released = false;
+    function release() {
+      if (released) return;
+      released = true;
+      try {
+        document.documentElement.setAttribute("data-rwa-i18n-ready", "1");
+        document.documentElement.removeAttribute("data-rwa-i18n-pending");
+      } catch (_) {}
+    }
+    window.__RWA_I18N_BOOT_RELEASE__ = release;
+    window.addEventListener("load", function () { setTimeout(release, 0); }, { once: true });
+    setTimeout(release, 4500);
+  })();
+</script>
+<style>
+  /* (2026-05-18 v543) 운영자: 'Korean Resident Registration Card 가 한국으로
+     고정되면 안 된다 (우선 국가 선택 필요)', '영어 페이지에서 한국어가 나오고
+     있다'. 처리:
+     1) 정적 텍스트를 모두 영어 source 로 작성 → 한국어 사용자는 RwaI18n 의
+        번역 맵으로 자동 변환됨 (다른 페이지와 동일한 패턴). 영어 사용자는
+        그대로 영어 표시 → 더 이상 한국어가 새지 않음.
+     2) 신분증 종류 위에 Country 셀렉터 추가. 운영자가 명시한 대로 사용자가
+        먼저 국가를 선택하면 그 국가에 맞는 ID 종류 라벨이 갱신된다.
+     3) ID 라벨을 generic 으로 (National ID Card / Driver's License / Passport).
+        국가별 통칭은 옆에 작은 글씨로 보조 표시. didit.me 는 어떤 국가의
+        ID 라도 자동 인식하므로 backend 전송은 generic doc_type 으로 충분. */
+  .page { max-width: 760px; margin: 24px auto 64px; padding: 0 16px; }
+
+  .step-flow {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; padding: 18px 16px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-md);
+  }
+  .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+  .step-item:not(:last-child)::after { content: ''; position: absolute; top: 17px; left: 60%; right: -40%; height: 2px; background: var(--border); }
+  .step-item.complete:not(:last-child)::after { background: var(--success, #16a34a); }
+  .step-circle {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--glass-2); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', 'Oswald', sans-serif; font-size: 14px;
+    margin-bottom: 6px; position: relative; z-index: 2;
+  }
+  .step-item.complete .step-circle { background: var(--success, #16a34a); border-color: var(--success, #16a34a); color: #fff; }
+  .step-item.active .step-circle { background: var(--aurora-1, #7c3aed); border-color: var(--aurora-1, #7c3aed); color: #fff; }
+  .step-name { font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--steel); text-align: center; }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .doc-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px;
+  }
+  @media (max-width: 600px) { .doc-grid { grid-template-columns: 1fr; } }
+  .doc-btn {
+    padding: 14px 10px; background: var(--glass-2); border: 1.5px solid var(--border);
+    border-radius: var(--r-sm); cursor: pointer; transition: all 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--text); font-family: inherit; text-align: center;
+  }
+  .doc-btn:hover { border-color: var(--aurora-3, #06b6d4); background: rgba(6,182,212,0.06); }
+  .doc-btn.active { border-color: #f5c400; background: rgba(245,196,0,0.10); box-shadow: 0 0 0 2px rgba(245,196,0,0.20); }
+  .doc-btn[disabled] { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .doc-icon { font-size: 22px; }
+  .doc-label { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .doc-sublabel { font-size: 11px; color: var(--steel); margin-top: 2px; min-height: 14px; }
+
+  /* (2026-05-23 v806) 토스트 가독성 개선 — RwaCore.toast 가 .pill 클래스 사용
+     → 'text-transform: uppercase' + 'letter-spacing: 1.2px' 적용되어 긴 안내
+     문구가 한 단어씩 줄바꿈됨. KYC 페이지의 안내 메시지는 일반 문장이라
+     uppercase 부적합. KYC 페이지 한정 override. */
+  #toast {
+    text-transform: none !important;
+    letter-spacing: 0.3px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    max-width: min(560px, calc(100% - 20px)) !important;
+    padding: 12px 18px !important;
+    text-align: left;
+    border-radius: 12px !important;
+    word-break: keep-all;
+  }
+
+  .kyc-modal.hidden { display: none; }
+  /* (2026-05-23 v805) 모달 자체를 스크롤 가능하게 — panel 이 viewport 보다 클 때
+     하단 버튼이 잘리던 문제 fix. backdrop 은 fixed 로 유지해서 스크롤해도
+     배경 어둡게. 모바일 작은 화면 (Phantom 인앱 등) 에서 특히 필요. */
+  .kyc-modal {
+    position: fixed; inset: 0; z-index: 9999;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .kyc-modal .backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.40); backdrop-filter: blur(6px);
+  }
+  .kyc-modal .panel {
+    position: relative; width: min(440px, calc(100% - 28px));
+    margin: 4vh auto 4vh; background: var(--panel);
+    border: 1.5px solid var(--border-strong); border-radius: 16px;
+    padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    color: var(--text);
+  }
+  /* 짧은 viewport (모바일) — top/bottom margin 줄여 더 많은 콘텐츠 표시 */
+  @media (max-height: 700px) {
+    .kyc-modal .panel { margin: 2vh auto 2vh; }
+  }
+  .kyc-modal .btn.hidden { display: none; }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v767) KYC 페이지 모바일 fix — landing v756 rail 원칙.
+     운영자 보고: 'KYC 인증 진행 페이지에서 일부 콘텐츠가 우측으로 벗어남.'
+     원인: rejected 패널의 inner info box 인라인 style 'min-width:300px'
+     + Session UUID 36자가 모바일 좁은 viewport overflow.
+     Revert: 본 v767 블록 전체 삭제하면 기존 룰 (info-grid/doc-grid 만) 유지.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="kyc-certification"] { --mobile-rail: 16px; }
+
+    .page { padding: 0 var(--mobile-rail) !important; margin: 16px auto 48px !important; }
+
+    /* 페이지 제목 */
+    body[data-page="kyc-certification"] h1 { font-size: 28px !important; letter-spacing: 0.5px; }
+    body[data-page="kyc-certification"] .eyebrow { font-size: 10px !important; letter-spacing: 1.5px !important; }
+
+    /* Step flow — 4단계 표시기 */
+    .step-flow { padding: 12px 10px !important; margin-bottom: 16px !important; gap: 4px; }
+    .step-circle { width: 28px !important; height: 28px !important; font-size: 12px !important; }
+    .step-name { font-size: 9px !important; letter-spacing: 0.3px !important; }
+    .step-item:not(:last-child)::after { top: 14px; }
+
+    /* Cards (.card) — 인라인 padding 없는 곳은 일반 룰로 처리 */
+    body[data-page="kyc-certification"] .card { padding: 14px var(--mobile-rail) !important; }
+    body[data-page="kyc-certification"] .card .pad { padding: 0 !important; }
+
+    /* (v771) Rejected panel 의 inner info box — 인라인 display:inline-block 이
+       콘텐츠 폭만큼 자라 viewport overflow. 모든 inline-block / min-width
+       인라인 style 을 강제 block + 100% width 로 변경.
+       v767 의 [style*='min-width:300px'] 셀렉터만으로는 부족 — display:inline-block
+       자체가 너비 결정. 두 가지 모두 override 필요.
+       (2026-05-23 v807) ID 오타 fix: 셀렉터가 #kycRejectPanel (실제 없음) 이라
+       v771 이래 적용 안 됨. 실제 ID #kycRejectedPanel / #kycInProgressPanel.
+       v807 에서 모두 교정 → Session UUID 우측 잘림 문제 해결. */
+    #kycRejectedPanel div[style*="inline-block"],
+    #kycRejectedPanel div[style*="min-width"] {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      padding: 12px 14px !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    /* 각 row (Submitted · / Rejected · / Reason · / Session ·) 강제 wrap */
+    #kycRejectedPanel .pad > div > div {
+      word-break: break-word !important;
+      overflow-wrap: anywhere !important;
+      max-width: 100% !important;
+    }
+
+    /* Session UUID (긴 code 텍스트) — 강제 break-all */
+    #kycRejectSessionId,
+    #kycReviewSessionId,
+    #kycRejectedPanel code,
+    #kycInProgressPanel code {
+      word-break: break-all !important;
+      overflow-wrap: anywhere !important;
+      font-size: 10px !important;
+      display: inline !important;
+      max-width: 100% !important;
+      white-space: normal !important;
+    }
+
+    /* Reject 안내 + 버튼 */
+    #kycRejectMessage { font-size: 13px !important; line-height: 1.55 !important; }
+    #kycRejectActionBtn,
+    #kycRejectedPanel .btn { font-size: 12px !important; padding: 10px 14px !important; }
+    #kycRejectedPanel a.btn { margin-left: 4px !important; margin-top: 8px; display: inline-block; }
+
+    /* Document selection buttons */
+    .doc-btn { padding: 12px 8px !important; }
+    .doc-icon { font-size: 20px !important; }
+    .doc-label { font-size: 12px !important; }
+    .doc-sublabel { font-size: 10px !important; }
+
+    /* Form inputs — iOS Safari 자동 줌 방지 */
+    body[data-page="kyc-certification"] input,
+    body[data-page="kyc-certification"] select,
+    body[data-page="kyc-certification"] textarea {
+      font-size: 16px !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    /* 안전망 */
+    body[data-page="kyc-certification"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="kyc-certification"] > main { max-width: 100vw !important; overflow-x: clip; }
+    body[data-page="kyc-certification"] *,
+    body[data-page="kyc-certification"] *::before,
+    body[data-page="kyc-certification"] *::after { box-sizing: border-box; }
+    body[data-page="kyc-certification"] img,
+    body[data-page="kyc-certification"] video { max-width: 100% !important; height: auto; }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-24 v818) 토스트 스타일 — .hidden 우선 보장.
+     v815 의 inline display:flex !important 가 .hidden{display:none} 을
+     덮어써 빈 카드가 항상 노출되던 버그 fix. CSS 로 이동 + .hidden 일 때
+     display:none 명시.
+     ════════════════════════════════════════════════════════════════ */
+  body[data-page="kyc-certification"] #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(560px, calc(100% - 28px));
+    max-width: min(560px, calc(100% - 28px));
+    padding: 12px 18px;
+    text-align: center;
+    text-transform: none;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: normal;
+    white-space: normal;
+    word-break: keep-all;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  body[data-page="kyc-certification"] #toast.hidden {
+    display: none !important;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-23 v810) Chrome handoff 모드 — 헤더의 wallet UI 숨김.
+     사용자가 Chrome 에서 다른 지갑을 연결해도 KYC 는 항상 토큰 발급한
+     원본 Phantom 지갑에 묶임 (서버 DB 매핑). 따라서 Chrome 의 wallet
+     UI 노출은 혼란만 일으킴 → 핸드오프 세션 동안 숨김.
+     스코프: body.handoff-mode 클래스 (tryActivateHandoffMode 에서 추가).
+     이 페이지 (kyc-certification) 의 핸드오프 모드에만 적용.
+     ════════════════════════════════════════════════════════════════ */
+  body.handoff-mode .site-header #walletBtn,
+  body.handoff-mode .site-header #walletPill,
+  body.handoff-mode .site-header #otpSetupBtn,
+  body.handoff-mode .site-header #otpVerifyBtn,
+  body.handoff-mode .site-header [data-nav-group="wallet"],
+  body.handoff-mode #mobileHamBtn,
+  body.handoff-mode #mobileDrawer,
+  body.handoff-mode #mobileDrawerOverlay {
+    display: none !important;
+  }
+  /* 헤더 우측 공간은 유지 (레이아웃 깨짐 방지) — 빈 영역으로 표시 */
+  body.handoff-mode .site-header .nav-actions { min-height: 0; }
+</style>
+</head>
+<body data-page="kyc-certification">
+<div id="siteHeaderMount"></div>
+<!-- (2026-05-24 v818) v815 의 inline display:flex !important 가 .hidden 의
+     display:none 을 override 해 토스트가 항상 빈 카드로 보이던 버그 fix.
+     모든 스타일을 CSS 블록으로 이동. display 는 .hidden 클래스가 제어. -->
+<div id="toast" class="pill hidden"></div>
+
+<main>
+  <section class="section">
+    <div class="page">
+
+      <div class="text-center" style="margin-bottom:20px">
+        <div class="eyebrow" style="margin-bottom:8px">◆ IDENTITY VERIFICATION · POWERED BY DIDIT</div>
+        <h1 style="margin:0 0 8px;font-family:'Bebas Neue','Oswald',sans-serif;font-size:42px;letter-spacing:1px">KYC Verification</h1>
+        <p class="muted" style="margin:0">Identity verification is required to begin investing.</p>
+      </div>
+
+      <!-- (v867) VPN/DNS 안내 — VPN 의심 시에만 표시. vpn-notice.js 가 제어. -->
+      <div id="vpnNoticeCard" style="display:none; position:relative; margin:0 0 18px; padding:10px 36px 10px 14px; background:#fef3c7; border:1px solid #fbbf24; border-radius:10px; font-size:12px; color:#78350f; line-height:1.55; text-align:left;">
+        <span style="margin-right:6px">ℹ</span>
+        <span data-i18n-en="For best experience, please disable VPN and use default DNS settings." data-i18n-ko="원활한 이용을 위해 VPN 을 끄고 기본 DNS 설정 사용을 권장합니다.">For best experience, please disable VPN and use default DNS settings.</span>
+        <button id="vpnNoticeClose" type="button" aria-label="Close" style="position:absolute; top:6px; right:8px; width:22px; height:22px; border:none; background:transparent; color:#78350f; font-size:18px; line-height:1; cursor:pointer; padding:0;">×</button>
+      </div>
+
+      <div class="step-flow">
+        <div class="step-item complete"><div class="step-circle">✓</div><div class="step-name">Account Creation</div></div>
+        <div class="step-item active"><div class="step-circle">2</div><div class="step-name">ID Verification</div></div>
+        <div class="step-item"><div class="step-circle">3</div><div class="step-name">Face Verification</div></div>
+        <div class="step-item"><div class="step-circle">4</div><div class="step-name">Complete</div></div>
+      </div>
+
+      <!-- (2026-05-18 v570) Verification-in-progress panel. Hidden by default;
+           kyc-certification.js shows this and hides the upload form when
+           /api/kyc/status returns session_state === 'in_review'. Operator
+           reported users were getting auto-approved while didit.me dashboard
+           still showed them as 검토중 (Under Review). Now: the user submits
+           ID + face → didit + admin manually reviews → user returning to this
+           page sees this panel (not the form again) → only after didit final
+           approval does the page show the green "Complete" box. -->
+      <!-- (2026-05-18 v580) i18n 부분 번역 문제 해결을 위해 문장 구조 정리:
+           ⓐ 본문 단락 안의 <strong>not</strong> 인라인 emphasis 제거 — 그것
+              때문에 text node 가 3개로 쪼개져서 MutationObserver 가 단어
+              단위로만 매치 ("VERIFICATION IN 진행률" 같은 혼용 발생).
+           ⓑ 라벨/값 쌍을 한 줄 단일 텍스트로 합쳐 dictionary 매치 단순화.
+           ⓒ Refresh/Return 버튼 라벨도 단일 단어 → 사전과 1:1 매칭. -->
+      <div id="kycInProgressPanel" class="card hidden" style="border-color:#FCD34D; background:#FFFBEB">
+        <div class="pad" style="text-align:center; padding:32px 22px">
+          <div style="font-size:48px; margin-bottom:8px">⌛</div>
+          <h2 style="margin:0 0 6px; font-family:'Bebas Neue','Oswald',sans-serif; letter-spacing:1px; color:#d97706">Verification in Progress</h2>
+          <div class="muted" style="line-height:1.7; max-width:520px; margin:0 auto">
+            <p style="margin:0 0 12px">Your identity submission has been received and is currently being reviewed by our verification provider and our team. This usually takes a few minutes, but in some cases can take several hours.</p>
+            <p style="margin:0">You do not need to keep this page open. When the review is complete your account will be automatically approved and you can begin investing.</p>
+          </div>
+          <div style="margin-top:18px; padding:12px 14px; background:var(--glass-2); border:1px solid var(--border); border-radius:10px; display:inline-block; text-align:left; font-size:13px">
+            <div style="margin-bottom:4px"><span class="muted">Provider status</span> · <strong id="kycReviewProviderStatus">Under review</strong></div>
+            <div><span class="muted">Session</span> · <code id="kycReviewSessionId" style="font-size:11px"></code></div>
+          </div>
+          <div id="kycReviewOverdueNotice" class="hidden" style="margin-top:14px; padding:10px 14px; background:#FEF2F2; border:1px solid #FCA5A5; border-radius:10px; font-size:14px; font-weight:600; color:#DC2626; max-width:520px; margin-left:auto; margin-right:auto">
+            Your review is taking longer than usual. If this persists for more than 24 hours, please contact support.
+          </div>
+          <!-- (2026-05-24 v816) 운영자 요청: 리뷰 진행 중에는 REFRESH 버튼 숨김.
+               리뷰는 백엔드 polling 으로 자동 업데이트되므로 수동 새로고침은
+               의미 없고 사용자에게 'reset 가능' 같은 잘못된 기대를 줄 수 있음.
+               'Return to Dashboard' 만 중앙 배치 (의미 있는 유일한 액션). -->
+          <div style="margin-top:20px; text-align:center;">
+            <a href="index.html" class="btn primary" style="font-size:13px; padding:12px 24px; display:inline-block;">Return to Dashboard</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- (2026-05-19 v582) Verification-rejected panel — didit 거부 / mismatch
+           / kyc_no_credits 등 terminal 실패 상태일 때 폼 대신 표시. 거부 사유 +
+           신청일 + 거부일 + 재제출 (또는 정보 수정 / 운영자 문의) 안내. -->
+      <div id="kycRejectedPanel" class="card hidden" style="border-color:#FCA5A5; background:#FEF2F2">
+        <div class="pad" style="text-align:center; padding:32px 22px">
+          <div style="font-size:48px; margin-bottom:8px; color:#dc2626">✕</div>
+          <h2 style="margin:0 0 6px; font-family:'Bebas Neue','Oswald',sans-serif; letter-spacing:1px; color:#dc2626">Verification Rejected</h2>
+          <div class="muted" style="line-height:1.7; max-width:520px; margin:0 auto">
+            <p id="kycRejectMessage" style="margin:0">Your identity verification was not approved by our verification provider. Please review the details below and resubmit with the correct information.</p>
+          </div>
+          <div style="margin-top:18px; padding:14px 16px; background:var(--glass-2); border:1px solid var(--border); border-radius:10px; display:inline-block; text-align:left; font-size:13px; min-width:300px">
+            <div style="margin-bottom:6px"><span class="muted">Submitted</span> · <strong id="kycRejectSubmitted">—</strong></div>
+            <div style="margin-bottom:6px"><span class="muted">Rejected</span> · <strong id="kycRejectDecided">—</strong></div>
+            <div style="margin-bottom:6px"><span class="muted">Reason</span> · <span id="kycRejectReason">—</span></div>
+            <div><span class="muted">Session</span> · <code id="kycRejectSessionId" style="font-size:11px">—</code></div>
+          </div>
+          <div style="margin-top:20px">
+            <button id="kycRejectActionBtn" class="btn primary" type="button" style="font-size:13px">Resubmit</button>
+            <a href="index.html" class="btn" style="font-size:13px; margin-left:8px">Return to Dashboard</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- (v570) Group all submission-form cards under one wrapper so the JS
+           can hide them as a unit when the user already has a pending review. -->
+      <div id="kycFormSection">
+
+      <!-- Verified information (read-only, comes from kyc-ready step 1) -->
+      <div class="card">
+        <div class="pad">
+          <h3 style="margin:0 0 4px">Verified Information</h3>
+          <div class="muted" style="font-size:13px;margin-bottom:12px">The information below must exactly match your ID document. To change it, return to the <a href="kyc-ready.html">Basic Info</a> page.</div>
+          <div class="info-grid">
+            <div>
+              <div class="small-note">Full Name</div>
+              <input id="kycName" class="input" type="text" disabled style="width:100%;margin-top:6px">
+            </div>
+            <div>
+              <div class="small-note">Date of Birth</div>
+              <input id="kycBirth" class="input" type="text" disabled style="width:100%;margin-top:6px">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Country selection -->
+      <div class="card" style="margin-top:16px">
+        <div class="pad">
+          <h3 style="margin:0 0 4px">Country / Region of Issue</h3>
+          <div class="muted" style="font-size:13px;margin-bottom:8px">Select the country that issued your ID document.</div>
+          <select id="kycCountry" class="input" style="width:100%">
+            <option value="">— Select country —</option>
+            <option value="KR">Republic of Korea</option>
+            <option value="US">United States</option>
+            <option value="JP">Japan</option>
+            <option value="CN">China</option>
+            <option value="HK">Hong Kong SAR</option>
+            <option value="TW">Taiwan</option>
+            <option value="SG">Singapore</option>
+            <option value="MY">Malaysia</option>
+            <option value="TH">Thailand</option>
+            <option value="VN">Vietnam</option>
+            <option value="ID">Indonesia</option>
+            <option value="PH">Philippines</option>
+            <option value="IN">India</option>
+            <option value="GB">United Kingdom</option>
+            <option value="DE">Germany</option>
+            <option value="FR">France</option>
+            <option value="IT">Italy</option>
+            <option value="ES">Spain</option>
+            <option value="NL">Netherlands</option>
+            <option value="CA">Canada</option>
+            <option value="AU">Australia</option>
+            <option value="NZ">New Zealand</option>
+            <option value="AE">United Arab Emirates</option>
+            <option value="SA">Saudi Arabia</option>
+            <option value="BR">Brazil</option>
+            <option value="MX">Mexico</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ID document type -->
+      <div class="card" style="margin-top:16px">
+        <div class="pad">
+          <h3 style="margin:0 0 4px">Choose ID Document Type</h3>
+          <div class="muted" style="font-size:13px">Select the document you will present. On the next step the didit.me verification page opens where you photograph or upload the document directly.</div>
+
+          <div class="doc-grid">
+            <button class="doc-btn" data-doc="id_card" type="button" disabled>
+              <!-- (2026-05-18 v545) 운영자: 'ID card 아이콘이 깨졌다'.
+                   기존 🪪 는 Unicode 14 (2021) 추가된 신규 이모지라 일부 OS/
+                   브라우저에서 fallback 박스로 표시. Unicode 6.0 (2010) 부터
+                   존재하는 🆔 로 교체 — 모든 플랫폼에서 일관되게 렌더링. -->
+              <div class="doc-icon">🆔</div>
+              <div class="doc-label">National ID Card</div>
+              <div class="doc-sublabel" data-id-card-sub>—</div>
+            </button>
+            <button class="doc-btn" data-doc="drivers_license" type="button" disabled>
+              <div class="doc-icon">🚗</div>
+              <div class="doc-label">Driver's License</div>
+              <div class="doc-sublabel">&nbsp;</div>
+            </button>
+            <button class="doc-btn" data-doc="passport" type="button" disabled>
+              <div class="doc-icon">📔</div>
+              <div class="doc-label">Passport</div>
+              <div class="doc-sublabel">&nbsp;</div>
+            </button>
+          </div>
+          <div id="kycDocHint" class="muted" style="font-size:12px;margin-top:10px">Please select a country first.</div>
+        </div>
+      </div>
+
+      <!-- Privacy notice -->
+      <div class="notice" style="margin-top:16px">
+        <strong>ℹ Privacy Protection</strong><br>
+        Uploaded ID documents are sent directly to our verification provider (didit.me) and processed under encryption. SilicaChain does not store ID document images on its servers.
+      </div>
+
+      <!-- (2026-05-22 v772) In-app browser 사전 안내 배너. JS 가 페이지 로드 시
+           Phantom/MetaMask/Trust/Coinbase/KakaoTalk/LINE 인앱 감지하면
+           hidden 해제. 사용자가 'Start Verification' 누르기 전에 미리 알림. -->
+      <div id="kycInAppBrowserBanner" class="hidden" style="margin-top:16px; padding:14px 16px; background:#FEF3C7; border:1.5px solid #F59E0B; border-radius:10px; color:#92400E">
+        <div style="font-weight:800; font-size:14px; margin-bottom:6px;">⚠ <span data-i18n-en="In-app browser detected" data-i18n-ko="인앱 브라우저 감지됨">In-app browser detected</span></div>
+        <div style="font-size:13px; line-height:1.55;">
+          <span data-i18n-en="Identity verification requires a standard browser (Chrome / Safari / Samsung Internet) because it uses your camera and document scan." data-i18n-ko="신분 인증은 카메라와 문서 스캔이 필요하여 일반 브라우저 (Chrome / Safari / Samsung Internet) 에서만 가능합니다.">Identity verification requires a standard browser (Chrome / Safari / Samsung Internet) because it uses your camera and document scan.</span>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="kycInAppCopyUrlBtn" type="button" class="btn small" style="font-size:12px; padding:6px 12px; background:#F59E0B; color:#fff; border:none; border-radius:6px; font-weight:700;">
+            <span data-i18n-en="Copy URL" data-i18n-ko="URL 복사">Copy URL</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Start button + Done indicator -->
+      <div style="margin-top:20px">
+        <button id="kycStartBtn" class="btn primary block" type="button" style="font-size:16px;padding:14px">
+          Start Verification →
+        </button>
+
+        <div id="kycDoneBox" class="hidden" style="margin-top:14px;padding:14px;background:rgba(22,163,74,0.08);border:1.5px solid rgba(22,163,74,0.30);border-radius:10px">
+          <div style="font-weight:700;color:#16a34a;margin-bottom:4px">✓ KYC Verification Complete</div>
+          <div class="muted" style="font-size:13px">You can now use the investment pages freely.</div>
+        </div>
+      </div>
+
+      </div><!-- /#kycFormSection -->
+
+    </div>
+  </section>
+</main>
+
+<div id="siteFooterMount"></div>
+
+<!-- Progress / error modal (controlled by kyc-certification.js showModal / hideModal) -->
+<div id="kycModal" class="kyc-modal hidden" aria-hidden="true">
+  <div class="backdrop"></div>
+  <div class="panel">
+    <div id="kycModalText" style="white-space:pre-line; line-height:1.6; color:var(--text)">Processing...</div>
+    <button id="kycModalOk" class="btn primary block hidden" type="button" style="margin-top:14px">Confirm</button>
+  </div>
+</div>
+
+<!-- (2026-05-23 v793) KYC Handoff modal — 인앱 브라우저 차단 시 표시.
+     핸드오프 링크 + QR + 카운트다운 + "복사" / "QR 보기" / "완료했어요 새로고침" 버튼.
+     스타일은 .kyc-modal 클래스 재사용. -->
+<div id="kycHandoffModal" class="kyc-modal hidden" aria-hidden="true">
+  <div class="backdrop"></div>
+  <div class="panel" style="max-width:520px;">
+    <div style="font-weight:800; font-size:16px; margin-bottom:8px; color:#F59E0B;">
+      ⚠ <span data-i18n-en="In-app browser detected" data-i18n-ko="인앱 브라우저 감지됨">In-app browser detected</span>
+    </div>
+    <div style="font-size:13px; line-height:1.55; color:var(--text); margin-bottom:12px;" data-i18n-en="This wallet's in-app browser does not support the camera and document scan required for identity verification. Please use the secure link below in Chrome, Safari, or Samsung Internet to complete KYC. Your wallet account will be linked automatically." data-i18n-ko="이 지갑의 인앱 브라우저는 신분 인증에 필요한 카메라/문서 스캔을 지원하지 않습니다. 아래 보안 링크를 Chrome, Safari, Samsung Internet 에서 열어 KYC 를 완료해 주세요. 지갑 계정은 자동으로 연결됩니다.">
+      This wallet's in-app browser does not support the camera and document scan required for identity verification. Please use the secure link below in Chrome, Safari, or Samsung Internet to complete KYC. Your wallet account will be linked automatically.
+    </div>
+
+    <!-- 링크 박스 — (v794) user-select 명시 + tap 시 자동 선택 가능하도록 cursor:text -->
+    <div style="background:#F9FAFB; border:1.5px solid #E5E7EB; border-radius:8px; padding:10px 12px; margin-bottom:10px; font-family:monospace; font-size:11px; word-break:break-all; color:#374151; user-select:all; -webkit-user-select:all; -moz-user-select:all; cursor:text; transition:background 0.3s, border-color 0.3s;" id="kycHandoffUrlBox">
+      —
+    </div>
+
+    <!-- 카운트다운 -->
+    <div style="font-size:12px; color:#6B7280; margin-bottom:14px;">
+      ⏱ <span data-i18n-en="Expires in" data-i18n-ko="만료까지">Expires in</span>
+      <span id="kycHandoffCountdown" style="font-weight:700; color:#F59E0B;">10:00</span>
+      <span style="margin-left:8px; opacity:0.7;" data-i18n-en="(single-use, expires automatically)" data-i18n-ko="(1회용, 자동 만료)">(single-use, expires automatically)</span>
+    </div>
+
+    <!-- 액션 버튼 -->
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <!-- (v795) Share 버튼 — Phantom WebView 가 clipboard 를 silent fail 시키는
+           경우가 많아 navigator.share() 를 primary 로 추가. OS 공유 시트가 열려
+           유저가 "복사" / "메시지" / "이메일" 등을 직접 선택할 수 있다. JS 가
+           navigator.share 미지원 환경에선 자동 숨김. -->
+      <button id="kycHandoffShareBtn" type="button" class="btn primary block hidden" style="font-size:14px; padding:11px;">
+        📤 <span data-i18n-en="Share Link (recommended)" data-i18n-ko="링크 공유 (권장)">Share Link (recommended)</span>
+      </button>
+      <button id="kycHandoffCopyBtn" type="button" class="btn block" style="font-size:13px; padding:10px; background:#3B82F6; color:#fff;">
+        📋 <span data-i18n-en="Copy Link" data-i18n-ko="링크 복사">Copy Link</span>
+      </button>
+      <button id="kycHandoffQrBtn" type="button" class="btn block" style="font-size:13px; padding:10px; background:#F3F4F6; color:#374151;">
+        📱 <span data-i18n-en="Show QR Code (scan with another phone)" data-i18n-ko="QR 코드 보기 (다른 폰으로 스캔)">Show QR Code (scan with another phone)</span>
+      </button>
+      <button id="kycHandoffDoneBtn" type="button" class="btn block" style="font-size:13px; padding:10px; background:#10B981; color:#fff;">
+        🔄 <span data-i18n-en="I completed KYC, refresh" data-i18n-ko="KYC 완료함, 새로고침">I completed KYC, refresh</span>
+      </button>
+      <button id="kycHandoffCancelBtn" type="button" class="btn block" style="font-size:12px; padding:8px; background:transparent; color:#6B7280; border:1px solid #E5E7EB;">
+        <span data-i18n-en="Cancel" data-i18n-ko="취소">Cancel</span>
+      </button>
+    </div>
+
+    <!-- (v795) 진단 영역 — 어떤 method 가 시도되고 성공/실패했는지 화면에 표시.
+         F12 없이 운영자/사용자가 어떤 단계에서 실패했는지 즉시 확인 가능. -->
+    <div id="kycHandoffDiagnostic" class="hidden" style="margin-top:10px; padding:8px 10px; background:#F3F4F6; border:1px solid #E5E7EB; border-radius:6px; font-family:monospace; font-size:10px; color:#6B7280; line-height:1.5; max-height:120px; overflow-y:auto;"></div>
+
+    <!-- QR 영역 (기본 숨김, 클릭 시 토글) -->
+    <div id="kycHandoffQrBox" class="hidden" style="margin-top:14px; padding:12px; background:#fff; border:1.5px solid #E5E7EB; border-radius:8px; text-align:center;">
+      <div id="kycHandoffQrCanvas" style="display:inline-block;"></div>
+      <div style="font-size:11px; color:#6B7280; margin-top:8px;" data-i18n-en="Scan this QR code with another phone's camera" data-i18n-ko="다른 폰의 카메라로 이 QR 코드를 스캔하세요">
+        Scan this QR code with another phone's camera
+      </div>
+    </div>
+
+    <!-- 에러 영역 (토큰 발급 실패 시) -->
+    <div id="kycHandoffError" class="hidden" style="margin-top:10px; padding:10px; background:#FEE2E2; border:1px solid #FCA5A5; border-radius:6px; font-size:12px; color:#991B1B;"></div>
+  </div>
+</div>
+
+<!-- (v543) Country-aware sub-labels for the National ID Card button. didit.me
+     인증 자체는 generic doc_type (id_card / drivers_license / passport) 으로
+     충분하지만 사용자가 자기 나라의 통칭을 보면 명확함. country select 변경
+     시 sublabel 만 업데이트. -->
+<script>
+  (function () {
+    var idCardNames = {
+      KR: 'Resident Registration Card (주민등록증)',
+      US: 'State ID Card',
+      JP: 'My Number Card',
+      CN: 'Resident Identity Card (居民身份证)',
+      HK: 'Hong Kong Identity Card',
+      TW: 'Citizen ID (國民身分證)',
+      SG: 'NRIC',
+      MY: 'MyKad',
+      TH: 'Thai National ID',
+      VN: 'Citizen Identification Card',
+      ID: 'KTP',
+      PH: 'PhilSys ID',
+      IN: 'Aadhaar Card',
+      GB: 'National Identity Card',
+      DE: 'Personalausweis',
+      FR: 'Carte Nationale d\'Identité',
+      IT: 'Carta d\'Identità',
+      ES: 'DNI',
+      NL: 'Identiteitskaart',
+      CA: 'Provincial ID Card',
+      AU: 'Photo Card',
+      NZ: 'Kiwi Access Card',
+      AE: 'Emirates ID',
+      SA: 'National ID',
+      BR: 'RG / CPF',
+      MX: 'INE',
+      OTHER: 'National ID Card',
+    };
+
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.id === 'kycCountry') {
+        var code = String(e.target.value || '').trim();
+        var sub = document.querySelector('[data-id-card-sub]');
+        var hint = document.getElementById('kycDocHint');
+        var docBtns = document.querySelectorAll('.doc-btn');
+        if (code === '') {
+          if (sub) sub.textContent = '—';
+          if (hint) hint.textContent = 'Please select a country first.';
+          docBtns.forEach(function (b) { b.disabled = true; b.classList.remove('active'); });
+          return;
+        }
+        if (sub) sub.textContent = idCardNames[code] || 'National ID Card';
+        if (hint) hint.textContent = 'Choose one of the three document types above.';
+        docBtns.forEach(function (b) { b.disabled = false; });
+      }
+    });
+  })();
+</script>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/vpn-notice.js?v=20260607v867"></script>
+</body>
+</html>

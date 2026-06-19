@@ -1,0 +1,1168 @@
+/* ================================================================
+   SILICA CHAIN — Stellar Aurora Light Theme v2.0
+   White-based theme with aurora accent colors
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Unbounded:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* ============ TOKENS — Light Theme (white base + aurora accents) ============ */
+:root {
+  /* Backgrounds (light) — 흰색 기반 단계별 회색 */
+  --void: #FFFFFF;          /* 메인 배경 (순백) */
+  --abyss: #F8FAFC;         /* 1단계 회색 */
+  --space: #F1F5F9;         /* 2단계 회색 (섹션 배경) */
+  --midnight: #E2E8F0;      /* 3단계 회색 (sub-card) */
+  --panel: #FFFFFF;         /* 카드 배경 */
+  --panel-2: #F8FAFC;       /* 카드 변형 */
+
+  /* === SilicaChain LOGO Palette (별 모양 5색 원색) === */
+  --logo-red:    #E53935;   /* 빨강 — 위쪽 별 조각 */
+  --logo-orange: #F57C00;   /* 주황 — 오른쪽 위 */
+  --logo-green:  #2E7D32;   /* 초록 — 오른쪽 아래 */
+  --logo-blue:   #1976D2;   /* 파랑 — 왼쪽 아래 */
+  --logo-violet: #8E24AA;   /* 보라 — 왼쪽 위 */
+  /* hover/dark 변형 */
+  --logo-red-dark:    #B71C1C;
+  --logo-orange-dark: #E65100;
+  --logo-green-dark:  #1B5E20;
+  --logo-blue-dark:   #0D47A1;
+  --logo-violet-dark: #6A1B9A;
+
+  /* Aurora palette — 로고 색과 매핑 */
+  --aurora-1: var(--logo-violet);   /* 보라 → 메인 액센트 */
+  --aurora-2: var(--logo-red);      /* 빨강 */
+  --aurora-3: var(--logo-blue);     /* 파랑 */
+  --aurora-4: var(--logo-orange);   /* 주황 */
+  --aurora-5: var(--logo-violet-dark); /* 호버용 진한 보라 */
+  --aurora-glow-1: #8B5CF6;
+  --aurora-glow-2: #EC4899;
+  --aurora-glow-3: #06B6D4;
+
+  /* Text — 진한 슬레이트 → 옅은 회색 */
+  --platinum: #0F172A;      /* 메인 텍스트 (slate-900) */
+  --ice: #1E293B;           /* 보조 텍스트 (slate-800) */
+  --steel: #475569;         /* muted (slate-600) */
+  --steel-dim: #64748B;     /* muted-light (slate-500) */
+
+  /* Override Recon's variables */
+  --bg: var(--void);
+  --bg-alt: var(--abyss);
+  --bg-section: var(--space);
+  --surface: var(--panel);
+  --surface2: var(--panel-2);
+  --surface3: var(--midnight);
+
+  --accent: var(--aurora-1);
+  --accent-hover: var(--aurora-5);
+  /* (v605) rgba(0.08) translucent → solid hex tints. 운영자: "로고 처럼 단색." */
+  --accent-light: #F5F3FF;
+  --accent-lighter: #FAF5FF;
+  --accent-dark: var(--aurora-2);
+  --accent-deep: #6D28D9;
+  --accent-soft: #F5F3FF;
+
+  --text: var(--platinum);
+  --text-mid: var(--ice);
+  /* (v605) muted = ice (slate-800) — 더 진하고 굵게 보이도록. */
+  --muted: var(--ice);
+  --muted-light: var(--steel);
+  --text-inverse: #FFFFFF;
+
+  /* (v605) border: rgba → 슬레이트 단색. */
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --border-focus: var(--aurora-3);
+
+  --green: #059669;
+  --green-bg: #ECFDF5;
+  --green-border: #6EE7B7;
+  --red: #DC2626;
+  --red-bg: #FEF2F2;
+  --red-border: #FCA5A5;
+  --blue: #2563EB;
+  --blue-bg: #EFF6FF;
+  --blue-border: #93C5FD;
+  --amber: #D97706;
+  --amber-bg: #FFFBEB;
+  --amber-border: #FCD34D;
+  --neutral: var(--steel);
+  --neutral-bg: #F8FAFC;
+  --neutral-border: var(--border);
+
+  /* Shadows — 라이트 테마: 부드러운 슬레이트 그림자 */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,.05);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.08), 0 1px 2px rgba(15,23,42,.04);
+  --shadow: 0 4px 12px rgba(15,23,42,.08), 0 1px 4px rgba(15,23,42,.04);
+  --shadow-md: 0 8px 24px rgba(15,23,42,.10), 0 2px 8px rgba(15,23,42,.05);
+  --shadow-lg: 0 16px 48px rgba(15,23,42,.12), 0 4px 16px rgba(15,23,42,.06);
+  --shadow-gold: 0 0 30px rgba(124, 58, 237, 0.18);
+
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 24px;
+
+  --t: .2s ease;
+  --t-fast: .12s ease;
+  --t-smooth: .3s cubic-bezier(.4,0,.2,1);
+
+  --line: var(--border);
+  --line-strong: var(--border-strong);
+  /* (v605) glass: rgba → 슬레이트 단색. 운영자: "흐리지 않고 단색." */
+  --glass: #F8FAFC;
+  --glass-2: #F1F5F9;
+}
+
+/* ============ RESET ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+body { overflow-x: hidden; }
+
+/* ============ BACKGROUND — 원색 단색 + 그리드 ============ */
+body::before {
+  /* 코너 색상 패치는 그대로 두되 약하게 (full gradient ambient 제거) */
+  display: none;
+}
+/* (2026-05-19 v588) 운영자 디자인 원칙 — 전체 페이지의 격자 배경 제거.
+   원래 body::after 가 48px 그리드를 깔던 룰을 비활성. */
+body::after { content: none; }
+
+/* (2026-05-19 v589) 운영자 요청 — 전체 페이지 폰트 5px 크게.
+   px 단위 font-size 룰이 코드베이스에 100+개라 일괄 수정 비현실적 →
+   CSS zoom 으로 모든 텍스트/컴포넌트 비례 확대. 1.30 ≈ 14px 기준 +4px,
+   16px 기준 +5px. 페이지별 미세 조정 필요하면
+   body[data-page="xxx"] { zoom: ... } 로 override. */
+body { zoom: 1.30; }
+
+/* ============ TYPOGRAPHY HELPERS ============ */
+.heading-xl, .heading-lg, .heading-md, .heading-sm,
+h1, h2, h3, h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  letter-spacing: 1px;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.heading-xl { font-size: clamp(56px, 9vw, 128px); }
+.heading-lg { font-size: clamp(44px, 6vw, 80px); }
+.heading-md { font-size: clamp(32px, 4.5vw, 56px); }
+.heading-sm { font-size: clamp(24px, 3vw, 36px); }
+
+.heavy-num { font-family: 'Unbounded', sans-serif; font-weight: 900; letter-spacing: -3px; }
+.label-cap { font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; }
+
+/* (v605) eyebrow 11→13px, weight 600→800 — 라벨 강조. */
+.eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--aurora-3);
+}
+
+/* 단색 텍스트 강조 (gradient-text 클래스는 호환성 위해 유지하되 단색 처리) */
+.gradient-text { color: #7C3AED; }
+.gradient-text-aurora { color: #DB2777; }
+
+a { color: var(--aurora-3); text-decoration: none; transition: color var(--t); }
+a:hover { color: var(--aurora-5); }
+
+/* ============ BUTTONS — compatible with Recon's .btn class ============ */
+/* (v605) btn 13→15px, weight 600→700 — 라벨/버튼 가독성 +. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--border-strong);
+  background: var(--glass);
+  color: var(--text);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: all var(--t);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:hover { background: #F1F5F9; border-color: #7C3AED; color: #7C3AED; }
+/* === 원색 솔리드 버튼 === */
+.btn.primary, .btn-primary {
+  background: #7C3AED;
+  color: #FFFFFF;
+  border: 2px solid #7C3AED;
+  box-shadow: 0 4px 0 0 #5B21B6;
+  font-weight: 800;
+}
+.btn.primary:hover, .btn-primary:hover {
+  background: #6D28D9;
+  border-color: #6D28D9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #5B21B6;
+  color: #FFFFFF;
+}
+.btn.primary:active, .btn-primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 #5B21B6;
+}
+
+.btn.danger, .btn-danger {
+  background: #DC2626;
+  color: #FFFFFF;
+  border: 2px solid #DC2626;
+  box-shadow: 0 4px 0 0 #991B1B;
+  font-weight: 800;
+}
+.btn.danger:hover, .btn-danger:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #991B1B;
+  color: #FFFFFF;
+}
+.btn.danger:active, .btn-danger:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 #991B1B, 0 4px 8px rgba(220, 38, 38, 0.30);
+}
+
+.btn.success, .btn-success {
+  background: #059669;
+  color: #FFFFFF;
+  border: 2px solid #059669;
+  box-shadow: 0 4px 0 0 #064E3B;
+  font-weight: 800;
+}
+.btn.success:hover, .btn-success:hover {
+  background: #047857;
+  border-color: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #064E3B;
+  color: #FFFFFF;
+}
+.btn.success:active, .btn-success:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 #064E3B, 0 4px 8px rgba(5, 150, 105, 0.30);
+}
+
+.btn.aurora-cyan {
+  background: #0891B2;
+  color: #FFFFFF;
+  border: 2px solid #0891B2;
+  box-shadow: 0 4px 0 0 #0E7490;
+  font-weight: 800;
+}
+.btn.aurora-cyan:hover {
+  background: #0E7490;
+  border-color: #0E7490;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #155E75;
+  color: #FFFFFF;
+}
+
+.btn.aurora-pink {
+  background: #DB2777;
+  color: #FFFFFF;
+  border: 2px solid #DB2777;
+  box-shadow: 0 4px 0 0 #9D174D;
+  font-weight: 800;
+}
+.btn.aurora-pink:hover {
+  background: #BE185D;
+  border-color: #BE185D;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #9D174D;
+  color: #FFFFFF;
+}
+
+.btn.aurora-amber {
+  background: #D97706;
+  color: #FFFFFF;
+  border: 2px solid #D97706;
+  box-shadow: 0 4px 0 0 #92400E;
+  font-weight: 800;
+}
+.btn.aurora-amber:hover {
+  background: #B45309;
+  border-color: #B45309;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #92400E;
+  color: #FFFFFF;
+}
+.btn.ghost, .btn-ghost {
+  background: transparent;
+  color: var(--aurora-1);
+  border: 1.5px solid var(--aurora-1);
+}
+.btn.ghost:hover, .btn-ghost:hover {
+  background: var(--aurora-1);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: #FFFFFF;
+  color: var(--aurora-1);
+  border: 1.5px solid var(--aurora-1);
+}
+.btn-secondary:hover {
+  background: var(--aurora-1);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+/* (v605) btn small 11→13px, large 14→17px. */
+.btn.small, .btn-sm { padding: 8px 14px; font-size: 13px; font-weight: 700; }
+.btn.large, .btn-lg { padding: 16px 32px; font-size: 17px; font-weight: 700; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-block { width: 100%; }
+
+/* ============ CARDS — 원색 솔리드 ============ */
+.card, .admin-card {
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: var(--r-md);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 3px 0 0 #E2E8F0;
+  transition: all var(--t-smooth);
+}
+.card:hover, .admin-card:hover {
+  border-color: #7C3AED;
+  box-shadow: 0 5px 0 0 #7C3AED;
+  transform: translateY(-2px);
+}
+.card-elevated, .admin-card.elevated {
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  box-shadow: 0 6px 0 0 #E2E8F0;
+}
+/* === 카드 변형 — 로고 5색 + 호환 별칭 === */
+.card.logo-red, .card.aurora-pink {
+  border-left: 6px solid var(--logo-red); box-shadow: 0 3px 0 0 #FCA5A5;
+}
+.card.logo-red:hover, .card.aurora-pink:hover {
+  border-color: var(--logo-red); box-shadow: 0 5px 0 0 var(--logo-red);
+}
+
+.card.logo-orange, .card.aurora-amber {
+  border-left: 6px solid var(--logo-orange); box-shadow: 0 3px 0 0 #FED7AA;
+}
+.card.logo-orange:hover, .card.aurora-amber:hover {
+  border-color: var(--logo-orange); box-shadow: 0 5px 0 0 var(--logo-orange);
+}
+
+.card.logo-green, .card.aurora-green {
+  border-left: 6px solid var(--logo-green); box-shadow: 0 3px 0 0 #86EFAC;
+}
+.card.logo-green:hover, .card.aurora-green:hover {
+  border-color: var(--logo-green); box-shadow: 0 5px 0 0 var(--logo-green);
+}
+
+.card.logo-blue, .card.aurora-blue, .card.aurora-cyan {
+  border-left: 6px solid var(--logo-blue); box-shadow: 0 3px 0 0 #93C5FD;
+}
+.card.logo-blue:hover, .card.aurora-blue:hover, .card.aurora-cyan:hover {
+  border-color: var(--logo-blue); box-shadow: 0 5px 0 0 var(--logo-blue);
+}
+
+.card.logo-violet, .card.aurora-violet {
+  border-left: 6px solid var(--logo-violet); box-shadow: 0 3px 0 0 #E9D5FF;
+}
+.card.logo-violet:hover, .card.aurora-violet:hover {
+  border-color: var(--logo-violet); box-shadow: 0 5px 0 0 var(--logo-violet);
+}
+
+/* === 배지 색상 — 로고 5색 활용 === */
+.badge.logo-red, .badge-red { background: var(--logo-red); color: #FFFFFF; }
+.badge.logo-orange, .badge-orange { background: var(--logo-orange); color: #FFFFFF; }
+.badge.logo-green, .badge-green, .badge-success { background: var(--logo-green); color: #FFFFFF; }
+.badge.logo-blue, .badge-blue, .badge-info { background: var(--logo-blue); color: #FFFFFF; }
+.badge.logo-violet, .badge-violet { background: var(--logo-violet); color: #FFFFFF; }
+
+/* === 추가 버튼 변형 — 로고 색 === */
+.btn.logo-red {
+  background: var(--logo-red); color: #FFFFFF; border: 2px solid var(--logo-red);
+  box-shadow: 0 4px 0 0 var(--logo-red-dark);
+  font-weight: 800;
+}
+.btn.logo-red:hover {
+  background: var(--logo-red-dark); border-color: var(--logo-red-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 var(--logo-red-dark);
+}
+
+.btn.logo-orange {
+  background: var(--logo-orange); color: #FFFFFF; border: 2px solid var(--logo-orange);
+  box-shadow: 0 4px 0 0 var(--logo-orange-dark);
+  font-weight: 800;
+}
+.btn.logo-orange:hover {
+  background: var(--logo-orange-dark); border-color: var(--logo-orange-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 var(--logo-orange-dark);
+}
+
+.btn.logo-green {
+  background: var(--logo-green); color: #FFFFFF; border: 2px solid var(--logo-green);
+  box-shadow: 0 4px 0 0 var(--logo-green-dark);
+  font-weight: 800;
+}
+.btn.logo-green:hover {
+  background: var(--logo-green-dark); border-color: var(--logo-green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 var(--logo-green-dark);
+}
+
+.btn.logo-blue {
+  background: var(--logo-blue); color: #FFFFFF; border: 2px solid var(--logo-blue);
+  box-shadow: 0 4px 0 0 var(--logo-blue-dark);
+  font-weight: 800;
+}
+.btn.logo-blue:hover {
+  background: var(--logo-blue-dark); border-color: var(--logo-blue-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 var(--logo-blue-dark);
+}
+
+.btn.logo-violet {
+  background: var(--logo-violet); color: #FFFFFF; border: 2px solid var(--logo-violet);
+  box-shadow: 0 4px 0 0 var(--logo-violet-dark);
+  font-weight: 800;
+}
+.btn.logo-violet:hover {
+  background: var(--logo-violet-dark); border-color: var(--logo-violet-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 var(--logo-violet-dark);
+}
+.card-aurora {
+  background: #FFFFFF;
+  border: 2px solid var(--aurora-1);
+  position: relative;
+}
+.card-aurora::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 4px;
+  background: var(--aurora-1);
+}
+
+/* ============ FORMS — compatible with .field, .input ============ */
+.field, .form-group { margin-bottom: 20px; }
+/* (v605) field label 11→14px, weight 600→800, color 파랑→진한 슬레이트.
+   운영자: "너무 작고 얇다." 라벨에 힘을 실어 굵은 단색으로. */
+.field label, .form-label, .label {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--platinum);
+  margin-bottom: 8px;
+}
+.input, .form-input, .form-select, .form-textarea,
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], input[type="search"], input[type="tel"],
+input[type="date"], input[type="datetime-local"],
+select, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  transition: all var(--t);
+}
+.input:focus, .form-input:focus, .form-select:focus, .form-textarea:focus,
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--aurora-1);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+.input:hover, input:hover, select:hover, textarea:hover {
+  border-color: var(--aurora-3);
+}
+.input::placeholder, input::placeholder, textarea::placeholder { color: var(--steel-dim); }
+/* (v605) help text 12→14px, weight +600, color 옅음→진함. */
+.help, .form-help { display: block; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--steel); }
+.form-input-group {
+  display: flex;
+  background: var(--glass-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.form-input-group input {
+  flex: 1; background: transparent; border: none; padding: 12px 16px; color: var(--text);
+}
+.form-input-group .suffix {
+  padding: 12px 16px;
+  border-left: 1px solid var(--border);
+  color: var(--aurora-3);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* ============ TABLES ============ */
+table, .table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Inter', sans-serif;
+}
+/* (v605) table th 11→13px, weight 600→800, color 파랑→진한 슬레이트. */
+table th, .table th {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--platinum);
+  text-align: left;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--border-strong);
+}
+table td, .table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+}
+table tbody tr:hover, .table tbody tr:hover { background: var(--glass); }
+
+/* ============ BADGES / PILLS ============ */
+/* (v605) badge/pill 11→13px, weight 600→800. 가독성 + 단색 톤. */
+.badge, .pill, .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-radius: 100px;
+  border: 1px solid;
+}
+.badge.good, .badge-success, .pill.good {
+  background: var(--green-bg); color: var(--green); border-color: var(--green-border);
+}
+.badge.bad, .badge-danger, .pill.bad {
+  background: var(--red-bg); color: var(--red); border-color: var(--red-border);
+}
+.badge.warn, .badge-warning, .pill.warn {
+  background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border);
+}
+.badge.info, .badge-info, .pill.info {
+  background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border);
+}
+.badge-aurora, .pill.aurora {
+  background: rgba(139, 92, 246, 0.12); color: var(--aurora-1); border-color: rgba(139, 92, 246, 0.3);
+}
+.badge-cyan, .pill.cyan {
+  background: rgba(6, 182, 212, 0.12); color: var(--aurora-3); border-color: rgba(6, 182, 212, 0.3);
+}
+
+/* ============ HIDE Recon i18n.js auto-inject artifacts ============ */
+/* SilicaChain은 site-header.html의 자체 KO/EN 토글을 사용하므로
+   i18n.js가 fallback으로 만드는 floating select와 inline select를 모두 숨김.
+   FOUC(Flash of Unstyled Content) 방지 위해 CSS로 즉시 숨김. */
+.rwa-lang-floating,
+.rwa-lang-floating *,
+header.site-header select.rwa-lang-select,
+header.site-header #rwaLangSelect,
+.rwa-lang-wrap:not([data-rwa-lang-switch]) {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* ============ STATS / KPI — 로고 5색 원색 카드 ============ */
+.stat {
+  padding: 24px;
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: var(--r-md);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 0 0 #E2E8F0;
+  transition: all var(--t-smooth);
+}
+.stat:hover {
+  transform: translateY(-2px);
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: var(--logo-violet);
+}
+
+/* KPI 카드 — 로고 5색 순환 (1=보라, 2=빨강, 3=주황, 4=초록, 5=파랑, 6=보라) */
+.kpi-row > .stat:nth-child(5n+1)::before,
+.stat-row > .stat:nth-child(5n+1)::before { background: var(--logo-violet); }
+.kpi-row > .stat:nth-child(5n+1):hover,
+.stat-row > .stat:nth-child(5n+1):hover {
+  box-shadow: 0 6px 0 0 var(--logo-violet); border-color: var(--logo-violet);
+}
+
+.kpi-row > .stat:nth-child(5n+2)::before,
+.stat-row > .stat:nth-child(5n+2)::before { background: var(--logo-red); }
+.kpi-row > .stat:nth-child(5n+2):hover,
+.stat-row > .stat:nth-child(5n+2):hover {
+  box-shadow: 0 6px 0 0 var(--logo-red); border-color: var(--logo-red);
+}
+
+.kpi-row > .stat:nth-child(5n+3)::before,
+.stat-row > .stat:nth-child(5n+3)::before { background: var(--logo-orange); }
+.kpi-row > .stat:nth-child(5n+3):hover,
+.stat-row > .stat:nth-child(5n+3):hover {
+  box-shadow: 0 6px 0 0 var(--logo-orange); border-color: var(--logo-orange);
+}
+
+.kpi-row > .stat:nth-child(5n+4)::before,
+.stat-row > .stat:nth-child(5n+4)::before { background: var(--logo-green); }
+.kpi-row > .stat:nth-child(5n+4):hover,
+.stat-row > .stat:nth-child(5n+4):hover {
+  box-shadow: 0 6px 0 0 var(--logo-green); border-color: var(--logo-green);
+}
+
+.kpi-row > .stat:nth-child(5n+5)::before,
+.stat-row > .stat:nth-child(5n+5)::before { background: var(--logo-blue); }
+.kpi-row > .stat:nth-child(5n+5):hover,
+.stat-row > .stat:nth-child(5n+5):hover {
+  box-shadow: 0 6px 0 0 var(--logo-blue); border-color: var(--logo-blue);
+}
+/* (v605) stat-label 11→14px, weight 600→800, color 옅음→진함. */
+.stat-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--platinum);
+  margin-bottom: 12px;
+  font-weight: 800;
+}
+.stat-value {
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 800;
+  font-size: clamp(28px, 3.5vw, 44px);
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.stat-value small {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 0.45em;
+  color: var(--steel);
+  letter-spacing: 1px;
+}
+/* (v605) stat-unit 11→13px, color 옅음→진함, weight +700. */
+.stat-unit {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--steel);
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+/* ============ ALERTS ============ */
+.alert {
+  padding: 16px 20px;
+  border-radius: var(--r-md);
+  border: 1px solid;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.alert-info { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue); }
+.alert-success { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.alert-warning { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); }
+.alert-danger { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+.alert-icon { font-size: 18px; line-height: 1; flex-shrink: 0; }
+.alert-content { flex: 1; }
+.alert-title { font-weight: 700; margin-bottom: 4px; color: var(--text); }
+/* (v605) alert message 13→15px, color → ice (slate-800), weight 500. */
+.alert-message { color: var(--ice); font-size: 15px; line-height: 1.6; font-weight: 500; }
+
+/* ============ LAYOUT ============ */
+.container, .admin-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 900px) {
+  .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+.flex { display: flex; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-col { display: flex; flex-direction: column; }
+.gap-sm { gap: 8px; } .gap-md { gap: 16px; } .gap-lg { gap: 24px; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* ============ TOAST (Recon compatible) ============ */
+#toast, .toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  max-width: min(520px, calc(100% - 28px));
+}
+#toast.bad, .toast.bad { border-color: var(--red); color: var(--red); }
+#toast.good, .toast.good { border-color: var(--green); color: var(--green); }
+#toast.warn, .toast.warn { border-color: var(--amber); color: var(--amber); }
+.hidden { display: none !important; }
+
+/* ============ ADMIN LAYOUT (sidebar + content) ============ */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 900px) {
+  .admin-layout { grid-template-columns: 1fr; }
+}
+
+.admin-sidebar {
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.admin-sidebar-logo { padding: 0 24px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.admin-sidebar-logo img { height: 36px; }
+.admin-sidebar-section {
+  padding: 16px 24px 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--steel-dim);
+  font-weight: 600;
+}
+.admin-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  color: var(--steel);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+  transition: all var(--t);
+}
+.admin-sidebar-link:hover { background: var(--glass); color: var(--text); }
+.admin-sidebar-link.active {
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--aurora-1);
+  border-left-color: var(--aurora-1);
+}
+.admin-sidebar-link .new-tag {
+  margin-left: auto;
+  padding: 2px 6px;
+  background: var(--aurora-2);
+  color: white;
+  font-size: 9px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+}
+
+.admin-content { padding: 32px; }
+.admin-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.admin-page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(32px, 4vw, 48px);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.admin-page-subtitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--steel);
+  letter-spacing: 1px;
+}
+
+/* ============ TABS ============ */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-strong);
+  margin-bottom: 24px;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+/* (v605) tab 13→15px, weight 600→800, color 옅음→진함. */
+.tab {
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: var(--platinum);
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all var(--t);
+}
+.tab:hover { color: var(--aurora-3); }
+.tab.active { color: var(--aurora-3); border-bottom-color: var(--aurora-3); }
+
+/* ============ TOKEN CHIPS ============ */
+/* (v605) token-chip 11→13px, weight 600→800.
+   (2026-05-21 v688) 운영자: 'SILICASTO 토큰명이 2열로 줄바꿈된다.'
+   - white-space: nowrap → 한 줄 강제
+   - letter-spacing 1.2→0.8 으로 약간 줄여 폭 절약
+   - padding 12→10 으로 좌우 여유 확보. */
+.token-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: var(--glass);
+  border: 1px solid var(--border-strong);
+  border-radius: 100px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* (v636) 운영자 점검: 'history TOKEN 컬럼 아이콘이 admin 로고로 나오는지.'
+   기존 .icon 은 <span> + 글리프 ($, S, ◆). data-token-logo 패턴으로 전환
+   하며 <img> 와 <span> 둘 다 지원하도록. */
+.token-chip .icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+/* img.icon 의 경우 배경 컬러는 frame, 로고는 image src. padding 으로 가장자리 여백. */
+.token-chip img.icon { padding: 1.5px; background-clip: padding-box; }
+.token-chip.usdt .icon { background: #26A17B; }
+.token-chip.silica-sto .icon { background: var(--logo-violet); }
+.token-chip.silica .icon { background: var(--logo-blue); }
+
+/* ============ UTILITIES ============ */
+.muted, .text-muted { color: var(--muted); }
+.text-aurora { color: var(--aurora-1); }
+.text-cyan { color: var(--aurora-3); }
+.text-pink { color: var(--aurora-2); }
+.text-success { color: var(--green); }
+.text-warning { color: var(--amber); }
+.text-danger { color: var(--red); }
+.text-mono { font-family: 'Space Grotesk', monospace; font-feature-settings: 'tnum' 1; }
+
+.mt-sm { margin-top: 8px; } .mt-md { margin-top: 16px; } .mt-lg { margin-top: 24px; } .mt-xl { margin-top: 40px; }
+.mb-sm { margin-bottom: 8px; } .mb-md { margin-bottom: 16px; } .mb-lg { margin-bottom: 24px; } .mb-xl { margin-bottom: 40px; }
+
+/* ============ ADMIN TOP HEADER (legacy header.html compat) ============ */
+.admin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.tagrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Aliases for legacy compatibility */
+.admin-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 24px;
+}
+.field { margin-bottom: 20px; }
+
+/* ============ LEGACY LAYOUT OVERRIDES ============ */
+/* Hide legacy left admin-menu sidebar — header has full nav */
+.admin-menu { display: none !important; }
+.admin-grid > .card:first-child:has(.admin-menu),
+.admin-grid > .card:first-child:has(.pad.admin-menu),
+.admin-grid > .card:first-child:has(.pad > .admin-menu) {
+  display: none !important;
+}
+
+/* Fallback: hide first card in admin-grid that contains admin-menu by structural assumption */
+.admin-grid > .card:first-child .pad.admin-menu,
+.admin-grid > .card:first-child > .pad {
+  /* if a card's only child is admin-menu, the parent will collapse anyway */
+}
+
+/* Make admin-grid single column (full width content) */
+.admin-grid {
+  display: block !important;
+  margin-top: 0 !important;
+}
+.admin-grid > * {
+  width: 100%;
+}
+.admin-grid > .card + .card,
+.admin-grid > .card + .page-grid,
+.admin-grid > .page-grid {
+  margin-top: 16px;
+}
+
+/* Recon-legacy class compatibility */
+.admin-shell {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 24px 32px !important;
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 700px) {
+  .admin-shell { padding: 16px !important; }
+}
+
+/* Recon's row/split/notice helpers */
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+.tagrow { display: flex; gap: 8px; flex-wrap: wrap; }
+/* (v605) notice 13→15px, color 옅음→진함, weight +500. */
+.notice {
+  padding: 14px 16px;
+  background: var(--glass-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  color: var(--ice);
+  line-height: 1.7;
+  font-weight: 500;
+}
+.notice strong { color: var(--text); display: block; margin-bottom: 4px; font-weight: 800; font-size: 16px; }
+.notice code {
+  background: var(--glass);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 12px;
+  color: var(--aurora-3);
+}
+.callout {
+  padding: 14px 16px;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--r-sm);
+  display: flex;
+  gap: 12px;
+}
+.callout .icon {
+  width: 24px; height: 24px;
+  background: var(--blue);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+/* (v605) callout 13→15px, weight 700→800. */
+.callout .text { flex: 1; font-size: 15px; font-weight: 500; }
+.callout .t { font-weight: 800; font-size: 16px; margin-bottom: 4px; color: var(--text); }
+.callout .d { color: var(--ice); }
+.hr {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+  border: none;
+}
+
+/* Padding helper */
+.pad { padding: 24px; }
+
+/* Right-aligned table cells */
+.table th.right, .table td.right, table th.right, table td.right { text-align: right; }
+.table-wrap { overflow-x: auto; }
+
+/* Mono font helper */
+.mono {
+  font-family: 'Space Grotesk', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-feature-settings: 'tnum' 1;
+}
+/* (v605) small-note 12→14px, weight 600, color → 진한 슬레이트. */
+.small-note { font-size: 14px; color: var(--ice); font-weight: 600; }
+
+/* (v605) legacy field labels 11→14px, weight 600→800, 진한 슬레이트. */
+.field label, label.label {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--platinum);
+  margin-bottom: 8px;
+}
+.help, .field .help {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--steel);
+  font-weight: 600;
+}
+
+/* Status chips */
+/* (v605) status-chip 12→14px, weight 700→800. */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 800;
+  background: var(--glass);
+}
+.status-chip.good { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.status-chip.warn { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); }
+.status-chip.bad { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+
+/* Row pick (table click row highlight) */
+.rowpick { cursor: pointer; }
+.rowpick:hover td { background: var(--glass) !important; }
+.rowpick.active td { background: rgba(139, 92, 246, 0.12) !important; color: var(--platinum) !important; }
+.rowpick.active td .mono,
+.rowpick.active td a,
+.rowpick.active td strong,
+.rowpick.active td span { color: var(--platinum) !important; }
+
+/* ============================================================
+   PURPLE / VIOLET BUTTON CONTRAST GUARD
+   Forces white text on any button whose background is purple/violet
+   so dark-on-purple combinations never occur. Covers:
+   - Standard primary / logo-violet / aurora-violet variants
+   - Inline style="background:..." overrides used in popup banners
+   - Nested elements (span, strong, small, i, em) that often inherit dark color
+   ============================================================ */
+.btn.primary, .btn-primary,
+.btn.logo-violet, .btn.aurora-violet, .btn.violet,
+button.primary, button.logo-violet, button.aurora-violet,
+.btn[style*="--logo-violet"],
+.btn[style*="aurora-1"],
+.btn[style*="#7C3AED"], .btn[style*="#7c3aed"],
+.btn[style*="#8B5CF6"], .btn[style*="#8b5cf6"],
+.btn[style*="#8E24AA"], .btn[style*="#8e24aa"],
+.btn[style*="#6D28D9"], .btn[style*="#6d28d9"],
+.btn[style*="#5B21B6"], .btn[style*="#5b21b6"],
+.btn[style*="#6A1B9A"], .btn[style*="#6a1b9a"],
+.btn[style*="#9333EA"], .btn[style*="#9333ea"],
+[class*="popup"] .btn.primary,
+[class*="popup"] button.primary,
+[class*="banner"] .btn.primary,
+[class*="banner"] button.primary,
+[class*="modal"] .btn.primary,
+[class*="modal"] button.primary {
+  color: #FFFFFF !important;
+}
+.btn.primary *, .btn-primary *,
+.btn.logo-violet *, .btn.aurora-violet *, .btn.violet *,
+button.primary *, button.logo-violet *, button.aurora-violet * {
+  color: inherit !important;
+}
+
+/* ============================================================
+   (2026-06-17 v915) FOUC fix — '로딩 화면이 먼저' (운영자 6/17).
+   기존 app.js __installBootLoader 는 페이지 하단 로드라 콘텐츠가 잠깐 보인 뒤
+   로더가 덮였다(깜빡). 각 HTML <head> 부트 스크립트가 html.rwa-booting-early 를
+   즉시 추가 → 본문이 처음부터 숨겨지고 로더(스피너)만 먼저 보인다.
+   app.js 부트 완료 시 __removeBootLoader 가 이 클래스를 해제 → 콘텐츠 표시.
+   헤더(site-header)는 예외로 노출 유지.
+   ============================================================ */
+html.rwa-booting-early body > *:not(#rwaBootLoader):not(#siteHeaderMount):not(header):not(.site-header):not(script):not(style):not(noscript):not(link) {
+  visibility: hidden !important;
+}
+html.rwa-booting-early::before {
+  content: ''; position: fixed; inset: 0; z-index: 99; background: #ffffff;
+}
+html.rwa-booting-early::after {
+  content: ''; position: fixed; top: 50%; left: 50%;
+  width: 72px; height: 72px; margin: -36px 0 0 -36px; z-index: 100;
+  border: 5px solid rgba(124, 58, 237, 0.15); border-top-color: #7C3AED;
+  border-radius: 50%; animation: rwaSpinEarly 0.9s linear infinite;
+}
+@keyframes rwaSpinEarly { to { transform: rotate(360deg); } }

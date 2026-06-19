@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Referral · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  /* Single-tier card — large emphasis */
+  .ref-hero { padding: 48px; text-align: center; position: relative; overflow: hidden; margin-bottom: 32px; }
+  /* (v605) gradient → 단색. */
+  .ref-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--logo-violet); }
+  .ref-tier-num { font-family: 'Bebas Neue'; font-size: 64px; line-height: 1; letter-spacing: 1px; }
+  /* (v605) gradient text → 단색 violet. */
+  .ref-tier-rate {
+    font-family: 'Unbounded';
+    font-weight: 900;
+    font-size: clamp(80px, 12vw, 140px);
+    line-height: 1;
+    letter-spacing: -5px;
+    margin: 24px 0 16px;
+    color: var(--logo-violet);
+  }
+
+  .ref-link-box { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--glass-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
+  .ref-link-text { flex: 1; font-family: 'Space Grotesk', monospace; font-size: 14px; color: var(--ice); word-break: break-all; }
+
+  .tree-node { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--glass-2); border: 1px solid var(--line); border-radius: var(--r-sm); margin-bottom: 8px; }
+  /* (v605) gradient → 단색 violet. */
+  .tree-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--logo-violet); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Oswald'; font-weight: 700; }
+</style>
+</head>
+<body data-page="referral">
+<div class="container" style="padding: 32px;">
+  <div class="text-center mb-xl">
+    <div class="eyebrow mb-md" id="refEyebrow">◆ 1-TIER REFERRAL · DIRECT</div>
+    <h1 class="heading-lg">Referral Program</h1>
+    <p class="text-muted" id="refSubtitle">Directly invite friends and earn monthly interest bonuses</p>
+  </div>
+
+  <!-- Single-tier emphasis card (bonus rate is dynamic per admin settings) -->
+  <div class="card-aurora card ref-hero">
+    <div class="ref-tier-num">DIRECT REFERRAL</div>
+    <div class="ref-tier-rate" id="refHeroRate">—<small style="font-size:0.4em;font-weight:700;">%</small></div>
+    <div style="font-family: 'Oswald'; letter-spacing: 2px; text-transform: uppercase; font-size: 16px;">Direct Referral Bonus</div>
+    <p class="text-muted mt-md" style="font-size: 14px; max-width: 600px; margin: 16px auto 0;" id="refHeroDesc">
+      Earn an additional percentage from the monthly interest rewards of people you directly invite.
+    </p>
+  </div>
+
+  <!-- (2026-05-14 v352) 운영자: 'URL 자동 처리 기능 제거 후 ?ref= 링크 +
+       공유 버튼은 작동 안 하는 dead UI → 사용자 오해 방지를 위해 제거.'
+       v349 의 capturePendingRef / applyPendingRef 자동화를 v352 에서
+       제거했기 때문에 https://silicarwa.kolstoken.com/?ref=CODE 링크를
+       친구가 클릭해도 attribution 자동 발생 안 함 → URL 공유는 무의미.
+       추천 코드 자체 (예: A773JSM9) 만 친구에게 전달하면, 친구가
+       referral.html / assets.html 에서 직접 입력 + Apply 로 등록 가능. -->
+  <div class="card mb-xl">
+    <div class="eyebrow mb-md">◆ MY REFERRAL CODE</div>
+    <h3 class="heading-sm mb-md">My Referral Code</h3>
+    <div class="ref-link-box">
+      <span class="text-muted" style="font-size: 11px; letter-spacing: 2px;">CODE</span>
+      <span class="ref-link-text" id="refCode">— Displayed after wallet connection —</span>
+      <button class="btn btn-secondary btn-sm" id="refCodeCopy">📋 Copy</button>
+    </div>
+    <p class="text-muted mt-md" style="font-size: 12.5px; line-height: 1.65;">
+      Share this code with your friends. They can enter it in the Referral Code field on
+      the Invest page (or here) before their first participation to link your referral.
+    </p>
+  </div>
+
+  <!-- Stats (reduced to 3) -->
+  <div class="grid grid-3 mb-xl" style="grid-template-columns: repeat(3, 1fr); gap: 16px;">
+    <div class="stat">
+      <div class="stat-label">Direct Referral</div>
+      <div class="stat-value" id="refDirectCount">0</div>
+      <div class="stat-unit">PEOPLE</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Cumulative Bonus</div>
+      <div class="stat-value text-success" id="refTotalBonus">$0<small>.00</small></div>
+      <div class="stat-unit">USDT</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">This Month (Expected)</div>
+      <div class="stat-value" id="refMonthlyEst">$0<small>.00</small></div>
+      <div class="stat-unit">USDT</div>
+    </div>
+  </div>
+
+  <!-- Directly referred user list (1-tier only) -->
+  <div class="card">
+    <div class="panel-title">
+      <h3 class="heading-sm" style="font-size: 24px;">Referred Users</h3>
+      <span class="text-muted" style="font-size: 12px;" id="refListCount">0 users</span>
+    </div>
+
+    <div id="refList">
+      <div class="text-center text-muted" style="padding:48px 0; font-size:13px">
+        No directly referred users yet.<br>
+        <span style="font-size:11px; opacity:0.7">Share your referral code above to invite your first friend.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Information box -->
+  <div class="alert alert-info mt-xl">
+    <div class="alert-icon">ℹ</div>
+    <div class="alert-content">
+      <div class="alert-title">Referral Program Information</div>
+      <div class="alert-message" id="refAlertMessage">
+        • <strong id="refAlertRate">—%</strong> of the interest earned by directly invited referrals is automatically credited each month.<br>
+        • Bonuses are automatically paid in USDT on the 15th of each month.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

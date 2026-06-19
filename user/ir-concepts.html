@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mine Information Concepts · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+<!--
+  (v652) 운영자 정정: '카드내 원색이 있어야 한다. 다시 5개 시안 만들어줘.'
+  v650 의 B/D 가 단색 라이트 톤이라 원색 부재 → 모든 시안에서 vivid 컬러가
+  카드 내부 핵심 요소 (배경/배지/숫자/프레임 등) 에 반드시 포함되도록 재설계.
+-->
+<style>
+  body { background: #F8FAFC; padding: 32px 24px 64px; }
+  .page-wrap { max-width: 1280px; margin: 0 auto; }
+  .page-head { text-align: center; margin-bottom: 32px; }
+  .page-head h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 1px;
+    color: #000;
+    margin-bottom: 8px;
+  }
+  .page-head p { font-size: 16px; color: var(--ice); font-weight: 500; }
+
+  .concept-block { margin-bottom: 56px; }
+  .concept-head {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #E5E7EB;
+  }
+  .concept-head .tag {
+    width: 36px; height: 36px;
+    background: #0065CD; color: #FFFFFF;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+    font-weight: 700;
+  }
+  .concept-head h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 1px; margin: 0; color: #000;
+  }
+  .concept-head .desc { color: #4B5563; font-size: 13px; font-weight: 500; margin-left: auto; }
+
+  /* ============================================================
+     CONCEPT A — Vivid Solid Blocks (현재)
+     6 셀 모두 원색 배경 + 흰 텍스트.
+     ============================================================ */
+  .ca-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border-radius: 12px; overflow: hidden;
+  }
+  @media (max-width: 800px) { .ca-grid { grid-template-columns: 1fr; } }
+  .ca-cell { padding: 24px; color: #FFFFFF; }
+  .ca-cell .lbl {
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+    color: rgba(255,255,255,0.92); margin-bottom: 8px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+  }
+  .ca-cell .val {
+    font-family: 'Oswald', sans-serif; font-size: 22px;
+    font-weight: 700; margin-bottom: 4px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.28);
+  }
+  .ca-cell .sub {
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.88);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.18);
+  }
+  .ca-cell:nth-child(1) { background: #E53935; }
+  .ca-cell:nth-child(2) { background: #F57C00; }
+  .ca-cell:nth-child(3) { background: #2E7D32; }
+  .ca-cell:nth-child(4) { background: #0065CD; }
+  .ca-cell:nth-child(5) { background: #9B29B2; }
+  .ca-cell:nth-child(6) { background: #0E7490; }
+
+  /* ============================================================
+     CONCEPT B — Top Wash + White (반반 컬러 분할)
+     카드 상단 40% 가 원색 (라벨 + 컬러풀), 하단 60% 흰색 (값 + sub).
+     ============================================================ */
+  .cb-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 800px) { .cb-grid { grid-template-columns: 1fr; } }
+  .cb-card {
+    background: #FFFFFF; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .cb-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.14); }
+  .cb-card .top {
+    padding: 18px 22px 16px; color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+  }
+  .cb-card .top .lbl {
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 800;
+  }
+  .cb-card .bottom { padding: 18px 22px 22px; }
+  .cb-card .bottom .val {
+    font-family: 'Unbounded', sans-serif; font-size: 26px;
+    font-weight: 800; color: #000; margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .cb-card .bottom .sub { font-size: 13px; color: #4B5563; font-weight: 500; }
+  .cb-card:nth-child(1) .top { background: #E53935; }
+  .cb-card:nth-child(2) .top { background: #F57C00; }
+  .cb-card:nth-child(3) .top { background: #2E7D32; }
+  .cb-card:nth-child(4) .top { background: #0065CD; }
+  .cb-card:nth-child(5) .top { background: #9B29B2; }
+  .cb-card:nth-child(6) .top { background: #0E7490; }
+
+  /* ============================================================
+     CONCEPT C — Big Colored Numbers on White (거대 원색 숫자)
+     흰 카드 + HUGE 값 텍스트가 원색 컬러로 표시 (47-72px).
+     라벨도 작은 원색 dot + 카테고리 컬러 텍스트.
+     ============================================================ */
+  .cc-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 800px) { .cc-grid { grid-template-columns: 1fr; } }
+  .cc-card {
+    background: #FFFFFF; border: 2px solid #E5E7EB; border-radius: 14px;
+    padding: 22px 24px;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .cc-card .lbl-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .cc-card .lbl-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .cc-card .lbl {
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 800;
+  }
+  .cc-card .val {
+    font-family: 'Unbounded', sans-serif; font-size: 36px;
+    font-weight: 900; margin-bottom: 4px;
+    letter-spacing: -1.2px; line-height: 1.05;
+  }
+  .cc-card .val small {
+    font-size: 0.42em; color: #6B7280; font-weight: 600;
+    margin-left: 4px; letter-spacing: 0;
+  }
+  .cc-card .sub { font-size: 12px; color: #6B7280; font-weight: 500; }
+  .cc-card:nth-child(1) { border-color: #E53935; }
+  .cc-card:nth-child(1) .lbl-dot { background: #E53935; }
+  .cc-card:nth-child(1) .lbl { color: #B91C1C; }
+  .cc-card:nth-child(1) .val { color: #E53935; }
+  .cc-card:nth-child(2) { border-color: #F57C00; }
+  .cc-card:nth-child(2) .lbl-dot { background: #F57C00; }
+  .cc-card:nth-child(2) .lbl { color: #C2410C; }
+  .cc-card:nth-child(2) .val { color: #F57C00; }
+  .cc-card:nth-child(3) { border-color: #2E7D32; }
+  .cc-card:nth-child(3) .lbl-dot { background: #2E7D32; }
+  .cc-card:nth-child(3) .lbl { color: #15803D; }
+  .cc-card:nth-child(3) .val { color: #2E7D32; }
+  .cc-card:nth-child(4) { border-color: #0065CD; }
+  .cc-card:nth-child(4) .lbl-dot { background: #0065CD; }
+  .cc-card:nth-child(4) .lbl { color: #0065CD; }
+  .cc-card:nth-child(4) .val { color: #0065CD; }
+  .cc-card:nth-child(5) { border-color: #9B29B2; }
+  .cc-card:nth-child(5) .lbl-dot { background: #9B29B2; }
+  .cc-card:nth-child(5) .lbl { color: #6B21A8; }
+  .cc-card:nth-child(5) .val { color: #9B29B2; }
+  .cc-card:nth-child(6) { border-color: #0E7490; }
+  .cc-card:nth-child(6) .lbl-dot { background: #0E7490; }
+  .cc-card:nth-child(6) .lbl { color: #0E7490; }
+  .cc-card:nth-child(6) .val { color: #0E7490; }
+
+  /* ============================================================
+     CONCEPT D — Colored Badge + White Card (대형 원색 배지)
+     좌측 80×80 원색 정사각 배지 + 우측 흰 텍스트 영역.
+     배지에 카테고리 컬러 풀, 카드 자체는 흰색 + 컬러 border-left.
+     ============================================================ */
+  .cd-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  }
+  @media (max-width: 800px) { .cd-grid { grid-template-columns: 1fr; } }
+  .cd-card {
+    display: flex; gap: 18px; align-items: center;
+    background: #FFFFFF; border-radius: 14px;
+    padding: 20px;
+    border-left: 6px solid;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    transition: transform 0.18s ease;
+  }
+  .cd-card:hover { transform: translateY(-2px); }
+  .cd-badge {
+    width: 84px; height: 84px; flex-shrink: 0;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  }
+  .cd-text { flex: 1; min-width: 0; }
+  .cd-text .lbl {
+    font-family: 'Space Grotesk', sans-serif; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 800;
+    color: #6B7280; margin-bottom: 6px;
+  }
+  .cd-text .val {
+    font-family: 'Unbounded', sans-serif; font-size: 22px;
+    font-weight: 800; color: #000; margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .cd-text .sub { font-size: 12px; color: #6B7280; font-weight: 500; }
+  .cd-card:nth-child(1) { border-left-color: #E53935; }
+  .cd-card:nth-child(1) .cd-badge { background: #E53935; }
+  .cd-card:nth-child(2) { border-left-color: #F57C00; }
+  .cd-card:nth-child(2) .cd-badge { background: #F57C00; }
+  .cd-card:nth-child(3) { border-left-color: #2E7D32; }
+  .cd-card:nth-child(3) .cd-badge { background: #2E7D32; }
+  .cd-card:nth-child(4) { border-left-color: #0065CD; }
+  .cd-card:nth-child(4) .cd-badge { background: #0065CD; }
+  .cd-card:nth-child(5) { border-left-color: #9B29B2; }
+  .cd-card:nth-child(5) .cd-badge { background: #9B29B2; }
+  .cd-card:nth-child(6) { border-left-color: #0E7490; }
+  .cd-card:nth-child(6) .cd-badge { background: #0E7490; }
+
+  /* ============================================================
+     CONCEPT E — Colored Frame Border (원색 프레임)
+     흰 카드 본체 + 두꺼운 (8px) 원색 외곽 프레임.
+     라벨은 컬러 박스 안에 화이트로, 값은 흰 본체에 검정.
+     ============================================================ */
+  .ce-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 800px) { .ce-grid { grid-template-columns: 1fr; } }
+  .ce-card {
+    border: 4px solid; border-radius: 14px;
+    background: #FFFFFF; overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .ce-card:hover { transform: translateY(-2px); }
+  .ce-card .strip {
+    padding: 8px 16px;
+    color: #FFFFFF;
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+  }
+  .ce-card .body { padding: 18px 22px 20px; }
+  .ce-card .body .val {
+    font-family: 'Unbounded', sans-serif; font-size: 26px;
+    font-weight: 800; color: #000; margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .ce-card .body .sub { font-size: 13px; color: #4B5563; font-weight: 500; }
+  .ce-card:nth-child(1) { border-color: #E53935; }
+  .ce-card:nth-child(1) .strip { background: #E53935; }
+  .ce-card:nth-child(2) { border-color: #F57C00; }
+  .ce-card:nth-child(2) .strip { background: #F57C00; }
+  .ce-card:nth-child(3) { border-color: #2E7D32; }
+  .ce-card:nth-child(3) .strip { background: #2E7D32; }
+  .ce-card:nth-child(4) { border-color: #0065CD; }
+  .ce-card:nth-child(4) .strip { background: #0065CD; }
+  .ce-card:nth-child(5) { border-color: #9B29B2; }
+  .ce-card:nth-child(5) .strip { background: #9B29B2; }
+  .ce-card:nth-child(6) { border-color: #0E7490; }
+  .ce-card:nth-child(6) .strip { background: #0E7490; }
+
+  /* Choice helper card */
+  .choice-help {
+    margin-top: 32px;
+    padding: 20px 24px;
+    background: #FEF3C7; border: 1px solid #FCD34D;
+    border-radius: 12px;
+    font-size: 14px; line-height: 1.6; color: #78350F;
+  }
+  .choice-help strong { color: #92400E; }
+</style>
+</head>
+<body data-page="ir-concepts">
+
+<div class="page-wrap">
+  <div class="page-head">
+    <h1>Mine Information · 시안 5종 (재안)</h1>
+    <p>각 시안 카드 내부에 원색 컬러 필수 포함</p>
+  </div>
+
+  <!-- ============================================================
+       CONCEPT A — Vivid Solid Blocks (현재)
+       ============================================================ -->
+  <div class="concept-block">
+    <div class="concept-head">
+      <span class="tag">A</span>
+      <h2>Vivid Solid Blocks (현재)</h2>
+      <span class="desc">셀 전체 원색 + 흰 텍스트 · 최대 시각 임팩트</span>
+    </div>
+    <div class="ca-grid">
+      <div class="ca-cell"><div class="lbl">License No.</div><div class="val">#79907</div><div class="sub">Mining License Registration No.</div></div>
+      <div class="ca-cell"><div class="lbl">Jurisdiction</div><div class="val">Republic of Korea</div><div class="sub">Governing Law</div></div>
+      <div class="ca-cell"><div class="lbl">Mine Area</div><div class="val">271 ha</div><div class="sub">Approved Mining Area</div></div>
+      <div class="ca-cell"><div class="lbl">SiO₂ Purity</div><div class="val">97.04 %</div><div class="sub">+4~7%p vs. Korean Avg. 90-93%</div></div>
+      <div class="ca-cell"><div class="lbl">Total Reserves</div><div class="val">30,680,000 tons</div><div class="sub">Verified Reserves</div></div>
+      <div class="ca-cell"><div class="lbl">Recoverable</div><div class="val">21,470,000 tons</div><div class="sub">70% Recovery Rate</div></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CONCEPT B — Top Wash + White Body (상단 원색 + 하단 흰)
+       ============================================================ -->
+  <div class="concept-block">
+    <div class="concept-head">
+      <span class="tag" style="background:#01C853">B</span>
+      <h2>Top Wash + White Body</h2>
+      <span class="desc">상단 라벨 영역 원색 + 하단 흰 본체 · 분할 디자인</span>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-card">
+        <div class="top"><div class="lbl">License No.</div></div>
+        <div class="bottom"><div class="val">#79907</div><div class="sub">Mining License Registration No.</div></div>
+      </div>
+      <div class="cb-card">
+        <div class="top"><div class="lbl">Jurisdiction</div></div>
+        <div class="bottom"><div class="val">Republic of Korea</div><div class="sub">Governing Law</div></div>
+      </div>
+      <div class="cb-card">
+        <div class="top"><div class="lbl">Mine Area</div></div>
+        <div class="bottom"><div class="val">271 ha</div><div class="sub">Approved Mining Area</div></div>
+      </div>
+      <div class="cb-card">
+        <div class="top"><div class="lbl">SiO₂ Purity</div></div>
+        <div class="bottom"><div class="val">97.04 %</div><div class="sub">+4~7%p vs. Avg. 90-93%</div></div>
+      </div>
+      <div class="cb-card">
+        <div class="top"><div class="lbl">Total Reserves</div></div>
+        <div class="bottom"><div class="val">30.68M tons</div><div class="sub">Verified Reserves</div></div>
+      </div>
+      <div class="cb-card">
+        <div class="top"><div class="lbl">Recoverable</div></div>
+        <div class="bottom"><div class="val">21.47M tons</div><div class="sub">70% Recovery Rate</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CONCEPT C — Big Colored Numbers (거대 원색 숫자)
+       ============================================================ -->
+  <div class="concept-block">
+    <div class="concept-head">
+      <span class="tag" style="background:#E53935">C</span>
+      <h2>Big Colored Numbers</h2>
+      <span class="desc">흰 카드 + 거대한 값 텍스트가 원색 컬러로 · KPI 강조</span>
+    </div>
+    <div class="cc-grid">
+      <div class="cc-card">
+        <div class="lbl-row"><span class="lbl-dot"></span><span class="lbl">License No.</span></div>
+        <div class="val">#79907</div>
+        <div class="sub">Mining License Registration</div>
+      </div>
+      <div class="cc-card">
+        <div class="lbl-row"><span class="lbl-dot"></span><span class="lbl">Jurisdiction</span></div>
+        <div class="val" style="font-size:20px">Republic of Korea</div>
+        <div class="sub">Governing Law</div>
+      </div>
+      <div class="cc-card">
+        <div class="lbl-row"><span class="lbl-dot"></span><span class="lbl">Mine Area</span></div>
+        <div class="val">271<small>ha</small></div>
+        <div class="sub">Approved Mining Area</div>
+      </div>
+      <div class="cc-card">
+        <div class="lbl-row"><span class="lbl-dot"></span><span class="lbl">SiO₂ Purity</span></div>
+        <div class="val">97.04<small>%</small></div>
+        <div class="sub">+4~7%p vs. Avg. 90-93%</div>
+      </div>
+      <div class="cc-card">
+        <div class="lbl-row"><span class="lbl-dot"></span><span class="lbl">Total Reserves</span></div>
+        <div class="val">30.68<small>M tons</small></div>
+        <div class="sub">Verified Reserves</div>
+      </div>
+      <div class="cc-card">
+        <div class="lbl-row"><span class="lbl-dot"></span><span class="lbl">Recoverable</span></div>
+        <div class="val">21.47<small>M tons</small></div>
+        <div class="sub">70% Recovery Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CONCEPT D — Colored Badge + White Card (대형 원색 배지)
+       ============================================================ -->
+  <div class="concept-block">
+    <div class="concept-head">
+      <span class="tag" style="background:#9B29B2">D</span>
+      <h2>Colored Badge + White Card</h2>
+      <span class="desc">대형 원색 정사각 배지 (84×84) + 흰 텍스트 영역</span>
+    </div>
+    <div class="cd-grid">
+      <div class="cd-card">
+        <div class="cd-badge">#</div>
+        <div class="cd-text"><div class="lbl">License No.</div><div class="val">#79907</div><div class="sub">Mining License Registration</div></div>
+      </div>
+      <div class="cd-card">
+        <div class="cd-badge">KR</div>
+        <div class="cd-text"><div class="lbl">Jurisdiction</div><div class="val">Republic of Korea</div><div class="sub">Governing Law</div></div>
+      </div>
+      <div class="cd-card">
+        <div class="cd-badge">HA</div>
+        <div class="cd-text"><div class="lbl">Mine Area</div><div class="val">271 ha</div><div class="sub">Approved Mining Area</div></div>
+      </div>
+      <div class="cd-card">
+        <div class="cd-badge">%</div>
+        <div class="cd-text"><div class="lbl">SiO₂ Purity</div><div class="val">97.04 %</div><div class="sub">+4~7%p vs. Avg. 90-93%</div></div>
+      </div>
+      <div class="cd-card">
+        <div class="cd-badge">T</div>
+        <div class="cd-text"><div class="lbl">Total Reserves</div><div class="val">30.68M tons</div><div class="sub">Verified Reserves</div></div>
+      </div>
+      <div class="cd-card">
+        <div class="cd-badge">↗</div>
+        <div class="cd-text"><div class="lbl">Recoverable</div><div class="val">21.47M tons</div><div class="sub">70% Recovery Rate</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CONCEPT E — Colored Frame Border (원색 프레임 + 라벨바)
+       ============================================================ -->
+  <div class="concept-block">
+    <div class="concept-head">
+      <span class="tag" style="background:#0E7490">E</span>
+      <h2>Colored Frame + Label Strip</h2>
+      <span class="desc">두꺼운 원색 프레임 (4px) + 상단 원색 라벨 strip · 프레임 느낌</span>
+    </div>
+    <div class="ce-grid">
+      <div class="ce-card"><div class="strip">License No.</div><div class="body"><div class="val">#79907</div><div class="sub">Mining License Registration</div></div></div>
+      <div class="ce-card"><div class="strip">Jurisdiction</div><div class="body"><div class="val">Republic of Korea</div><div class="sub">Governing Law</div></div></div>
+      <div class="ce-card"><div class="strip">Mine Area</div><div class="body"><div class="val">271 ha</div><div class="sub">Approved Mining Area</div></div></div>
+      <div class="ce-card"><div class="strip">SiO₂ Purity</div><div class="body"><div class="val">97.04 %</div><div class="sub">+4~7%p vs. Avg. 90-93%</div></div></div>
+      <div class="ce-card"><div class="strip">Total Reserves</div><div class="body"><div class="val">30.68M tons</div><div class="sub">Verified Reserves</div></div></div>
+      <div class="ce-card"><div class="strip">Recoverable</div><div class="body"><div class="val">21.47M tons</div><div class="sub">70% Recovery Rate</div></div></div>
+    </div>
+  </div>
+
+  <!-- Selection helper -->
+  <div class="choice-help">
+    <strong>선택 안내</strong> — 마음에 드는 시안을 알려주시면 <code>ir.html</code> 의 Mine Information 영역에 적용합니다.<br>
+    예: "<strong>B 로 해줘</strong>" / "<strong>C 시안 적용</strong>" / "<strong>3번 선택</strong>"
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="320" viewBox="0 0 512 320">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ee7ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0.35"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="320" fill="#0f1a2f"/>
+  <rect x="16" y="16" width="480" height="288" rx="20" fill="url(#g)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="34" fill="#e9eef7" font-weight="800">TOKEN APT003</text>
+  <text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="16" fill="#9fb0c6">토큰 로고(예시)</text>
+</svg>

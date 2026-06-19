@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>History · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+
+<style>
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v763) MOBILE RAIL UNIFICATION — landing v756 동일 원칙.
+     history.html 은 inline padding (32px, 16px 24px) 이 hardcoded → 모바일
+     에서도 desktop padding 그대로 적용되는 문제. 인라인 style override +
+     table 가로 scroll 처리 추가.
+     Revert: 본 <style> 블록 전체 삭제하면 인라인 padding 그대로 적용.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="history"] { --mobile-rail: 16px; }
+
+    /* 페이지 컨테이너 — 인라인 padding 32px override */
+    body[data-page="history"] > .container,
+    body[data-page="history"] > div.container {
+      padding: 16px var(--mobile-rail) !important;
+    }
+
+    /* 페이지 타이틀 압축 */
+    body[data-page="history"] .heading-lg { font-size: 22px !important; letter-spacing: 0.5px; }
+    body[data-page="history"] .mb-xl { margin-bottom: 16px !important; }
+
+    /* 탭 가로 스크롤 (8개 탭이 모바일에서 wrap 보다 horizontal scroll 이 깔끔) */
+    body[data-page="history"] .tabs {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto;
+      gap: 6px !important;
+      padding-bottom: 4px;
+      margin-bottom: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    body[data-page="history"] .tabs::-webkit-scrollbar { height: 0; }
+    body[data-page="history"] .tab {
+      flex-shrink: 0;
+      padding: 8px 14px !important;
+      font-size: 12px !important;
+      letter-spacing: 0.5px !important;
+      white-space: nowrap;
+    }
+
+    /* 카드 내부 — 인라인 padding 16px 24px override */
+    body[data-page="history"] .card > div[style*="padding: 16px 24px"],
+    body[data-page="history"] .card > div[style*="padding:16px 24px"] {
+      padding: 12px var(--mobile-rail) !important;
+      gap: 8px !important;
+    }
+
+    /* 검색/필터 row — 모바일 vertical stack */
+    body[data-page="history"] .form-input,
+    body[data-page="history"] .form-select {
+      max-width: 100% !important;
+      width: 100% !important;
+      font-size: 16px !important;  /* iOS Safari 줌 방지 */
+    }
+
+    /* Export 버튼 */
+    body[data-page="history"] #historyExportBtn {
+      width: 100%;
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+
+    /* 테이블 — 모바일에서 가로 scroll */
+    body[data-page="history"] .table {
+      font-size: 12px;
+      min-width: 600px;  /* 컬럼 6개 fit */
+    }
+    body[data-page="history"] .table th,
+    body[data-page="history"] .table td {
+      padding: 8px 10px !important;
+      letter-spacing: 0.3px;
+    }
+    /* table wrapping div */
+    body[data-page="history"] .card {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 페이징 row */
+    body[data-page="history"] .card > div[style*="border-top"] {
+      padding: 12px var(--mobile-rail) !important;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    body[data-page="history"] .btn-sm {
+      padding: 6px 12px !important;
+      font-size: 11px !important;
+    }
+
+    /* 안전망 */
+    body[data-page="history"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="history"] *,
+    body[data-page="history"] *::before,
+    body[data-page="history"] *::after { box-sizing: border-box; }
+    body[data-page="history"] img,
+    body[data-page="history"] video { max-width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body data-page="history">
+<div class="container" style="padding: 32px;">
+  <!-- (2026-05-19 v596) eyebrow 제거. -->
+  <div class="mb-xl">
+    <h1 class="heading-lg">Transaction History</h1>
+  </div>
+
+  <!-- (2026-05-06) 탭 버튼 클릭 핸들러 추가 — silica-data-bind.js 가 data-tab 으로 필터링.
+       (2026-05-07) Swap 백엔드 활성화 + STO 거래 페이지 노출 → 두 탭 disabled 해제. -->
+  <!-- (2026-05-12 v310) 운영자: '추천인 승인을 받은 유저는 히스토리에서
+       러퍼럴 수익 항목이 나타나야한다. 일반 유저는 보여서는 안된다.'
+       Referral 탭은 hidden 초기값 — silica-data-bind.js 가 페이지 로드시
+       /api/referral/my-status 응답의 is_referrer && referrer_active 이면
+       hidden 을 풀고, 그렇지 않으면 referral_bonus 행 전부를 클라이언트
+       측에서 한 번 더 필터링. 백엔드 ?kind=interest 도 v310 부터
+       referral_bonus 를 분리해 별도 ?kind=referral_bonus 로 옮김. -->
+  <div class="tabs" id="historyTabs">
+    <button class="tab active" data-tab="all" type="button">All</button>
+    <button class="tab" data-tab="deposit_withdraw" type="button">Deposits &amp; Withdrawals</button>
+    <!-- (2026-05-07) 투자 신청/확정 (invest / invest_credit) 전용 탭. -->
+    <button class="tab" data-tab="investments" type="button">Investments</button>
+    <button class="tab" data-tab="staking" type="button">Staking</button>
+    <button class="tab" data-tab="interest" type="button">Interest</button>
+    <button class="tab" data-tab="dividend" type="button">Dividends</button>
+    <button class="tab" data-tab="referral_bonus" type="button" id="histTabReferral" hidden>Referral</button>
+    <button class="tab" data-tab="swap" type="button">Swap</button>
+    <button class="tab" data-tab="trade" type="button">Trade</button>
+  </div>
+
+  <div class="card" style="padding: 0;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; flex-wrap: wrap;">
+      <input type="search" class="form-input" placeholder="🔍 Search..." style="max-width: 300px;">
+      <select class="form-select" style="max-width: 180px;">
+        <option>All Tokens</option>
+        <option>USDT</option>
+        <option>SilicaSTO</option>
+        <option>Silica</option>
+      </select>
+      <select class="form-select" style="max-width: 180px;">
+        <option>Last 30 days</option>
+        <option>Last 7 days</option>
+        <option>All</option>
+      </select>
+      <!-- (2026-05-21 v727) Export CSV — silica-data-bind.js 에서 클릭 핸들러 attach -->
+      <button class="btn btn-secondary btn-sm" id="historyExportBtn" type="button">📥 Export</button>
+    </div>
+    <table class="table table-mono">
+      <thead>
+        <tr><th>Time</th><th>Type</th><th>Token</th><th>Amount</th><th>Status</th><th>Tx Hash</th></tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="6" class="text-center text-muted" style="padding:48px 0;font-size:13px">
+          No transaction history yet. Start your first trade.
+        </td></tr>
+      </tbody>
+    </table>
+    <div style="padding: 16px 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
+      <span class="text-muted" style="font-size: 12px;" id="historyPaging">0 total</span>
+      <div class="flex gap-sm">
+        <button class="btn btn-secondary btn-sm" disabled>‹ Previous</button>
+        <button class="btn btn-secondary btn-sm" disabled>Next ›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!-- silica/user/site-header.html — Stellar Aurora Theme -->
+<header class="site-header" data-included="1">
+  <div class="container header-inner">
+    <a class="brand" href="index.html" aria-label="홈으로 이동" data-no-i18n="1" translate="no">
+      <img src="assets/images/logo_W.png" alt="SilicaChain">
+      <div>
+        <div class="title">SILICACHAIN</div>
+      </div>
+    </a>
+
+    <nav class="nav" aria-label="주요 메뉴">
+      <a id="navLanding" href="landing.html">소개</a>
+
+      <div class="nav-item has-sub" data-nav-group="assets">
+        <a id="navAssets" class="nav-link" href="assets.html">자산</a>
+        <button type="button" class="nav-caret" aria-label="자산 하위 메뉴 열기" aria-haspopup="true" aria-expanded="false"><span aria-hidden="true"></span></button>
+        <div class="nav-sub" aria-label="자산 하위 메뉴">
+          <a id="navDeposit" href="deposit.html">입금</a>
+          <a id="navWithdraw" href="withdraw.html">출금</a>
+        </div>
+      </div>
+
+      <a id="navTrade" href="trade.html">거래</a>
+      <a id="navStaking" href="staking.html">스테이킹</a>
+      <a id="navClaim" href="claim.html">클레임</a>
+      <!-- (2026-05-15 v393) 운영자: '유저 페이지에서도 매각을 숨기고
+           히스토리와 클레임에서 매각이라는 항목을 모두 숨겨라.' 매각 메뉴
+           hidden. user/sales.html / user/sale-detail.html 코드 보존 —
+           다른 부동산 사이트 활성화 시 hidden 만 제거. -->
+      <a id="navSales" href="sales.html" hidden>투자</a>
+
+      <div class="nav-item has-sub" data-nav-group="portfolio">
+        <a id="navPortfolio" class="nav-link" href="portfolio.html">포트폴리오</a>
+        <button type="button" class="nav-caret" aria-label="포트폴리오 하위 메뉴 열기" aria-haspopup="true" aria-expanded="false"><span aria-hidden="true"></span></button>
+        <div class="nav-sub" aria-label="포트폴리오 하위 메뉴">
+          <a id="navReferral" href="referral.html">추천인</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="header-actions">
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="ko">KO</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <!-- (2026-05-11 v281) Operator: '헤더 우측에 My Assets 는 삭제.' -->
+      <div id="walletPill" class="pill hidden" title="연결된 지갑">
+        <span class="dot"></span>
+        <span class="addr" data-no-i18n="1" translate="no">-</span>
+      </div>
+      <button id="walletBtn" class="btn primary" type="button">지갑 연결</button>
+      <button id="otpSetupBtn" class="btn small hidden" type="button">OTP 등록</button>
+      <button id="otpVerifyBtn" class="btn small hidden" type="button">OTP 인증</button>
+    </div>
+  </div>
+</header>
+
+<!-- OTP Modal (preserved IDs for JS compatibility) -->
+<div id="otpModal" class="otp-modal hidden" aria-hidden="true">
+  <div class="otp-backdrop"></div>
+  <div class="otp-panel" role="dialog" aria-modal="true" aria-labelledby="otpTitle">
+    <div class="otp-head">
+      <div id="otpTitle" class="otp-title">OTP</div>
+      <button id="otpCloseBtn" class="btn small" type="button">✕ 닫기</button>
+    </div>
+
+    <div id="otpMsg" class="small-note" style="margin:10px 0; color:var(--muted)"></div>
+
+    <div id="otpSetupBox" class="hidden">
+      <div class="notice">
+        <strong>OTP 등록</strong>
+        Google Authenticator 앱에서 QR을 스캔하거나, 아래 키를 수동 등록하세요.
+      </div>
+
+      <div class="otp-setup-grid">
+        <div>
+          <div class="small-note">QR</div>
+          <div id="otpQr" class="otp-qr-box"></div>
+        </div>
+        <div class="otp-setup-fields">
+          <div class="small-note">설정 키 (Base32)</div>
+          <div id="otpSecret" class="input otp-secret-box" data-no-i18n="1" translate="no">-</div>
+          <div class="small-note" style="margin-top:12px">OTP 코드 (6자리)</div>
+          <input id="otpCodeInputSetup" class="input otp-code-input" inputmode="numeric" maxlength="6" placeholder="123456" />
+          <button id="otpEnableBtn" class="btn primary block" type="button" style="margin-top:10px">등록 완료</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="otpVerifyBox" class="hidden">
+      <div class="notice">
+        <strong>OTP 인증</strong>
+        Google Authenticator의 6자리 코드를 입력하세요.
+      </div>
+      <div class="small-note" style="margin-top:12px">OTP 코드 (6자리)</div>
+      <input id="otpCodeInputVerify" class="input otp-code-input" inputmode="numeric" maxlength="6" placeholder="123456" />
+      <button id="otpVerifyBtnDo" class="btn primary block" type="button" style="margin-top:10px">인증</button>
+    </div>
+
+    <div class="hr"></div>
+    <button id="otpForceLogoutBtn" class="btn danger block" type="button">지갑 해제</button>
+  </div>
+</div>
+
+<style>
+  /* ===== Site Header (Stellar Aurora) ===== */
+  .site-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(2, 6, 23, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+  }
+  .site-header .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .site-header .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 14px 0;
+    flex-wrap: wrap;
+  }
+  .site-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .site-header .brand img {
+    height: 42px;   /* 32 → 42 (+30%) per request 2026-05-05 */
+    width: auto;
+  }
+  .site-header .brand .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 2px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .site-header .brand .tag {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--aurora-3);
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+
+  .site-header .nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+  .site-header .nav a {
+    padding: 8px 14px;
+    color: var(--steel);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--r-sm);
+    transition: all var(--t);
+    white-space: nowrap;
+  }
+  .site-header .nav a:hover { color: var(--text); background: var(--glass); }
+  .site-header .nav a[aria-current="page"],
+  .site-header .nav a.active { color: var(--aurora-3); background: rgba(6, 182, 212, 0.08); }
+
+  .site-header .nav-item.has-sub { position: relative; display: inline-flex; align-items: center; }
+  .site-header .nav-caret {
+    background: transparent;
+    border: none;
+    color: var(--steel);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 11px;
+  }
+  .site-header .nav-caret span::before {
+    content: '▾';
+    color: var(--steel);
+  }
+  .site-header .nav-sub {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 160px;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-sm);
+    padding: 6px;
+    box-shadow: var(--shadow-md);
+    display: none;
+    z-index: 200;
+  }
+  .site-header .nav-item.has-sub:hover .nav-sub,
+  .site-header .nav-item.has-sub:focus-within .nav-sub { display: block; }
+  .site-header .nav-sub a {
+    display: block;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .site-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .site-header .lang-toggle {
+    display: flex;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 2px;
+  }
+  .site-header .lang-btn {
+    padding: 4px 10px;
+    background: transparent;
+    border: none;
+    color: var(--steel);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .site-header .lang-btn.active {
+    background: var(--aurora-1);
+    color: var(--platinum);
+  }
+
+  .site-header .btn.primary {
+    background: var(--logo-violet);
+    color: var(--platinum);
+    border-color: transparent;
+    padding: 8px 18px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  }
+  .site-header .btn.small { padding: 6px 12px; font-size: 11px; }
+  .site-header .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 100px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    color: var(--green);
+  }
+  .site-header .pill .dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--green);
+  }
+  .site-header .hidden { display: none !important; }
+
+  @media (max-width: 1100px) {
+    .site-header .nav { flex: 1 1 100%; order: 3; }
+    .site-header .nav a { padding: 6px 10px; font-size: 13px; }
+  }
+
+  /* ===== OTP Modal (Stellar Aurora) ===== */
+  .otp-modal.hidden { display: none; }
+  .otp-modal {
+    position: fixed; inset: 0; z-index: 9999;
+  }
+  .otp-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(2, 6, 23, 0.8);
+    backdrop-filter: blur(12px);
+  }
+  .otp-panel {
+    position: relative;
+    width: min(820px, calc(100% - 28px));
+    margin: 8vh auto 0;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  .otp-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--logo-violet);
+  }
+  .otp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .otp-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .otp-setup-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 20px;
+    margin-top: 16px;
+  }
+  @media (max-width: 600px) { .otp-setup-grid { grid-template-columns: 1fr; } }
+  .otp-qr-box {
+    margin-top: 8px;
+    padding: 16px;
+    background: var(--panel);
+    border-radius: var(--r-sm);
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .otp-secret-box {
+    margin-top: 8px;
+    word-break: break-all;
+    font-family: 'Space Grotesk', monospace;
+    background: var(--glass-2);
+    color: var(--aurora-3);
+  }
+  .otp-code-input {
+    margin-top: 8px;
+    width: 100%;
+    text-align: center;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 18px;
+    letter-spacing: 6px;
+  }
+</style>

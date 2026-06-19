@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>배경 시안 5종 · SilicaChain</title>
+<style>
+  :root {
+    --logo-red: #E53935;
+    --logo-orange: #F57C00;
+    --logo-green: #2E7D32;
+    --logo-blue: #1976D2;
+    --logo-violet: #8E24AA;
+    --ink: #0F172A;
+    --bg: #FFFFFF;
+    --line: #E2E8F0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Pretendard", sans-serif;
+    background: #F8FAFC;
+    color: var(--ink);
+    padding: 40px 20px;
+  }
+  .page-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+  .page-subtitle {
+    text-align: center;
+    color: #64748B;
+    margin-bottom: 40px;
+    font-size: 14px;
+  }
+  .concept {
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
+  }
+  .concept-header {
+    padding: 20px 28px;
+    border-bottom: 2px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .concept-title {
+    font-size: 22px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .concept-id {
+    background: var(--ink);
+    color: #FFFFFF;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 900;
+  }
+  .concept-desc {
+    color: #64748B;
+    font-size: 13px;
+    max-width: 600px;
+    text-align: right;
+  }
+  .concept-stage {
+    position: relative;
+    height: 480px;
+    overflow: hidden;
+    background: #FFFFFF;
+  }
+  /* 모의 콘텐츠 (모든 시안 공통) */
+  .mock-content {
+    position: relative;
+    z-index: 10;
+    padding: 60px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 40px;
+  }
+  .mock-text { flex: 1; max-width: 480px; }
+  .mock-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .mock-h1 {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .mock-h1 b { color: var(--logo-red); }
+  .mock-h1 i { color: var(--logo-blue); font-style: normal; }
+  .mock-p {
+    color: #475569;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .mock-btn {
+    display: inline-block;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 4px 0 0 #6A1B7E;
+  }
+  .mock-photo {
+    flex: 1;
+    aspect-ratio: 21/9;
+    max-width: 460px;
+    background:
+      linear-gradient(135deg, rgba(15,23,42,0.30), transparent 50%),
+      url('assets/images/silica/silica_mine.png') center/cover,
+      #1E293B;
+    border-radius: 14px;
+    box-shadow: 0 8px 0 0 rgba(15, 23, 42, 0.20);
+  }
+
+  /* ============================================ */
+  /* CONCEPT A: Memphis Confetti — 흩뿌린 도형들 */
+  /* ============================================ */
+  .bg-a {
+    position: absolute; inset: 0;
+    background: #FFFFFF;
+    overflow: hidden;
+  }
+  .bg-a::before, .bg-a::after { content: ''; position: absolute; }
+  .bg-a .shape { position: absolute; }
+  /* 원 */
+  .bg-a .c1 { width: 80px; height: 80px; border-radius: 50%; background: var(--logo-red); top: 8%; right: 14%; }
+  .bg-a .c2 { width: 50px; height: 50px; border-radius: 50%; background: var(--logo-blue); bottom: 18%; left: 6%; }
+  .bg-a .c3 { width: 30px; height: 30px; border-radius: 50%; background: var(--logo-green); top: 38%; right: 4%; }
+  .bg-a .c4 { width: 24px; height: 24px; border-radius: 50%; background: var(--logo-orange); top: 78%; right: 32%; }
+  /* 사각형 */
+  .bg-a .s1 { width: 60px; height: 60px; background: var(--logo-violet); top: 60%; right: 8%; transform: rotate(15deg); }
+  .bg-a .s2 { width: 36px; height: 36px; background: var(--logo-orange); top: 20%; left: 18%; transform: rotate(-25deg); }
+  /* 삼각형 (CSS) */
+  .bg-a .t1 {
+    width: 0; height: 0;
+    border-left: 30px solid transparent;
+    border-right: 30px solid transparent;
+    border-bottom: 50px solid var(--logo-blue);
+    top: 18%; left: 4%; transform: rotate(20deg);
+  }
+  .bg-a .t2 {
+    width: 0; height: 0;
+    border-left: 22px solid transparent;
+    border-right: 22px solid transparent;
+    border-bottom: 36px solid var(--logo-green);
+    bottom: 8%; right: 18%; transform: rotate(-30deg);
+  }
+  /* 플러스 */
+  .bg-a .p1 {
+    width: 40px; height: 40px;
+    background:
+      linear-gradient(var(--logo-red), var(--logo-red)) center/100% 8px no-repeat,
+      linear-gradient(var(--logo-red), var(--logo-red)) center/8px 100% no-repeat;
+    top: 70%; left: 36%;
+  }
+  .bg-a .p2 {
+    width: 28px; height: 28px;
+    background:
+      linear-gradient(var(--logo-violet), var(--logo-violet)) center/100% 6px no-repeat,
+      linear-gradient(var(--logo-violet), var(--logo-violet)) center/6px 100% no-repeat;
+    top: 6%; left: 52%;
+  }
+  /* X 마크 */
+  .bg-a .x1 {
+    width: 32px; height: 32px;
+    background:
+      linear-gradient(45deg, transparent 45%, var(--logo-orange) 45%, var(--logo-orange) 55%, transparent 55%) center/100% 100% no-repeat,
+      linear-gradient(-45deg, transparent 45%, var(--logo-orange) 45%, var(--logo-orange) 55%, transparent 55%) center/100% 100% no-repeat;
+    top: 50%; left: 14%;
+  }
+  /* 원형 도넛 (테두리) */
+  .bg-a .d1 { width: 50px; height: 50px; border-radius: 50%; border: 7px solid var(--logo-blue); bottom: 30%; left: 48%; background: transparent; }
+
+  /* ============================================ */
+  /* CONCEPT B: Bauhaus Blocks — 큰 기하 도형  */
+  /* ============================================ */
+  .bg-b {
+    position: absolute; inset: 0;
+    background: #FFFFFF;
+    overflow: hidden;
+  }
+  .bg-b .shape { position: absolute; }
+  .bg-b .big-circle {
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    top: -80px; left: -80px;
+    opacity: 0.95;
+  }
+  .bg-b .big-rect {
+    width: 220px; height: 380px;
+    background: var(--logo-red);
+    bottom: -60px; right: 10%;
+    transform: rotate(8deg);
+    opacity: 0.9;
+  }
+  .bg-b .big-tri {
+    width: 0; height: 0;
+    border-left: 110px solid transparent;
+    border-right: 110px solid transparent;
+    border-bottom: 180px solid var(--logo-orange);
+    bottom: 8%; left: 22%;
+    opacity: 0.92;
+    transform: rotate(-15deg);
+  }
+  .bg-b .accent-bar {
+    width: 8px; height: 100%;
+    background: var(--logo-green);
+    top: 0; left: 50%;
+  }
+  .bg-b .accent-circle {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 8px solid var(--logo-blue);
+    top: 20%; right: 5%;
+  }
+  .bg-b .accent-line {
+    width: 200px; height: 6px;
+    background: var(--logo-blue);
+    top: 32%; right: 30%;
+    transform: rotate(-30deg);
+  }
+
+  /* ============================================ */
+  /* CONCEPT C: Dot Grid Constellation         */
+  /* ============================================ */
+  .bg-c {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle, var(--logo-red) 2px, transparent 2.5px) 0 0 / 100px 100px,
+      radial-gradient(circle, var(--logo-orange) 2px, transparent 2.5px) 25px 25px / 100px 100px,
+      radial-gradient(circle, var(--logo-green) 2px, transparent 2.5px) 50px 50px / 100px 100px,
+      radial-gradient(circle, var(--logo-blue) 2px, transparent 2.5px) 75px 75px / 100px 100px,
+      radial-gradient(circle, var(--logo-violet) 2px, transparent 2.5px) 12px 60px / 100px 100px,
+      #FFFFFF;
+  }
+  /* 5색 원소 점이 그리드 위치마다 다른 색으로 찍힘 */
+
+  /* ============================================ */
+  /* CONCEPT D: Diagonal Color Stripes — 대각 스트라이프 */
+  /* ============================================ */
+  .bg-d {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(
+        135deg,
+        rgba(229, 57, 53, 0.10) 0px,
+        rgba(229, 57, 53, 0.10) 60px,
+        transparent 60px,
+        transparent 120px,
+        rgba(245, 124, 0, 0.10) 120px,
+        rgba(245, 124, 0, 0.10) 180px,
+        transparent 180px,
+        transparent 240px,
+        rgba(46, 125, 50, 0.10) 240px,
+        rgba(46, 125, 50, 0.10) 300px,
+        transparent 300px,
+        transparent 360px,
+        rgba(25, 118, 210, 0.10) 360px,
+        rgba(25, 118, 210, 0.10) 420px,
+        transparent 420px,
+        transparent 480px,
+        rgba(142, 36, 170, 0.10) 480px,
+        rgba(142, 36, 170, 0.10) 540px,
+        transparent 540px,
+        transparent 600px
+      ),
+      #FFFFFF;
+  }
+
+  /* ============================================ */
+  /* CONCEPT E: Hexagon Mosaic — 육각형 패턴       */
+  /* ============================================ */
+  .bg-e {
+    position: absolute; inset: 0;
+    background: #FFFFFF;
+    overflow: hidden;
+  }
+  .bg-e .hex-grid {
+    position: absolute;
+    inset: -20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 80px);
+    grid-auto-rows: 70px;
+    gap: 6px;
+    transform: skewY(-6deg) translateY(-30px);
+  }
+  .bg-e .hex {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    opacity: 0.85;
+  }
+  /* 짝수 행 들여쓰기 효과는 grid에서 약간 다르게: nth-child로 5색 순환 */
+  .bg-e .hex:nth-child(5n+1) { background: var(--logo-red); }
+  .bg-e .hex:nth-child(5n+2) { background: var(--logo-orange); }
+  .bg-e .hex:nth-child(5n+3) { background: var(--logo-green); }
+  .bg-e .hex:nth-child(5n+4) { background: var(--logo-blue); }
+  .bg-e .hex:nth-child(5n+5) { background: var(--logo-violet); }
+
+  /* 사용자가 콘텐츠에 집중할 수 있게 콘텐츠 배경 살짝 흰색 처리 */
+  .concept-stage[data-content-bg] .mock-text {
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(4px);
+    padding: 24px;
+    border-radius: 14px;
+    box-shadow: 0 4px 0 0 rgba(15, 23, 42, 0.12);
+  }
+
+  /* 색상 표시 dots */
+  .palette {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .palette .pd {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.10);
+  }
+
+  @media (max-width: 720px) {
+    .mock-content { flex-direction: column; padding: 24px; }
+    .mock-photo { display: none; }
+    .concept-stage { height: auto; min-height: 380px; }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">배경 시안 5종 · 5색 원색</h1>
+<p class="page-subtitle">로고 5색 (빨강·주황·초록·파랑·보라)을 활용한 랜딩 배경 컨셉. 마음에 드는 시안 번호를 알려주시면 적용하겠습니다.</p>
+
+<!-- =================== CONCEPT A =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">A</span>Memphis Confetti</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">흩뿌린 솔리드 도형 (원·사각·삼각·플러스·X). 80년대 멤피스 디자인 영감 — 활기차고 친근.</div>
+  </div>
+  <div class="concept-stage" data-content-bg>
+    <div class="bg-a">
+      <div class="shape c1"></div>
+      <div class="shape c2"></div>
+      <div class="shape c3"></div>
+      <div class="shape c4"></div>
+      <div class="shape s1"></div>
+      <div class="shape s2"></div>
+      <div class="shape t1"></div>
+      <div class="shape t2"></div>
+      <div class="shape p1"></div>
+      <div class="shape p2"></div>
+      <div class="shape x1"></div>
+      <div class="shape d1"></div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">A · MEMPHIS</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== CONCEPT B =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">B</span>Bauhaus Composition</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">크고 대담한 기하 블록의 의도적 배치. 바우하우스/데스테일 영감 — 디자이너 감성, 미술관 느낌.</div>
+  </div>
+  <div class="concept-stage" data-content-bg>
+    <div class="bg-b">
+      <div class="shape big-circle"></div>
+      <div class="shape big-rect"></div>
+      <div class="shape big-tri"></div>
+      <div class="shape accent-bar"></div>
+      <div class="shape accent-circle"></div>
+      <div class="shape accent-line"></div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">B · BAUHAUS</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== CONCEPT C =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">C</span>Dot Grid Constellation</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">정밀한 점 격자 — 5색이 위치마다 순환. 데이터 시각화·블록체인 느낌, 차분하고 신뢰감.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-c"></div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">C · DOT GRID</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== CONCEPT D =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">D</span>Diagonal Color Stripes</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">5색 대각선 띠 (각 10% 투명도). 은은한 움직임감 — 미니멀하고 모던, 콘텐츠 방해 없음.</div>
+  </div>
+  <div class="concept-stage">
+    <div class="bg-d"></div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">D · STRIPES</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== CONCEPT E =================== -->
+<section class="concept">
+  <div class="concept-header">
+    <div>
+      <div class="concept-title"><span class="concept-id">E</span>Hexagon Mosaic (실리카 결정)</div>
+      <div class="palette">
+        <span class="pd" style="background:var(--logo-red)"></span>
+        <span class="pd" style="background:var(--logo-orange)"></span>
+        <span class="pd" style="background:var(--logo-green)"></span>
+        <span class="pd" style="background:var(--logo-blue)"></span>
+        <span class="pd" style="background:var(--logo-violet)"></span>
+      </div>
+    </div>
+    <div class="concept-desc">육각형 모자이크 타일 — 5색 순환. <b>SiO₂ 결정 구조 모티프</b>로 실리카 광산 정체성 강조. 가장 강렬한 시각적 시그니처.</div>
+  </div>
+  <div class="concept-stage" data-content-bg>
+    <div class="bg-e">
+      <div class="hex-grid" id="hexGrid"></div>
+    </div>
+    <div class="mock-content">
+      <div class="mock-text">
+        <span class="mock-tag">E · HEXAGON</span>
+        <h2 class="mock-h1"><b>실물자산</b>이 채굴되는<br><i>안정 수익</i></h2>
+        <p class="mock-p">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 배당.</p>
+        <a class="mock-btn" href="#">지금 투자하기 →</a>
+      </div>
+      <div class="mock-photo"></div>
+    </div>
+  </div>
+</section>
+
+<div style="text-align:center; padding: 40px 20px; color:#64748B; font-size:14px;">
+  마음에 드는 시안 번호 (A·B·C·D·E)를 알려주시면 landing.html에 적용합니다.<br>
+  여러 시안 조합도 가능합니다 (예: "A + C 섞어서").
+</div>
+
+<script>
+  // 육각형 그리드 자동 생성
+  (function(){
+    var hexGrid = document.getElementById('hexGrid');
+    if (!hexGrid) return;
+    // 충분한 개수 (반응형 대응) — 약 200개
+    for (var i = 0; i < 220; i++) {
+      var hex = document.createElement('div');
+      hex.className = 'hex';
+      hexGrid.appendChild(hex);
+    }
+  })();
+</script>
+
+</body>
+</html>

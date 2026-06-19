@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Concept E Demo · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+
+<style>
+  :root {
+    --logo-red:    #E53935;
+    --logo-orange: #F57C00;
+    --logo-green:  #2E7D32;
+    --logo-blue:   #1976D2;
+    --logo-violet: #8E24AA;
+  }
+
+  body[data-page="index"] { background: #F1F5F9; min-height: 100vh; }
+
+  .dashE {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Sticky header — quick action bar */
+  .dashE-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .dashE-greet {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    color: #0F172A;
+  }
+  .dashE-greet em {
+    font-family: 'Unbounded';
+    font-style: normal;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--logo-violet) 0%, var(--logo-blue) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* === Asymmetric Split Layout === */
+  .split-shell {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 0;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.10);
+    margin-bottom: 32px;
+  }
+  @media (max-width: 1000px) {
+    .split-shell { grid-template-columns: 1fr; }
+  }
+
+  /* === LEFT: Dark Hero Panel === */
+  .split-left {
+    padding: 48px;
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #0B1120 100%);
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    min-height: 520px;
+  }
+  /* Aurora accent glow */
+  .split-left::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--logo-violet) 0%, transparent 60%);
+    opacity: 0.35;
+  }
+  .split-left::after {
+    content: '';
+    position: absolute;
+    bottom: -200px; left: -200px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--logo-blue) 0%, transparent 60%);
+    opacity: 0.20;
+  }
+
+  .split-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--logo-violet);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 28px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .split-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    box-shadow: 0 0 12px var(--logo-violet);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .split-mega {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(64px, 9vw, 120px);
+    line-height: 1;
+    letter-spacing: -5px;
+    margin: 0 0 16px;
+    position: relative;
+    background: linear-gradient(180deg, #FFFFFF 0%, #94A3B8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .split-mega .small {
+    font-size: 0.32em;
+    -webkit-text-fill-color: #64748B;
+    background: none;
+    font-weight: 400;
+    margin-left: -4px;
+  }
+  .split-cap {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    color: #94A3B8;
+    margin-bottom: 56px;
+    position: relative;
+    letter-spacing: 0.5px;
+  }
+  .split-cap strong { color: #FFFFFF; font-weight: 600; }
+
+  .split-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    position: relative;
+  }
+  .split-trio-cell {
+    padding-right: 24px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .split-trio-cell:last-child { border-right: none; padding-right: 0; }
+  .split-trio-cell + .split-trio-cell { padding-left: 24px; }
+  .split-trio-cell .lbl {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #64748B;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .split-trio-cell .val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -1px;
+    color: #FFFFFF;
+    line-height: 1;
+  }
+  .split-trio-cell .sub {
+    font-family: 'Space Grotesk';
+    font-size: 11px;
+    color: #64748B;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+  .split-trio-cell.violet .val { color: #C084FC; }
+  .split-trio-cell.green .val { color: #34D399; }
+  .split-trio-cell.cyan .val { color: #22D3EE; }
+
+  .split-cta-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .split-cta {
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 1.5px solid transparent;
+  }
+  .split-cta.primary {
+    background: linear-gradient(135deg, var(--logo-violet), var(--logo-blue));
+    color: #FFFFFF;
+    box-shadow: 0 4px 0 0 #4C1D95, 0 6px 20px rgba(139, 92, 246, 0.30);
+  }
+  .split-cta.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 0 #4C1D95, 0 10px 24px rgba(139, 92, 246, 0.35);
+  }
+  .split-cta.ghost {
+    background: rgba(255, 255, 255, 0.05);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.20);
+  }
+  .split-cta.ghost:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.40);
+  }
+
+  /* === RIGHT: Light Activity Feed === */
+  .split-right {
+    padding: 32px;
+    background: #FFFFFF;
+    border-left: 1px solid #E2E8F0;
+    display: flex;
+    flex-direction: column;
+  }
+  .split-right-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #0F172A;
+  }
+  .split-right-head h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin: 0;
+    color: #0F172A;
+  }
+  .split-right-head a {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--logo-violet);
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .split-right-head a:hover { text-decoration: underline; }
+
+  .feed-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 320px;
+  }
+  .feed-item {
+    padding: 14px 0;
+    border-bottom: 1px solid #F1F5F9;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-item .when {
+    font-size: 10px;
+    color: #94A3B8;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .feed-item .what {
+    font-weight: 600;
+    color: #0F172A;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .feed-item .amt {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    color: #10B981;
+    font-size: 13px;
+  }
+
+  .feed-empty {
+    text-align: center;
+    padding: 60px 24px;
+    color: #94A3B8;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+  }
+  .feed-empty .icon {
+    font-size: 36px;
+    color: #CBD5E1;
+    margin-bottom: 8px;
+  }
+  .feed-empty .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: #475569;
+    letter-spacing: 1px;
+  }
+  .feed-empty .sub {
+    font-size: 12px;
+    color: #94A3B8;
+    line-height: 1.6;
+  }
+
+  /* === Lower Section: Holdings + Status === */
+  .lower-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+  @media (max-width: 1000px) {
+    .lower-row { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #E2E8F0;
+  }
+  .panel-head h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin: 0;
+    color: #0F172A;
+  }
+  .panel-head a {
+    color: var(--logo-violet);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .holdings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .holding {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 16px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    transition: all 0.15s;
+  }
+  .holding:hover {
+    border-color: var(--logo-violet);
+    transform: translateX(2px);
+  }
+  .holding-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: #FFFFFF;
+  }
+  .holding-icon.usdt { background: linear-gradient(135deg, #26A17B, #21824B); }
+  .holding-icon.sto { background: linear-gradient(135deg, var(--logo-violet), #4C1D95); }
+  .holding-icon.silica { background: linear-gradient(135deg, var(--logo-blue), #1E3A8A); }
+  .holding-info { line-height: 1.3; }
+  .holding-name { font-weight: 700; font-size: 15px; color: #0F172A; }
+  .holding-tic {
+    font-family: 'Space Grotesk';
+    font-size: 11px;
+    color: #64748B;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+  .holding-bal {
+    text-align: right;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #0F172A;
+  }
+  .holding-conv {
+    font-family: 'Space Grotesk';
+    font-size: 11px;
+    color: #64748B;
+    margin-top: 2px;
+    text-align: right;
+  }
+
+  /* KYC Panel */
+  .kyc-panel {
+    text-align: center;
+  }
+  .kyc-icon-wrap {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #F1F5F9, #E2E8F0);
+    border: 2px solid #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px auto 16px;
+    font-size: 30px;
+    color: #94A3B8;
+  }
+  .kyc-status {
+    font-family: 'Bebas Neue';
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: #475569;
+    margin-bottom: 8px;
+  }
+  .kyc-detail {
+    font-family: 'Space Grotesk';
+    font-size: 12px;
+    color: #94A3B8;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .kyc-cta {
+    display: inline-block;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, var(--logo-violet), var(--logo-blue));
+    color: #FFFFFF;
+    text-decoration: none;
+    border-radius: 8px;
+    font-family: 'Oswald';
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 0 #4C1D95;
+  }
+  .kyc-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 0 #4C1D95, 0 6px 16px rgba(139, 92, 246, 0.25);
+  }
+
+  /* Demo banner */
+  .demo-banner {
+    max-width: 1400px;
+    margin: 0 auto 24px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+    border: 1px solid #F59E0B;
+    border-radius: 12px;
+    color: #78350F;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .demo-banner strong { color: #451A03; }
+  .demo-banner a {
+    background: #78350F;
+    color: #FEF3C7;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body data-page="index">
+
+<!-- site-header.html will be auto-mounted by core.js -->
+
+<main>
+
+<div class="demo-banner">
+  <div>
+    🎨 <strong>Concept E Demo Page</strong> — Asymmetric Split Layout (Robinhood/Cash App fintech style).
+    Apply this to <code>index.html</code>?
+  </div>
+  <a href="dashboard-concepts.html">← Compare All 5 Concepts</a>
+</div>
+
+<div class="dashE">
+
+  <!-- Quick Action Bar -->
+  <div class="dashE-actions">
+    <h1 class="dashE-greet">My <em>Dashboard</em></h1>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <a href="assets.html" class="split-cta primary">+ Invest More</a>
+      <a href="staking.html" class="split-cta ghost" style="background:#FFFFFF;color:#0F172A;border-color:#E2E8F0;box-shadow:0 2px 0 0 #CBD5E1;">Manage Staking</a>
+    </div>
+  </div>
+
+  <!-- ★ Asymmetric Split Hero ★ -->
+  <div class="split-shell">
+
+    <!-- LEFT: Dark Hero -->
+    <div class="split-left">
+      <div class="split-eyebrow">Total Portfolio Value</div>
+      <div class="split-mega" id="kpiTotalAssets">0<span class="small">.00</span></div>
+      <div class="split-cap">USDT · ≈ <strong id="kpiTotalKrw">₩0</strong> KRW · <strong>Solana Devnet</strong></div>
+
+      <div class="split-trio">
+        <div class="split-trio-cell violet">
+          <div class="lbl">Staked STO</div>
+          <div class="val" id="kpiStaked">0</div>
+          <div class="sub" id="kpiStakedUsdt">≈ 0 USDT</div>
+        </div>
+        <div class="split-trio-cell green">
+          <div class="lbl">Cumulative Interest</div>
+          <div class="val" id="kpiInterest">0.00</div>
+          <div class="sub" id="kpiInterestSub">USDT · 0 cycles</div>
+        </div>
+        <div class="split-trio-cell cyan">
+          <div class="lbl">Silica Held</div>
+          <div class="val" id="kpiSilica">0.00</div>
+          <div class="sub" id="kpiSilicaUsdt">≈ 0 USDT @ 0.05</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Activity Feed -->
+    <div class="split-right">
+      <div class="split-right-head">
+        <h3>Activity Feed</h3>
+        <a href="history.html">View All →</a>
+      </div>
+
+      <div class="feed-list" id="feedList">
+        <div class="feed-empty">
+          <div class="icon">⊕</div>
+          <div class="title">No Activity Yet</div>
+          <div class="sub">
+            Start your first investment.<br>
+            Recent transactions will appear here.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lower Section: Holdings + KYC -->
+  <div class="lower-row">
+
+    <!-- Holdings -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Token Holdings</h3>
+        <a href="portfolio.html">Wallet →</a>
+      </div>
+
+      <div class="holdings-list">
+        <div class="holding">
+          <div class="holding-icon usdt">$</div>
+          <div class="holding-info">
+            <div class="holding-name">USDT</div>
+            <div class="holding-tic">TETHER · STABLECOIN</div>
+          </div>
+          <div>
+            <div class="holding-bal" id="balUsdt">0.00</div>
+            <div class="holding-conv" id="balUsdtKrw">≈ ₩0 KRW</div>
+          </div>
+        </div>
+
+        <div class="holding">
+          <div class="holding-icon sto">S</div>
+          <div class="holding-info">
+            <div class="holding-name">SilicaSTO</div>
+            <div class="holding-tic">INVESTMENT CERTIFICATE · STO</div>
+          </div>
+          <div>
+            <div class="holding-bal" id="balSto">0.00</div>
+            <div class="holding-conv" id="balStoUsdt">≈ 0 USDT</div>
+          </div>
+        </div>
+
+        <div class="holding">
+          <div class="holding-icon silica">◆</div>
+          <div class="holding-info">
+            <div class="holding-name">Silica</div>
+            <div class="holding-tic">REWARD TOKEN · UTILITY</div>
+          </div>
+          <div>
+            <div class="holding-bal" id="balSilica">0.00</div>
+            <div class="holding-conv" id="balSilicaUsdt">≈ 0 USDT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KYC Status -->
+    <div class="panel kyc-panel">
+      <div class="panel-head" style="justify-content:center;border-bottom:none;padding-bottom:0;margin-bottom:0;">
+        <h3>KYC Verification</h3>
+      </div>
+      <div class="kyc-icon-wrap" id="kycIconWrap">🔒</div>
+      <div class="kyc-status" id="kycStatusText">Unverified</div>
+      <div class="kyc-detail" id="kycSubText">
+        KYC verification required<br>before investing.
+      </div>
+      <a href="kyc-ready.html" class="kyc-cta" id="kycCta">Start KYC</a>
+    </div>
+
+  </div>
+
+</div>
+
+</main>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

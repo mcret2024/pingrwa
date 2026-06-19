@@ -1,0 +1,4 @@
+# PHP API .gitignore
+.env
+.installed
+composer.phar

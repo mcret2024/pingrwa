@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swap · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  /* (v628) 운영자: 'rate-info 박스를 우측에 배치하여 스왑박스가 가로 형태가
+     되게 하고, 모바일에서는 세로가 되도록.' page max-width 720 → 1040 으로
+     확대 (좌 swap inputs + 우 rate-info 2-col fit). swap-card 를 grid 로
+     전환하고 grid-template-areas 로 좌측 from/arrow/to/action + 우측 rate. */
+  /* (v647) 운영자: '스왑 한눈에 보이게. 10% 더 줄여라.'
+     page padding 32 → 16, swap-card padding 28 → 18, column-gap 28 → 18. */
+  .page { max-width: 1040px; margin: 0 auto; padding: 16px 32px; position: relative; z-index: 1; }
+  .swap-card {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas:
+      "from   rate"
+      "arrow  rate"
+      "to     rate"
+      "action rate";
+    column-gap: 18px;
+    row-gap: 0;
+    align-items: start;
+  }
+  .swap-card > .swap-from   { grid-area: from; }
+  .swap-card > .swap-arrow  { grid-area: arrow; }
+  .swap-card > .swap-to     { grid-area: to; }
+  .swap-card > .rate-info   { grid-area: rate; margin-top: 0; align-self: start; }
+  .swap-card > .swap-action-row { grid-area: action; }
+
+  /* (v628) 모바일 / 좁은 viewport — 1-col 세로 폴백 (기존 디자인과 동일).
+     (v629) 운영자: '테블릿에서 약간 깨진다.' 901-1100 구간이 2-col 이라
+     left 약 460-560px / right 340px 로 좁아서 input/chip/MAX 버튼이 옹색하게
+     찌그러짐. breakpoint 900 → 1100 으로 확대 → 테블릿/노트북 협소뷰는 1-col
+     안정 폴백. 1100+ 데스크톱만 2-col 가로 레이아웃 노출. */
+  @media (max-width: 1100px) {
+    .page { max-width: 720px; padding: 24px; }
+    .swap-card {
+      padding: 24px;
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "from"
+        "arrow"
+        "to"
+        "rate"
+        "action";
+      column-gap: 0;
+    }
+    .swap-card > .rate-info { margin-top: 16px; }
+  }
+
+  /* (v647) swap-from/to padding 24 → 16, row-label margin 12 → 8, gap 16 → 12. */
+  .swap-from, .swap-to {
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .swap-row-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--platinum); }
+  .swap-input-wrap { display: flex; align-items: center; gap: 12px; }
+  /* (v647) swap-input font 36 → 30px. */
+  .swap-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--platinum);
+    font-family: 'Unbounded';
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: -2px;
+    width: 100%;
+    transition: opacity 0.2s;
+    /* (2026-05-08) Make the native blinking caret highly visible inside
+       the editable TO field so users immediately notice where to type. */
+    caret-color: var(--aurora-1);
+  }
+  .swap-input::-webkit-outer-spin-button,
+  .swap-input::-webkit-inner-spin-button { display: none; }
+
+  /*
+    (2026-05-08) "Type here" hint — pulses a soft purple ring around the TO
+    card while it's empty so the user sees the input demands attention.
+    The pulse stops as soon as a quote is fetched (.swap-to--quoted /
+    .swap-to--fetching / .swap-to--paused), or on focus, so it never
+    competes with the user's typing. Native blinking caret is what the
+    operator asked for; this ring is a complementary cue for users who
+    haven't tabbed into the field yet.
+  */
+  @keyframes swapToPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.0);
+    }
+    50% {
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18);
+    }
+  }
+  .swap-to.swap-to--empty {
+    animation: swapToPulse 1.6s ease-in-out infinite;
+  }
+  .swap-to.swap-to--empty:focus-within {
+    animation: none;
+  }
+
+  /*
+    (2026-05-08) Fake blinking caret for the TO input.
+      The native caret only appears while the input is focused. Operator
+      wanted users to see a "ㅣ" cursor pulsing even before they click,
+      so we draw a CSS pseudo-element next to the input that mimics a
+      caret. Visibility rules:
+        - Empty + unfocused → fake caret visible, placeholder hidden so
+          the caret stands alone (otherwise it overlaps the "0" glyph).
+        - Focused → fake caret hidden, native caret takes over.
+        - Has value → fake caret hidden, value renders normally.
+      Uses :has() so the wrapper can react to the input's state. Modern
+      browsers (Chrome 105+, Safari 15.4+, Firefox 121+) support :has().
+  */
+  @keyframes fakeCaretBlink {
+    0%, 50%   { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
+  }
+  .swap-to .swap-input-wrap {
+    position: relative;
+  }
+  .swap-to .swap-input-wrap::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-52%);
+    width: 3px;
+    height: 40px;
+    background: var(--aurora-1);
+    border-radius: 1px;
+    animation: fakeCaretBlink 1.06s steps(2, jump-none) infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* Hide the fake caret when the input is focused (native caret blinks
+     in its place) or when it has a typed value. Both are evaluated via
+     :has() on the wrapper. */
+  .swap-to .swap-input-wrap:focus-within::before,
+  .swap-to .swap-input-wrap:has(input:not(:placeholder-shown))::before {
+    display: none;
+  }
+  /* Hide the placeholder while the fake caret is showing so the caret
+     doesn't overlap the "0" text. When the user focuses or types, the
+     placeholder/value handles itself naturally. */
+  .swap-to .swap-input-wrap:not(:focus-within) #swapToAmount::placeholder {
+    color: transparent;
+  }
+  .swap-token {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--glass);
+    border: 1px solid var(--line-strong);
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+  /* (v605) gradient → 단색 (로고 5색).
+     (v630) <img data-token-logo> 패턴으로 전환 — silica-data-bind.js 가
+     /api/public/config.silica_logo_urls 에서 admin 업로드 URL 을 src 에
+     주입. div+글리프 마크업도 호환 유지 (CSS 양쪽 모두 지원). */
+  .swap-token-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue'; font-size: 14px;
+    object-fit: contain;
+  }
+  /* img.swap-token-icon 의 경우 백그라운드 컬러는 frame 으로, 실제 로고는
+     image src 로 노출. padding 으로 로고가 원 가장자리에 닿지 않게. */
+  img.swap-token-icon { padding: 3px; background-clip: padding-box; }
+  .swap-token-icon.silica { background: var(--logo-blue); color: #FFFFFF; }
+  .swap-token-icon.sto { background: var(--logo-violet); color: #FFFFFF; }
+  .swap-token-name { font-family: 'Oswald'; font-weight: 600; letter-spacing: 1px; }
+
+  /* (v605) gradient → 단색 (logo-violet).
+     (v647) swap-arrow 56→44, font 24→20, margin -16→-14. */
+  .swap-arrow {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #FFFFFF;
+    margin: -14px auto;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 3px 0 0 var(--logo-violet-dark);
+  }
+  .swap-arrow.locked { cursor: not-allowed; }
+  .swap-arrow-locked-tag {
+    position: absolute;
+    top: -8px; right: -8px;
+    background: var(--warning);
+    color: var(--abyss);
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  /* (v605) swap-balance 12→14px, weight 700, color 옅음→진함. */
+  .swap-balance { font-size: 14px; font-weight: 700; color: var(--ice); }
+
+  /* (v647) rate-info margin 20→0, padding 16→12, row padding 6→4. */
+  .rate-info {
+    margin-top: 0;
+    padding: 12px 14px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    font-size: 13px;
+  }
+  .rate-info-row { display: flex; justify-content: space-between; padding: 4px 0; align-items: center; }
+  .rate-info-row.first { padding-bottom: 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; font-weight: 700; }
+
+  /* (2026-05-07) Auto-quote pattern — quote TTL progress bar + fetching
+     spinner + frozen state when the firm-quote modal is open. The TTL bar
+     sits flush at the top of the TO card and depletes over the server's
+     quote TTL (10s); when nearing zero a fresh quote is auto-fetched and
+     the bar refills. Quote freezes (bar pinned amber) while the modal is
+     up so the displayed value can't move out from under the user. */
+  /* (v605) gradient → 단색. */
+  .quote-ttl-bar {
+    position: absolute;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--logo-violet);
+    width: 0%;
+    transition: width 0.4s linear;
+    pointer-events: none;
+  }
+  .swap-to--quoted .quote-ttl-bar { width: 100%; transition: width 10s linear; }
+  .swap-to--paused .quote-ttl-bar {
+    background: var(--logo-orange);
+  }
+  .swap-to--fetching .swap-input { opacity: 0.4; }
+  .swap-to-spinner {
+    display: none;
+    position: absolute;
+    right: 24px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px;
+    border: 2px solid var(--line);
+    border-top-color: var(--aurora-1);
+    border-radius: 50%;
+    animation: swapSpin 0.7s linear infinite;
+  }
+  .swap-to--fetching .swap-to-spinner { display: block; }
+  @keyframes swapSpin { to { transform: translateY(-50%) rotate(360deg); } }
+  .swap-to--empty .swap-input::placeholder { color: var(--steel); font-style: italic; }
+  @keyframes swapStaleFlash {
+    0%   { background: rgba(245, 158, 11, 0.20); }
+    100% { background: transparent; }
+  }
+  .swap-to--rate-changed { animation: swapStaleFlash 1.6s ease-out; }
+
+  /* Manual refresh icon (↻) inline next to Applied Rate */
+  .rate-refresh-btn {
+    background: transparent; border: 1px solid var(--line);
+    color: var(--aurora-3);
+    border-radius: 6px;
+    width: 24px; height: 24px;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 12px;
+  }
+  .rate-refresh-btn:hover { background: var(--aurora-3); color: #fff; }
+  .rate-refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .rate-refresh-btn.spinning { animation: swapSpin 0.7s linear infinite; }
+
+  /* Firm-quote confirm modal — Binance Convert style. Opens on Execute
+     click, freezes the displayed quote, gives the user a clean 8-second
+     window to confirm at the exact rate. Underlying auto-refresh pauses
+     while the modal is up. */
+  .firm-quote-modal {
+    display: none;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 9999; align-items: center; justify-content: center; padding: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .firm-quote-modal.open { display: flex; }
+  .firm-quote-modal .panel {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    max-width: 460px; width: 100%; padding: 24px; color: #111;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+  }
+  .firm-quote-modal .head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .firm-quote-modal h3 {
+    font-family: 'Unbounded', sans-serif; font-size: 20px; margin: 0;
+    color: var(--aurora-1);
+  }
+  .firm-quote-modal .closex {
+    background: transparent; border: none;
+    color: #6b7280; font-size: 22px; line-height: 1; cursor: pointer;
+    padding: 2px 6px;
+  }
+  .firm-quote-modal .sub {
+    font-size: 13px; color: #6b7280; margin-bottom: 18px; line-height: 1.5;
+  }
+  .firm-quote-modal .row {
+    display: flex; justify-content: space-between; padding: 10px 0;
+    font-size: 14px;
+  }
+  .firm-quote-modal .row + .row { border-top: 1px solid #f3f4f6; }
+  .firm-quote-modal .row .lbl { color: #6b7280; }
+  .firm-quote-modal .row .val { font-family: 'Unbounded'; font-weight: 700; color: #111; }
+  .firm-quote-modal .receive { font-size: 18px; }
+  .firm-quote-modal .receive .val { color: var(--aurora-1); font-size: 22px; }
+
+  .firm-quote-modal .timer-wrap {
+    margin: 18px 0 6px; padding: 12px 14px;
+    background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 8px;
+    text-align: center;
+  }
+  .firm-quote-modal .timer {
+    font-family: 'Unbounded'; font-size: 14px; font-weight: 700;
+    color: var(--aurora-1);
+  }
+  .firm-quote-modal .timer.danger { color: #dc2626; }
+  .firm-quote-modal .timer-bar {
+    margin-top: 8px; height: 4px;
+    background: #e5e7eb; border-radius: 2px; overflow: hidden;
+  }
+  /* (v605) gradient → 단색. */
+  .firm-quote-modal .timer-fill {
+    height: 100%; width: 0%;
+    background: var(--logo-violet);
+    transition: width 0.4s linear;
+  }
+  .firm-quote-modal.open .timer-fill { transition: width var(--fq-ttl, 8s) linear; }
+  .firm-quote-modal .timer-fill.danger { background: var(--logo-red); }
+
+  .firm-quote-modal .actions {
+    display: flex; gap: 8px; margin-top: 16px;
+  }
+  .firm-quote-modal .actions button {
+    flex: 1; padding: 12px; border: none; border-radius: 8px;
+    font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 13px;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  }
+  .firm-quote-modal .btn-cancel { background: #f3f4f6; color: #374151; }
+  .firm-quote-modal .btn-cancel:hover { background: #e5e7eb; }
+  /* (v605) gradient → 단색 violet. */
+  .firm-quote-modal .btn-confirm {
+    background: var(--logo-violet);
+    color: #fff;
+  }
+  .firm-quote-modal .btn-confirm:hover:not(:disabled) {
+    background: var(--logo-violet-dark);
+  }
+  .firm-quote-modal .btn-confirm:disabled {
+    opacity: 0.4; cursor: not-allowed;
+    background: #9ca3af;
+  }
+
+  /* (v647) auto-quote-status margin 8→4, min-height 20→16. */
+  .auto-quote-status {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--steel);
+    text-align: center;
+    min-height: 16px;
+    line-height: 1.4;
+  }
+
+  /*
+    (2026-05-08) FROM-card inline notice. Earlier the swap engine surfaced
+    warnings ("Silica amount too small to mint a whole STO", "Insufficient
+    USDT for fee") only at the very bottom of the card via #quoteCountdown,
+    which scrolled out of view on long screens. The new .swap-from-notice
+    block sits flush under the FROM card so the user sees blockers right
+    next to the input they're editing. Hidden by default (display:none)
+    and toggled to flex when there's a message.
+  */
+  .swap-from-notice {
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid;
+    font-size: 13px;
+    line-height: 1.45;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+  }
+  .swap-from-notice.show { display: flex; }
+  .swap-from-notice .icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .swap-from-notice .body { flex: 1; }
+  .swap-from-notice.warn {
+    background: rgba(245, 158, 11, 0.10);
+    border-color: rgba(245, 158, 11, 0.40);
+    color: #b45309;
+  }
+  .swap-from-notice.danger {
+    background: rgba(220, 38, 38, 0.10);
+    border-color: rgba(220, 38, 38, 0.40);
+    color: #991b1b;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v760) MOBILE RAIL UNIFICATION — landing v756 동일 원칙.
+     기존 @media (max-width: 1100px) 가 padding 24px 적용했으나 모바일에서
+     여전히 큼 + 인풋 font-size 30px iOS 줌 발동 가능.
+     Revert: 본 v760 블록 전체 삭제하면 1100px 룰만 유지.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="swap"] { --mobile-rail: 16px; }
+
+    .page { padding: 16px var(--mobile-rail) !important; }
+    .swap-card { padding: var(--mobile-rail) !important; }
+    .swap-from, .swap-to { padding: 14px !important; }
+
+    /* iOS Safari 자동 줌 방지: focus 시 font-size < 16px 면 자동 줌 → 16px 보장. */
+    .swap-input { font-size: 24px !important; letter-spacing: -1px; min-width: 0; }
+    .swap-input:focus { font-size: 24px !important; }
+    /* (참고) input 의 'inputmode=numeric' 가 있어 일반 키패드 안 뜨지만, 일부
+       brower 는 font-size 16 미만 시 줌. 24px 사용으로 안전. */
+
+    .swap-row-label { font-size: 11px !important; letter-spacing: 1px !important; }
+    .swap-balance { font-size: 11px !important; }
+
+    /* (v765) 운영자 요청: 모바일 layout 재설계 — 토큰 칩을 상단에, 입력칸을
+       하단에 분리. TO 섹션은 MAX 버튼을 토큰 칩 우측에 배치.
+       HTML 변경 없이 CSS flex order + flex-basis:100% 로 시각 순서 재배열.
+
+       Layout (모바일):
+         FROM:
+           Row 1: [SILICA 칩]
+           Row 2: [입력칸 ─ 전체 폭]
+
+         TO:
+           Row 1: [SilicaSTO 칩 ─────── MAX]
+           Row 2: [입력칸 ─ 전체 폭]
+
+       구현:
+         - swap-input-wrap: flex-wrap:wrap (자식 자동 줄바꿈)
+         - swap-token: order:1 (가장 먼저 표시)
+         - MAX 버튼: order:2 + margin-left:auto (칩 우측으로 push)
+         - swap-input: order:3 + flex-basis:100% (전체 폭으로 다음 줄)
+    */
+    .swap-input-wrap {
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+    .swap-input-wrap .swap-token {
+      order: 1;
+      padding: 8px 12px !important;
+      gap: 8px !important;
+      flex-shrink: 1;
+      min-width: 0;
+    }
+    .swap-input-wrap .swap-token-icon { width: 24px !important; height: 24px !important; }
+    .swap-input-wrap .swap-token-name {
+      font-size: 14px !important;
+      letter-spacing: 0.5px !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* MAX 버튼 (TO 섹션) — 토큰 칩 우측에 배치 */
+    .swap-input-wrap .rate-refresh-btn,
+    .swap-input-wrap #swapToMaxBtn {
+      order: 2;
+      margin-left: auto;            /* 칩과 MAX 사이 공간 → MAX 를 우측으로 */
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      padding: 0 14px !important;
+      min-width: 48px;
+      height: 32px;
+      font-size: 12px !important;
+      letter-spacing: 1px !important;
+    }
+    /* 로딩 스피너 — MAX 옆에 (TO 섹션) */
+    .swap-input-wrap .swap-to-spinner {
+      order: 2;
+      flex-shrink: 0;
+    }
+    /* 입력칸 — 다음 줄 전체 폭 */
+    .swap-input-wrap .swap-input {
+      order: 3;
+      flex-basis: 100% !important;
+      width: 100% !important;
+      font-size: 28px !important;
+      letter-spacing: -1px;
+      min-width: 0;
+      padding: 4px 0;
+    }
+    .swap-input-wrap .swap-input:focus { font-size: 28px !important; }
+
+    /* rate-info 카드 — 1100px 이하에서 margin-top 16 이미 적용 */
+    .rate-info { padding: 14px var(--mobile-rail) !important; }
+
+    /* swap-action-row 버튼 — 모바일 fit */
+    .swap-action-row { gap: 8px !important; }
+    .swap-action-row .btn { font-size: 13px !important; padding: 12px 16px !important; }
+
+    /* 페이지 패널 (정보 패널) */
+    .panel { padding: 14px var(--mobile-rail) !important; }
+
+    /* 안전망 */
+    body[data-page="swap"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="swap"] > main { max-width: 100vw !important; overflow-x: clip; }
+    body[data-page="swap"] *, body[data-page="swap"] *::before, body[data-page="swap"] *::after { box-sizing: border-box; }
+    body[data-page="swap"] img, body[data-page="swap"] video { max-width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body data-page="swap">
+<div class="page">
+  <!-- (v647) mb-xl(40) → mb-sm(8), h1 font 축소 (clamp). -->
+  <div class="text-center mb-sm">
+    <h1 class="heading-lg" style="font-size: clamp(32px, 4.5vw, 48px); line-height: 1;">Swap</h1>
+  </div>
+
+  <div class="card-aurora card swap-card">
+    <!--
+      (2026-05-08) Direction reversed: user now types the desired
+      SilicaSTO output, and the required Silica input is computed and
+      shown as readonly. Earlier flow (Silica input → STO output) used
+      Math.floor on the gross USDT, which silently truncated fractional
+      STO and shorted the user. The new flow exchanges integer STO ↔
+      exact Silica with no rounding loss because:
+          silica_in = ceil(sto_desired / price * 1e6) / 1e6
+        gross_usdt = silica_in × price ≈ sto_desired (rounded up to the
+                     6-decimal Silica precision)
+        sto_out    = floor(gross_usdt) === sto_desired  ✓
+      The user always receives the exact STO they typed, and pays at
+      most an extra 1e-6 Silica beyond the math-perfect amount as a
+      precision buffer.
+    -->
+
+    <!-- FROM (readonly — computed Silica payment) -->
+    <div class="swap-from">
+      <div class="swap-row-label">
+        <span>FROM</span>
+        <span class="swap-balance" id="swapFromBalance">Balance: 0.00</span>
+      </div>
+      <div class="swap-input-wrap">
+        <input type="text" class="swap-input" id="swapFromAmount" value="" placeholder="-" readonly>
+        <!-- (v630) 운영자 점검: 'SILICA/STO 로고가 관리자 등록 로고로 나오는지.'
+             기존: <div class="swap-token-icon silica">◆</div> (글리프 하드코딩).
+             변경: <img data-token-logo="silica"> → silica-data-bind.js 가
+             /api/public/config.silica_logo_urls 에서 admin 업로드 URL src 주입. -->
+        <div class="swap-token">
+          <img class="swap-token-icon silica" src="assets/images/token-silica.svg" alt="Silica" data-token-logo="silica">
+          <span class="swap-token-name">SILICA</span>
+        </div>
+      </div>
+      <div class="swap-balance text-mono mt-sm" id="swapFromConv">≈ - USDT</div>
+      <!--
+        (2026-05-08) Inline notice: shows blockers/warnings (insufficient
+        USDT for fee, insufficient Silica balance, quote fetch failures)
+        directly under the FROM input. setStatus() in the swap engine
+        mirrors warning/danger messages here in addition to the
+        quoteCountdown line at the bottom.
+      -->
+      <div id="swapFromNotice" class="swap-from-notice" role="alert" aria-live="polite">
+        <span class="icon" aria-hidden="true">⚠</span>
+        <span class="body" id="swapFromNoticeText"></span>
+      </div>
+    </div>
+
+    <div class="swap-arrow locked">
+      ↓
+      <span class="swap-arrow-locked-tag">🔒</span>
+    </div>
+
+    <!--
+      TO (editable — desired SilicaSTO). Typing here triggers the same
+      auto-quote debounce + TTL bar pattern that used to live on FROM;
+      the only difference is the math direction (TO → FROM instead of
+      FROM → TO).
+    -->
+    <div class="swap-to swap-to--empty" id="swapToBlock">
+      <div class="quote-ttl-bar" id="quoteTtlBar"></div>
+      <div class="swap-row-label">
+        <span>TO</span>
+        <span class="swap-balance" id="swapToBalance">Balance: 0.00</span>
+      </div>
+      <div class="swap-input-wrap">
+        <!--
+          autofocus on page load so the blinking caret appears in the TO
+          field immediately, signaling this is where the user types. A
+          fallback focus() is dispatched in JS after RwaCore boots in
+          case another script steals focus during init.
+        -->
+        <input type="text" class="swap-input" id="swapToAmount" value="" placeholder="0" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autofocus>
+        <!--
+          MAX button now fills the TO field with the maximum integer STO
+          the user can mint from their full Silica balance:
+            max_sto = floor(silica_balance × price)
+          Reads silica_balance from #swapFromBalance (kept current by
+          silica-data-bind.js) and the price from the most recent quote.
+        -->
+        <button id="swapToMaxBtn" type="button" class="rate-refresh-btn" style="width:auto; padding:0 10px; font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px;">MAX</button>
+        <div class="swap-to-spinner"></div>
+        <!-- (v630) STO 토큰 로고도 admin 업로드 로고로 — data-token-logo 패턴. -->
+        <div class="swap-token">
+          <img class="swap-token-icon sto" src="assets/images/token-silicasto.svg" alt="SilicaSTO" data-token-logo="silicasto">
+          <span class="swap-token-name">SilicaSTO</span>
+        </div>
+      </div>
+      <div class="swap-balance text-mono mt-sm" id="swapToConv">≈ - USDT (1:1 peg)</div>
+    </div>
+
+    <!-- Rate Info -->
+    <div class="rate-info">
+      <div class="rate-info-row first">
+        <span>Applied Rate</span>
+        <span>
+          <span class="text-mono text-cyan" data-applied-rate>—</span>
+          <button type="button" class="rate-refresh-btn" id="manualRefreshBtn" title="Refresh quote now">↻</button>
+        </span>
+      </div>
+      <div class="rate-info-row">
+        <span class="text-muted">Silica Price</span>
+        <span class="text-mono" data-silica-price>—</span>
+      </div>
+      <div class="rate-info-row">
+        <span class="text-muted">Price Updated</span>
+        <span class="text-mono" id="priceUpdatedLabel">—</span>
+      </div>
+      <div class="rate-info-row">
+        <span class="text-muted" id="swapFeeRowLabel">
+          Swap Fee
+          <!--
+            (2026-05-08) Inline hint that surfaces the minimum-fee policy
+            (e.g. "min 1 USDT or 0.15%"). Populated by applyQuoteToUI() at
+            quote time using the current fee_pct from the server response,
+            so changes to swap_fee_pct in admin settings flow through
+            automatically without an HTML edit.
+          -->
+          <span id="swapFeeHint" style="display:block;font-size:11px;color:var(--steel-dim);font-weight:500;letter-spacing:0;margin-top:2px;"></span>
+        </span>
+        <span class="text-mono" id="swapFeeLabel">—</span>
+      </div>
+      <!--
+        (2026-05-07) Fee is paid in USDT (deducted from balances.usdt on
+        execute). Show the user's USDT holding here so they can see at a
+        glance whether they have enough to cover the fee. Row turns red
+        if user_usdt < fee_usdt — Execute is then disabled with an
+        "Insufficient USDT for fee" status line.
+      -->
+      <div class="rate-info-row" id="swapUsdtBalanceRow">
+        <span class="text-muted" id="swapUsdtBalanceLabel">Your USDT (for fee)</span>
+        <span class="text-mono" id="swapUsdtBalance">—</span>
+      </div>
+    </div>
+
+    <!-- (v647) mt-md(16) → mt-sm(8), btn-lg → btn + inline padding (lg 너무 큼). -->
+    <div class="swap-action-row mt-sm">
+      <button id="executeSwapBtn" class="btn btn-primary btn-block" type="button" style="padding: 11px;" disabled>Execute Swap</button>
+      <div id="quoteCountdown" class="auto-quote-status">Type the FROM amount to fetch the latest swap rate.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Firm-quote confirm modal -->
+<div class="firm-quote-modal" id="firmQuoteModal" role="dialog" aria-modal="true" aria-labelledby="fqTitle">
+  <div class="panel">
+    <div class="head">
+      <h3 id="fqTitle">Confirm Swap</h3>
+      <button type="button" class="closex" id="fqCloseX" aria-label="Close">×</button>
+    </div>
+    <div class="sub" id="fqSub">You're about to swap at the firm rate below. This rate is locked for the next 8 seconds — confirm before the timer ends.</div>
+
+    <div class="row receive">
+      <span class="lbl" id="fqReceiveLbl">You receive</span>
+      <span class="val" id="fqReceive">—</span>
+    </div>
+    <div class="row">
+      <span class="lbl" id="fqPayLbl">You pay</span>
+      <span class="val" id="fqPay">—</span>
+    </div>
+    <div class="row">
+      <span class="lbl" id="fqRateLbl">Locked rate</span>
+      <span class="val" id="fqRate">—</span>
+    </div>
+    <div class="row">
+      <span class="lbl" id="fqPriceLbl">Silica price</span>
+      <span class="val" id="fqPrice">—</span>
+    </div>
+    <div class="row">
+      <span class="lbl" id="fqFeeLbl">Swap fee</span>
+      <span class="val" id="fqFee">0% (Free)</span>
+    </div>
+    <div class="row" id="fqUsdtBalanceRow">
+      <span class="lbl" id="fqUsdtBalanceLbl">USDT balance after swap</span>
+      <span class="val" id="fqUsdtBalance">—</span>
+    </div>
+
+    <div class="timer-wrap">
+      <div class="timer" id="fqTimer">⏱ Expires in 8s</div>
+      <div class="timer-bar"><div class="timer-fill" id="fqTimerFill"></div></div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-cancel" id="fqCancel">Cancel</button>
+      <button type="button" class="btn-confirm" id="fqConfirm">Confirm Swap</button>
+    </div>
+  </div>
+</div>
+
+<!--
+  (2026-05-08) Swap success modal — replaces the unreliable window.alert
+  that browsers were silently suppressing. Same firm-quote-modal styling
+  pattern (backdrop + centered Aurora panel) but with a green check icon
+  and an OK button. Fires after POST /api/swap/execute succeeds.
+-->
+<style>
+  .swap-success-modal {
+    position: fixed; inset: 0; z-index: 6200;
+    display: none; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .swap-success-modal.open { display: flex; }
+  .swap-success-modal .ss-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px);
+  }
+  @keyframes swapSuccessIn { 0% { transform: translateY(20px) scale(0.94); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+  @keyframes swapSuccessIcon { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  .swap-success-modal .ss-panel {
+    position: relative; width: min(440px, calc(100vw - 32px));
+    background: var(--panel, #fff);
+    border: 1.5px solid var(--border-strong, #d1d5db);
+    border-radius: 20px;
+    padding: 32px 28px 24px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    animation: swapSuccessIn 0.32s cubic-bezier(.2,.8,.25,1.05);
+  }
+  /* (v605) gradient → 단색 logo-green. */
+  .swap-success-modal .ss-icon {
+    width: 72px; height: 72px; margin: 0 auto 18px;
+    border-radius: 50%;
+    background: var(--logo-green);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 0 0 var(--logo-green-dark);
+    animation: swapSuccessIcon 0.5s cubic-bezier(.2,.8,.25,1.4) 0.05s both;
+  }
+  .swap-success-modal .ss-title {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-size: 20px; font-weight: 700; color: var(--text, #111);
+    margin: 0 0 16px; letter-spacing: -0.01em;
+  }
+  .swap-success-modal .ss-summary {
+    background: var(--glass-2, rgba(0,0,0,0.03));
+    border: 1px solid var(--line, rgba(0,0,0,0.08));
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    text-align: left;
+  }
+  .swap-success-modal .ss-row {
+    display: flex; justify-content: space-between; gap: 12px;
+    font-size: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .swap-success-modal .ss-row .ss-k { color: var(--muted, #6b7280); }
+  .swap-success-modal .ss-row .ss-v { font-weight: 700; color: var(--text, #111); }
+  .swap-success-modal .ss-row.ss-out .ss-v { color: #059669; font-family: 'Unbounded', monospace; font-size: 15px; }
+  .swap-success-modal .ss-foot { display: flex; justify-content: center; }
+  /* (v605) gradient → 단색 logo-violet. */
+  .swap-success-modal .ss-ok {
+    width: 100%; padding: 12px;
+    border: none; border-radius: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700; font-size: 14px;
+    letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer;
+    background: var(--logo-violet);
+    color: #fff;
+  }
+  .swap-success-modal .ss-ok:hover { background: var(--logo-violet-dark); }
+</style>
+<div id="swapSuccessModal" class="swap-success-modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="ss-backdrop" data-ss-dismiss="1"></div>
+  <div class="ss-panel">
+    <div class="ss-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"></path>
+      </svg>
+    </div>
+    <h2 class="ss-title" id="ssTitle">Swap Successful</h2>
+    <div class="ss-summary">
+      <div class="ss-row"><span class="ss-k" id="ssPaidLbl">Paid</span><span class="ss-v" id="ssPaid">—</span></div>
+      <div class="ss-row ss-out"><span class="ss-k" id="ssReceivedLbl">Received</span><span class="ss-v" id="ssReceived">—</span></div>
+      <div class="ss-row"><span class="ss-k" id="ssFeeLbl">Fee</span><span class="ss-v" id="ssFee">—</span></div>
+      <div class="ss-row"><span class="ss-k" id="ssRateLbl">Locked rate</span><span class="ss-v" id="ssRate">—</span></div>
+      <div class="ss-row"><span class="ss-k" id="ssBalLbl">USDT balance</span><span class="ss-v" id="ssBal">—</span></div>
+    </div>
+    <div class="ss-foot">
+      <button type="button" class="ss-ok" id="ssOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+
+<script>
+/*
+  (2026-05-07) Swap auto-quote + firm-quote confirm flow.
+
+  Backend endpoints (unchanged from the previous Sync-Price design):
+    POST /api/swap/quote    → { quote_token, silica_price_usdt, expires_at,
+                                ttl_seconds, applied_rate, fee_pct, mode,
+                                source, updated_at }
+    POST /api/swap/execute  → { silica_in, sto_out,
+                                new_silica_balance, new_sto_balance }
+                              (410 if quote expired/consumed,
+                               422 if Silica balance short)
+
+  Client behavior:
+    [empty]                 — FROM is blank, TO blank, Execute disabled.
+    [user types in FROM]
+       → debounce 800ms (DEBOUNCE_MS)
+       → fetchQuote(amount) — POST /api/swap/quote
+       → currentQuote saved (token + price + expiresAt)
+       → TO populated, TTL bar starts at 100% and depletes over the
+         server-issued ttl_seconds window.
+    [TTL nears zero]
+       → fetchQuote(amount, isRefresh=true) — auto re-quote, TTL resets.
+       → If document is hidden, skip refresh until visible (saves backend).
+    [user clicks Execute]
+       → openConfirmModal() — captures currentQuote into modalLockedQuote,
+         pauses background refresh, freezes TTL bar amber.
+       → modal countdown (MODAL_TTL_MS = 8s) runs. ≤3s → red.
+    [user clicks Confirm in modal]
+       → POST /api/swap/execute with quote_token. Server re-validates
+         freshness; if 410 → close modal + auto re-fetch + reopen.
+    [user clicks Cancel / X / outside]
+       → closeModal() — resumes background refresh by re-fetching.
+
+  Race-condition guards:
+    - fetchSeq increments per request; stale callbacks bail.
+    - Typing in FROM is suppressed while modal is open.
+    - background auto-refresh checks pageRefreshPaused before firing.
+*/
+(function () {
+  // DOM refs
+  const fromAmt    = document.getElementById('swapFromAmount');
+  const toAmt      = document.getElementById('swapToAmount');
+  const block      = document.getElementById('swapToBlock');
+  const ttlBar     = document.getElementById('quoteTtlBar');
+  const fromConv   = document.getElementById('swapFromConv');
+  const toConv     = document.getElementById('swapToConv');
+  const updatedEl  = document.getElementById('priceUpdatedLabel');
+  const feeLabel   = document.getElementById('swapFeeLabel');
+  const feeHint    = document.getElementById('swapFeeHint');
+  const cdEl       = document.getElementById('quoteCountdown');
+  const execBtn    = document.getElementById('executeSwapBtn');
+  const refreshBtn = document.getElementById('manualRefreshBtn');
+  const appliedRateEls = document.querySelectorAll('[data-applied-rate]');
+  const priceEls       = document.querySelectorAll('[data-silica-price]');
+
+  // Modal refs
+  const modal      = document.getElementById('firmQuoteModal');
+  const fqTitle    = document.getElementById('fqTitle');
+  const fqSub      = document.getElementById('fqSub');
+  const fqReceive  = document.getElementById('fqReceive');
+  const fqPay      = document.getElementById('fqPay');
+  const fqRate     = document.getElementById('fqRate');
+  const fqPrice    = document.getElementById('fqPrice');
+  const fqFee      = document.getElementById('fqFee');
+  const fqTimer    = document.getElementById('fqTimer');
+  const fqTimerFill= document.getElementById('fqTimerFill');
+  const fqReceiveLbl = document.getElementById('fqReceiveLbl');
+  const fqPayLbl     = document.getElementById('fqPayLbl');
+  const fqRateLbl    = document.getElementById('fqRateLbl');
+  const fqPriceLbl   = document.getElementById('fqPriceLbl');
+  const fqFeeLbl     = document.getElementById('fqFeeLbl');
+  const fqUsdtBalanceLbl = document.getElementById('fqUsdtBalanceLbl');
+  const fqUsdtBalance    = document.getElementById('fqUsdtBalance');
+  const fqCancel   = document.getElementById('fqCancel');
+  const fqConfirm  = document.getElementById('fqConfirm');
+  const fqCloseX   = document.getElementById('fqCloseX');
+
+  // USDT balance display — populated by /api/swap/quote response.
+  const usdtBalanceEl    = document.getElementById('swapUsdtBalance');
+  const usdtBalanceRow   = document.getElementById('swapUsdtBalanceRow');
+  const usdtBalanceLabel = document.getElementById('swapUsdtBalanceLabel');
+  const fromBalEl = document.getElementById('swapFromBalance');
+  const toBalEl   = document.getElementById('swapToBalance');
+
+  if (!fromAmt || !toAmt || !block) return;
+
+  const DEBOUNCE_MS    = 800;
+  // (2026-05-08 v3) 운영자 요청으로 다시 8초로 복원 (28s 너무 길다).
+  //   만료 시 confirm 버튼이 '새로 받기' 로 바뀌어 클릭하면 새 quote
+  //   를 받아 재오픈하므로 짧은 TTL 에서도 dead-button 문제는 없다.
+  const TTL_MS_DEFAULT = 10_000;     // fallback if server doesn't return ttl_seconds
+  const MODAL_TTL_MS   = 8_000;
+
+  let debounceTimer = null;
+  let ttlExpiryTimer = null;
+  let elapsedSinceFetchTimer = null;
+  let modalCountdownTimer = null;
+  let fetchSeq = 0;
+  let currentQuote = null;          // { token, price, fee_pct, expiresAt, fetchedAt, source, mode }
+  let modalLockedQuote = null;      // Frozen copy used inside the modal
+  let modalLockedAmount = null;
+  let pageRefreshPaused = false;
+  let currentTtlMs = TTL_MS_DEFAULT;
+
+  // ── i18n: lang detection chain matches silica-data-bind.js ─────────
+  // (2026-05-08) Now returns the raw lang code (ko/en/ja/zh) instead of
+  //   collapsing to ko/en. Earlier the binary collapse mapped JA/ZH users
+  //   to 'ko', which then leaked Korean strings into JA/ZH locales.
+  function getLang() {
+    try {
+      const v = window.RwaI18n?.getLang?.() || window.RwaI18n?.lang?.()
+        || document.documentElement.getAttribute('data-rwa-lang')
+        || window.__RWA_I18N_BOOT_LANG__
+        || (localStorage.getItem('rwa_lang_user_v1') || 'en');
+      const raw = String(v || 'en').toLowerCase();
+      if (raw === 'en' || raw === 'ko' || raw === 'ja' || raw === 'zh') return raw;
+      return 'en';
+    } catch (_) { return 'en'; }
+  }
+  const isKorean = () => getLang() === 'ko';
+  // tx(ko, en, ja, zh) — JA/ZH fallback to EN when an explicit translation
+  // is not provided. This keeps existing tx(ko, en) call sites valid while
+  // letting new sites add JA/ZH variants.
+  const tx = (ko, en, ja, zh) => {
+    const lang = getLang();
+    if (lang === 'en') return en;
+    if (lang === 'ja') return ja ?? en;
+    if (lang === 'zh') return zh ?? en;
+    return ko;
+  };
+
+  function fmtUsd(n, max = 6) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return '-';
+    return v.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: max });
+  }
+
+  // ── State helpers ──────────────────────────────────────────────────
+  function setBlockState(...states) {
+    block.classList.remove(
+      'swap-to--empty', 'swap-to--fetching', 'swap-to--quoted',
+      'swap-to--paused', 'swap-to--rate-changed'
+    );
+    states.forEach((s) => block.classList.add(s));
+  }
+  /*
+    (2026-05-08) setStatus() also mirrors warning/danger messages into the
+    FROM-card inline notice (#swapFromNotice). Earlier the bottom-of-card
+    #quoteCountdown was the only place we surfaced blockers like
+    "Silica amount too small" or "Insufficient USDT for fee", which forced
+    users to scroll past the rate panel. The mirror copies the SAME text
+    upward and chooses warn vs danger styling from the color hint string.
+    Informational statuses (no color, or just '') hide the notice so it
+    doesn't shout when nothing is wrong.
+  */
+  const fromNotice     = document.getElementById('swapFromNotice');
+  const fromNoticeText = document.getElementById('swapFromNoticeText');
+  function setFromNotice(text, severity) {
+    if (!fromNotice) return;
+    if (!text || !severity) {
+      fromNotice.classList.remove('show', 'warn', 'danger');
+      if (fromNoticeText) fromNoticeText.textContent = '';
+      return;
+    }
+    fromNotice.classList.remove('warn', 'danger');
+    fromNotice.classList.add('show', severity);
+    if (fromNoticeText) fromNoticeText.textContent = text;
+  }
+  function inferSeverity(color) {
+    const c = String(color || '').toLowerCase();
+    if (!c) return null;
+    if (c.includes('danger') || c.includes('ef4444') || c.includes('dc2626')) return 'danger';
+    if (c.includes('warning') || c.includes('f59e0b') || c.includes('d97706') || c.includes('b45309')) return 'warn';
+    return null;
+  }
+  function setStatus(text, color) {
+    if (cdEl) {
+      cdEl.textContent = text;
+      cdEl.style.color = color || '';
+    }
+    setFromNotice(text, inferSeverity(color));
+  }
+  function setExecutable(canExecute) {
+    if (execBtn) execBtn.disabled = !canExecute;
+  }
+  function startTtlBar(ttlMs) {
+    if (!ttlBar) return;
+    ttlBar.style.transition = 'none';
+    ttlBar.style.width = '100%';
+    void ttlBar.offsetWidth;
+    ttlBar.style.transition = `width ${ttlMs}ms linear`;
+    ttlBar.style.width = '0%';
+  }
+  function stopTtlBar() {
+    if (!ttlBar) return;
+    ttlBar.style.transition = 'none';
+    ttlBar.style.width = '0%';
+  }
+  function freezeTtlBarAtCurrent() {
+    if (!ttlBar) return;
+    const computed = getComputedStyle(ttlBar).width;
+    ttlBar.style.transition = 'none';
+    ttlBar.style.width = computed;
+  }
+
+  function clearAllTimers() {
+    if (debounceTimer)             { clearTimeout(debounceTimer); debounceTimer = null; }
+    if (ttlExpiryTimer)            { clearTimeout(ttlExpiryTimer); ttlExpiryTimer = null; }
+    if (elapsedSinceFetchTimer)    { clearInterval(elapsedSinceFetchTimer); elapsedSinceFetchTimer = null; }
+  }
+
+  function startElapsedClock() {
+    if (elapsedSinceFetchTimer) clearInterval(elapsedSinceFetchTimer);
+    elapsedSinceFetchTimer = setInterval(() => {
+      if (!currentQuote || !updatedEl) return;
+      const sec = Math.floor((Date.now() - currentQuote.fetchedAt) / 1000);
+      const justNow = tx('방금', 'just now');
+      const ago     = (n) => tx(`${n}초 전`, `${n}s ago`);
+      const label   = sec === 0 ? justNow : ago(sec);
+      updatedEl.textContent = currentQuote.source ? `${currentQuote.source} · ${label}` : label;
+    }, 1000);
+  }
+
+  // ── Apply quote response to the page UI ─────────────────────────────
+  // (2026-05-08) Direction reversed. The user types desired STO into TO;
+  // we received the server price and computed silica_in = ceil(sto / price).
+  // Math model (must match backend swap.php execute):
+  //   silica_in   = ceil(sto_desired / price * 1e6) / 1e6   (computed client-side)
+  //   gross_usdt  = silica_in × price                       (≈ sto_desired)
+  //   fee_usdt    = gross_usdt × fee_pct / 100              (charged to balances.usdt)
+  //   sto_out     = floor(gross_usdt)                       === sto_desired ✓
+  // The user pays silica_in SILICA + fee_usdt USDT and receives EXACTLY
+  // the integer STO they asked for — no truncation loss.
+  // (2026-05-08) Swap fee policy (must match backend swap.php execute):
+  //   fee_pct_usdt = gross_usdt × fee_pct / 100
+  //   fee_usdt     = floor(max(SWAP_FEE_MIN_USDT, fee_pct_usdt) × 100) / 100
+  //   i.e. minimum 1 USDT, then truncated to 2 decimal places (cents).
+  const SWAP_FEE_MIN_USDT = 1.0;
+  function computeFeeUsdt(grossUsdt, feePct) {
+    if (!(grossUsdt > 0)) return 0;
+    const pctRaw = grossUsdt * (Number(feePct) || 0) / 100;
+    const lifted = Math.max(SWAP_FEE_MIN_USDT, pctRaw);
+    return Math.floor(lifted * 100) / 100;
+  }
+
+  function applyQuoteToUI(amount, q, stoDesiredHint, prevPrice) {
+    const newPrice = q.price;
+    const feePct = Number(q.fee_pct || 0);
+    const userUsdt = Number(q.user_usdt_balance ?? NaN);
+
+    const grossUsdt = amount * newPrice;
+    const feeUsdt   = (newPrice > 0 && amount > 0) ? computeFeeUsdt(grossUsdt, feePct) : 0;
+    // STO out is exactly what the user requested (the math is set up so
+    // gross_usdt rounds down to sto_desired). Fall back to floor(gross)
+    // for the very first-input case where we passed a placeholder amount.
+    const stoOut = (newPrice > 0 && amount > 0)
+      ? (stoDesiredHint > 0 ? stoDesiredHint : Math.floor(grossUsdt))
+      : 0;
+
+    const priceLabel = tx('시세', 'Price');
+    const pegSuffix  = tx('(1:1 페그)', '(1:1 peg)');
+
+    // FROM field (Silica payment) — readonly, populated by us. Integer-only
+    //   per operator request (silicaInForSto rounds up to integer above).
+    if (fromAmt) fromAmt.value = (amount > 0) ? amount.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
+    // TO field is the user input (don't overwrite while the user is typing);
+    // only set it when MAX/refresh paths request it via stoDesiredHint.
+    if (toAmt && stoDesiredHint > 0 && Number(toAmt.value || 0) !== stoDesiredHint) {
+      toAmt.value = String(stoDesiredHint);
+    }
+    if (fromConv) {
+      fromConv.textContent = (newPrice > 0 && amount > 0)
+        ? `≈ ${grossUsdt.toLocaleString('en-US', { maximumFractionDigits: 4 })} USDT (${priceLabel} ${fmtUsd(newPrice)})`
+        : '≈ - USDT';
+    }
+    if (toConv) {
+      // (2026-05-08) Truncation note removed — the new flow is exact.
+      toConv.textContent = (newPrice > 0 && stoOut > 0)
+        ? `≈ ${stoOut.toFixed(2)} USDT ${pegSuffix}`
+        : `≈ - USDT ${pegSuffix}`;
+    }
+    if (feeLabel) {
+      // (2026-05-08) Show the actual charged fee (already floored to 2 dp,
+      //   min 1 USDT). The percent figure is informational; the trailing
+      //   "≈ X.XX USDT" is the real number that hits balances.usdt.
+      if (amount > 0 && feeUsdt > 0) {
+        const pctTxt = feePct > 0 ? `${feePct.toFixed(2)}% · ` : '';
+        feeLabel.textContent = `${pctTxt}${feeUsdt.toFixed(2)} USDT`;
+      } else if (feePct > 0) {
+        feeLabel.textContent = `${feePct.toFixed(2)}%`;
+      } else {
+        feeLabel.textContent = isKorean() ? '0% (무료)' : '0% (Free)';
+      }
+    }
+    // (2026-05-08) Inline policy hint under the "Swap Fee" label —
+    //   surfaces "min 1 USDT or X.XX%" so the user knows the floor before
+    //   they type. Falls back to the min-only message when fee_pct = 0.
+    if (feeHint) {
+      const minTxt = `${SWAP_FEE_MIN_USDT.toFixed(0)} USDT`;
+      feeHint.textContent = feePct > 0
+        ? tx(`최소 ${minTxt} 또는 ${feePct.toFixed(2)}%`,
+             `Min ${minTxt} or ${feePct.toFixed(2)}%`)
+        : tx(`최소 ${minTxt}`, `Min ${minTxt}`);
+    }
+
+    // (2026-05-07) USDT balance — show user's USDT holdings + insufficient
+    // gate. Server returns user_usdt_balance in /api/swap/quote response.
+    if (Number.isFinite(userUsdt) && usdtBalanceEl) {
+      usdtBalanceEl.textContent = `${userUsdt.toLocaleString('en-US', { maximumFractionDigits: 4 })} USDT`;
+      // Color the row red + add warning if user can't cover the fee.
+      const insufficient = (feeUsdt > 0) && (userUsdt + 1e-9 < feeUsdt);
+      if (insufficient && usdtBalanceRow) {
+        usdtBalanceRow.style.color = '#dc2626';
+        usdtBalanceRow.style.background = 'rgba(220, 38, 38, 0.06)';
+      } else if (usdtBalanceRow) {
+        usdtBalanceRow.style.color = '';
+        usdtBalanceRow.style.background = '';
+      }
+      // Cache for the Execute pre-flight check.
+      currentQuote && (currentQuote.user_usdt_balance = userUsdt);
+    }
+
+    const ratio = newPrice > 0 ? (1 / newPrice) : 0;
+    appliedRateEls.forEach((el) => {
+      el.textContent = newPrice > 0 ? `1 SilicaSTO = ${ratio.toFixed(2)} Silica` : '—';
+    });
+    priceEls.forEach((el) => {
+      el.textContent = newPrice > 0 ? `${fmtUsd(newPrice)} USDT` : '—';
+    });
+
+    // Subtle yellow flash when an auto-refresh changes the displayed
+    // value enough (>0.1% drift) so the user notices.
+    if (prevPrice && Math.abs(prevPrice - newPrice) / prevPrice > 0.001) {
+      block.classList.remove('swap-to--rate-changed');
+      void block.offsetWidth;
+      block.classList.add('swap-to--rate-changed');
+    }
+  }
+
+  // ── Real backend call via RwaCore.api (auto auth headers) ───────────
+  async function callApi(path, body) {
+    const api = window.RwaCore?.api;
+    if (typeof api !== 'function') {
+      throw new Error(tx('지갑 연결 후 다시 시도해 주세요.', 'Please connect the wallet and try again.'));
+    }
+    return api(path, { method: 'POST', body: body || {} });
+  }
+
+  // ── Fetch a fresh quote and apply it to the UI ──────────────────────
+  // (2026-05-08) opts.stoDesired is the integer STO the user typed in TO.
+  //   If present, we re-compute silica_in from the SERVER-returned price
+  //   so the math is exact even if our last-known price was stale. This
+  //   is what lets the user receive exactly N STO with no truncation.
+  async function fetchAndApply(amount, opts) {
+    const isRefresh = !!(opts && opts.isRefresh);
+    const stoDesired = Number(opts?.stoDesired || 0);
+    // (2026-06-17 v913) 미연결이면 quote(POST) 호출 스킵 — 자동 시세조회가 401 →
+    //   지갑연결 모달을 오발시키는 것을 방지. 시세 영역엔 안내만, 실행 시도 시엔
+    //   core.js 중앙 가드(지갑연결 모달)가 처리. 지갑 연결 후 입력/새로고침으로 재조회.
+    const _w = window.RwaCore?.getWallet?.();
+    if (!_w?.connected || !_w?.token) {
+      // (2026-06-17 v925) 미연결: execBtn 을 활성 유지 → 클릭 시 core.js 지갑연결 모달이
+      //   뜨도록(기존 setExecutable(false) 는 버튼을 disabled 시켜 클릭 자체가 무반응이었음).
+      try { if (execBtn) execBtn.disabled = false; } catch (_) {}
+      setStatus(tx('지갑을 연결하면 시세가 표시됩니다.', 'Connect your wallet to see the rate.'), '');
+      return;
+    }
+    const seq = ++fetchSeq;
+    stopTtlBar();
+    setBlockState('swap-to--fetching');
+    setStatus(isRefresh
+      ? tx('시세 갱신 중…', 'Refreshing rate…')
+      : tx('최신 시세 조회 중…', 'Fetching the latest rate…'),
+      '');
+    setExecutable(false);
+
+    try {
+      const r = await callApi('/api/swap/quote', { silica_amount: amount > 0 ? amount : null });
+      if (seq !== fetchSeq) return; // stale response
+
+      const price = Number(r?.silica_price_usdt || 0);
+      const token = String(r?.quote_token || '');
+      const feePct = Number(r?.fee_pct || 0);
+      const expiresIso = r?.expires_at;
+      const ttlSec = Number(r?.ttl_seconds || 10);
+
+      if (!(price > 0) || token.length !== 64) {
+        throw new Error(tx('서버 응답이 올바르지 않습니다.', 'Invalid server response.'));
+      }
+      const expiresAt = expiresIso ? Date.parse(expiresIso) : Date.now() + (ttlSec * 1000);
+      if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+        throw new Error(tx('서버에서 받은 만료 시각이 유효하지 않습니다.', 'Server-issued expiry is invalid.'));
+      }
+
+      // (2026-05-08) Capture the previous price BEFORE we overwrite
+      //   currentQuote — applyQuoteToUI uses it to flash the TO card
+      //   when the auto-refresh changes the rate. Reading currentQuote
+      //   inside applyQuoteToUI would always see the new value because
+      //   we update it just below.
+      const prevPrice = currentQuote?.price;
+
+      currentQuote = {
+        token, price, fee_pct: feePct,
+        expiresAt, fetchedAt: Date.now(),
+        source: r?.source || null,
+        mode: r?.mode || null,
+        // (2026-05-07) Cached for the Execute pre-flight + USDT row display.
+        user_usdt_balance: Number.isFinite(Number(r?.user_usdt_balance)) ? Number(r.user_usdt_balance) : NaN,
+      };
+      currentTtlMs = Math.max(2000, expiresAt - Date.now());
+
+      // Re-compute silica_in from the now-known server price so the user's
+      // requested STO is met exactly. The quote token was issued for the
+      // original `amount`; that's fine because the backend re-validates
+      // the actual silica_amount on /execute and the price is locked into
+      // the quote.
+      let effectiveAmount = amount;
+      if (stoDesired > 0) {
+        effectiveAmount = silicaInForSto(stoDesired, price);
+      }
+
+      applyQuoteToUI(effectiveAmount, currentQuote, stoDesired, prevPrice);
+      setBlockState('swap-to--quoted');
+      startTtlBar(currentTtlMs);
+      startElapsedClock();
+      if (updatedEl) updatedEl.textContent = currentQuote.source
+        ? `${currentQuote.source} · ${tx('방금', 'just now')}`
+        : tx('방금', 'just now');
+
+      // Pre-flight USDT-for-fee + Silica balance check.
+      // (2026-05-08) Use the canonical fee formula (min 1 USDT, 2-dp floor)
+      // so the gate matches what the backend will actually charge.
+      const grossForFee = effectiveAmount * price;
+      const feeForCheck = computeFeeUsdt(grossForFee, feePct);
+      const usdtAvail = currentQuote.user_usdt_balance;
+      const usdtInsufficient = (feeForCheck > 0) && Number.isFinite(usdtAvail) && (usdtAvail + 1e-9 < feeForCheck);
+
+      // Insufficient Silica check using visible balance row.
+      const balText2 = String(document.getElementById('swapFromBalance')?.textContent || '');
+      const balDigits2 = balText2.replace(/,/g, '').match(/[0-9]+(?:\.[0-9]+)?/);
+      const silicaAvail = balDigits2 ? Number(balDigits2[0]) : NaN;
+      const silicaInsufficient = Number.isFinite(silicaAvail) && (silicaAvail + 1e-9 < effectiveAmount);
+
+      if (usdtInsufficient) {
+        setStatus(
+          tx(`수수료 ${feeForCheck.toFixed(2)} USDT 가 필요하지만 보유 USDT 가 ${usdtAvail.toFixed(2)} 입니다. USDT 입금 후 다시 시도하세요.`,
+             `Need ${feeForCheck.toFixed(2)} USDT for fee but you only hold ${usdtAvail.toFixed(2)} USDT. Please deposit USDT first.`),
+          'var(--danger, #ef4444)'
+        );
+        setExecutable(false);
+      } else if (silicaInsufficient) {
+        setStatus(
+          tx(`보유 Silica 가 부족합니다. 필요 ${effectiveAmount.toFixed(6)} Silica, 보유 ${silicaAvail.toFixed(6)} Silica.`,
+             `Insufficient Silica balance. Need ${effectiveAmount.toFixed(6)} Silica, have ${silicaAvail.toFixed(6)} Silica.`),
+          'var(--danger, #ef4444)'
+        );
+        setExecutable(false);
+      } else {
+        setStatus(
+          tx('시세는 10초마다 자동 갱신됩니다. 스왑 클릭 시 견적이 잠깁니다.',
+             'Quote auto-refreshes every 10s. Click Execute to lock the rate.'),
+          ''
+        );
+        setExecutable(true);
+      }
+
+      if (ttlExpiryTimer) clearTimeout(ttlExpiryTimer);
+      ttlExpiryTimer = setTimeout(() => {
+        if (pageRefreshPaused) return;
+        // Refresh trigger reads the STO field (TO is now editable).
+        const stoNow = Number(toAmt?.value || 0);
+        if (Number.isFinite(stoNow) && stoNow > 0 && document.visibilityState !== 'hidden') {
+          const priceNow = currentQuote?.price || 0;
+          const silicaIn = priceNow > 0 ? silicaInForSto(stoNow, priceNow) : 1;
+          fetchAndApply(silicaIn, { isRefresh: true, stoDesired: stoNow });
+        }
+      }, currentTtlMs);
+    } catch (e) {
+      if (seq !== fetchSeq) return;
+      const msg = e?.message || String(e);
+      setBlockState('swap-to--empty');
+      setStatus(tx('시세 조회 실패: ', 'Failed to fetch rate: ') + msg, 'var(--danger, #ef4444)');
+      setExecutable(false);
+    }
+  }
+
+  function clearAllToEmpty() {
+    clearAllTimers();
+    currentQuote = null;
+    fetchSeq += 1;
+    stopTtlBar();
+    setBlockState('swap-to--empty');
+    if (toAmt) toAmt.value = '';
+    if (fromConv) fromConv.textContent = '≈ - USDT';
+    if (toConv) toConv.textContent = `≈ - USDT ${tx('(1:1 페그)', '(1:1 peg)')}`;
+    appliedRateEls.forEach((el) => { el.textContent = '—'; });
+    priceEls.forEach((el) => { el.textContent = '—'; });
+    if (updatedEl) updatedEl.textContent = '—';
+    if (feeLabel) feeLabel.textContent = '—';
+    // (2026-05-08) Show min-fee hint immediately so the user sees the
+    //   policy before any quote arrives. The exact percent is appended
+    //   once applyQuoteToUI() has the fee_pct from the server.
+    if (feeHint) {
+      const minTxt = `${SWAP_FEE_MIN_USDT.toFixed(0)} USDT`;
+      feeHint.textContent = tx(`최소 ${minTxt}`, `Min ${minTxt}`);
+    }
+    // (2026-05-19 v590) 안내 문구 제거 — 입력란 자체가 의도 전달.
+    setStatus('', '');
+    setExecutable(false);
+  }
+
+  // (2026-05-08 v2) Operator: FROM must be a rounded-up INTEGER.
+  //   User types desired STO; we compute the smallest INTEGER Silica
+  //   amount such that floor(silica × price) >= stoDesired. The user
+  //   may pay slightly more Silica than the math exactly requires (up
+  //   to <1 Silica round-up) but the FROM field stays clean / integer.
+  //   STO out remains exactly the user's input.
+  function silicaInForSto(stoDesired, price) {
+    if (!(price > 0) || !(stoDesired > 0)) return 0;
+    return Math.ceil(stoDesired / price);
+  }
+
+  // ── Input wiring ───────────────────────────────────────────────────
+  // The user now types in the TO field (STO). We translate to silica_in
+  // here and pass that to fetchAndApply / quote endpoint, so the backend
+  // contract is unchanged.
+  toAmt.addEventListener('input', () => {
+    if (modal.classList.contains('open')) return; // suppress while modal open
+    if (toAmt.readOnly) return;
+    // Sanitize: integer-only TO field. Strip any non-digit and re-render
+    // if we changed something so the cursor doesn't jump.
+    const raw = String(toAmt.value || '');
+    const cleaned = raw.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
+    if (cleaned !== raw) toAmt.value = cleaned;
+    const stoDesired = Number(cleaned || 0);
+
+    if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
+    if (!Number.isFinite(stoDesired) || stoDesired <= 0) {
+      clearAllToEmpty();
+      return;
+    }
+
+    stopTtlBar();
+    setBlockState('swap-to--empty');
+    if (fromAmt) fromAmt.value = '';
+    setStatus(tx(`타이핑이 멈추면 ${Math.round(DEBOUNCE_MS / 1000)}초 후 자동 시세 조회…`,
+                 `Pause typing for ${Math.round(DEBOUNCE_MS / 1000)}s to fetch the rate…`), 'var(--steel)');
+    setExecutable(false);
+
+    // We don't have a fresh price yet on the very first input. Use the
+    // last known price (currentQuote?.price); fetchAndApply with a tiny
+    // placeholder Silica triggers a server quote that we'll re-apply
+    // through applyQuoteToUI once the price comes back. After the first
+    // quote, subsequent edits compute the precise silica_in directly.
+    const lastPrice = currentQuote?.price;
+    const silicaIn = lastPrice > 0
+      ? silicaInForSto(stoDesired, lastPrice)
+      : 1; // placeholder; server response carries the real price
+
+    debounceTimer = setTimeout(() => fetchAndApply(silicaIn, { stoDesired }), DEBOUNCE_MS);
+  });
+
+  refreshBtn?.addEventListener('click', () => {
+    if (modal.classList.contains('open')) return;
+    const stoDesired = Number(toAmt?.value || 0);
+    if (!Number.isFinite(stoDesired) || stoDesired <= 0) return;
+    const lastPrice = currentQuote?.price || 0;
+    const silicaIn = lastPrice > 0 ? silicaInForSto(stoDesired, lastPrice) : 1;
+    refreshBtn.classList.add('spinning');
+    fetchAndApply(silicaIn, { isRefresh: true, stoDesired }).finally(() => {
+      setTimeout(() => refreshBtn.classList.remove('spinning'), 200);
+    });
+  });
+
+  // (2026-05-08 v2) TO MAX — fills the STO field with the largest integer
+  // STO the user can mint without exceeding their integer Silica balance.
+  // Since silicaInForSto now rounds Silica UP to an integer, we must cap
+  // STO so that ceil(STO / price) <= floor(silica_balance):
+  //   silicaIntMax = floor(silica_balance)
+  //   max_sto      = floor(silicaIntMax × price)
+  // (Floor-then-floor guarantees ceil(max_sto / price) <= silicaIntMax.)
+  const swapToMaxBtn = document.getElementById('swapToMaxBtn');
+  swapToMaxBtn?.addEventListener('click', async () => {
+    if (modal.classList.contains('open')) return;
+    if (!toAmt) return;
+    const balText = String(document.getElementById('swapFromBalance')?.textContent || '');
+    const balDigits = balText.replace(/,/g, '').match(/[0-9]+(?:\.[0-9]+)?/);
+    const silicaBal = balDigits ? Number(balDigits[0]) : 0;
+    if (!(silicaBal > 0)) return;
+
+    let price = currentQuote?.price || 0;
+    if (!(price > 0)) {
+      // No quote yet — fetch one with a 1-Silica placeholder just to learn
+      // the price, then use it to compute max STO. The user pays no fee
+      // because we discard the quote and re-quote at the chosen amount.
+      try {
+        await fetchAndApply(1, { isRefresh: true });
+        price = currentQuote?.price || 0;
+      } catch (_) {}
+    }
+    if (!(price > 0)) return;
+
+    const silicaIntMax = Math.floor(silicaBal);
+    const maxSto = Math.max(0, Math.floor(silicaIntMax * price));
+    if (maxSto <= 0) return;
+    toAmt.value = String(maxSto);
+    try { toAmt.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+  });
+
+  // ── Modal flow ─────────────────────────────────────────────────────
+  function applyModalLabels() {
+    if (fqTitle)      fqTitle.textContent     = tx('스왑 확정', 'Confirm Swap');
+    if (fqSub)        fqSub.textContent       = tx('아래 잠금 환율로 스왑이 진행됩니다. 카운트다운 안에 확정해 주세요.',
+                                                    "You're about to swap at the firm rate below. This rate is locked for the next 8 seconds — confirm before the timer ends.");
+    if (fqReceiveLbl) fqReceiveLbl.textContent = tx('받는 수량', 'You receive');
+    if (fqPayLbl)     fqPayLbl.textContent     = tx('지불 수량', 'You pay');
+    if (fqRateLbl)    fqRateLbl.textContent    = tx('잠금 환율', 'Locked rate');
+    if (fqPriceLbl)   fqPriceLbl.textContent   = tx('Silica 시세', 'Silica price');
+    if (fqFeeLbl)     fqFeeLbl.textContent     = tx('스왑 수수료', 'Swap fee');
+    if (fqUsdtBalanceLbl) fqUsdtBalanceLbl.textContent = tx('스왑 후 USDT 잔액', 'USDT balance after swap');
+    if (fqCancel)     fqCancel.textContent     = tx('취소', 'Cancel');
+    if (fqConfirm)    fqConfirm.textContent    = tx('스왑 확정', 'Confirm Swap');
+  }
+
+  // (2026-05-08) Parse the FROM display (formatted "1,234.567890") back
+  //   into a Number for the math layer. fromAmt is now always populated
+  //   by applyQuoteToUI from a numeric silica_in, so stripping commas is
+  //   sufficient.
+  function readFromAmtNumber() {
+    const raw = String(fromAmt?.value || '').replace(/,/g, '').trim();
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  function openConfirmModal() {
+    if (!currentQuote) return;
+    const stoDesired = Number(toAmt?.value || 0);
+    let amt = readFromAmtNumber();
+    // If somehow fromAmt is empty (e.g. user pasted into TO but quote
+    // hadn't returned yet), recompute silica_in from sto + current price.
+    if (!(amt > 0) && stoDesired > 0 && currentQuote.price > 0) {
+      amt = silicaInForSto(stoDesired, currentQuote.price);
+    }
+    if (!Number.isFinite(amt) || amt <= 0) return;
+
+    // Use the smaller of (currentQuote remaining time, MODAL_TTL_MS) so we
+    // don't promise a window longer than the quote token actually lives.
+    const remainingMs = Math.max(0, currentQuote.expiresAt - Date.now());
+    const modalTtl = Math.min(MODAL_TTL_MS, remainingMs);
+    if (modalTtl < 1500) {
+      // Quote is about to die — refresh first instead of opening modal.
+      fetchAndApply(amt, { isRefresh: true, stoDesired }).then(() => {
+        // Reopen with the freshly fetched quote
+        if (currentQuote) openConfirmModal();
+      });
+      return;
+    }
+
+    modalLockedQuote = { ...currentQuote };
+    modalLockedAmount = amt;
+
+    // Math model — must match backend swap.php execute:
+    //   sto_out  = floor(silica_in × price)              (integer)
+    //   fee_usdt = floor(max(1.0, gross × fee_pct/100) × 100) / 100
+    //              (min 1 USDT, 2-dp floor — debited from balances.usdt)
+    const grossUsdt = amt * modalLockedQuote.price;
+    const feeUsdt = computeFeeUsdt(grossUsdt, modalLockedQuote.fee_pct);
+    // With the reversed-direction math, the user's typed STO is the
+    // canonical "you receive" value. Display that to avoid float-vs-floor
+    // disagreement on edge prices.
+    const stoOut = stoDesired > 0 ? stoDesired : Math.floor(grossUsdt);
+    const usdtBefore = Number(modalLockedQuote.user_usdt_balance);
+    const usdtAfter = (Number.isFinite(usdtBefore) && feeUsdt > 0) ? Math.max(0, usdtBefore - feeUsdt) : usdtBefore;
+
+    applyModalLabels();
+    if (fqReceive) fqReceive.textContent = `${stoOut.toLocaleString('en-US')} SilicaSTO`;
+    if (fqPay)     fqPay.textContent     = `${amt.toLocaleString('en-US')} SILICA`;
+    // (2026-05-08) Show the ACTUAL integer ratio of this swap (matches
+    //   the integer-rounded FROM payment) instead of the theoretical
+    //   decimal rate. Earlier this read "1 SilicaSTO = 346.26 Silica"
+    //   while the You pay line read "347 SILICA" — confusing because the
+    //   two figures didn't reconcile (round-up adds <1 Silica on small
+    //   orders). Now we display the exact integer pair: e.g. "1 SilicaSTO
+    //   = 347 Silica" for 1-STO buys, "100 SilicaSTO = 34,626 Silica" for
+    //   larger orders. The unit-rate hint is surfaced as a small grey
+    //   note alongside.
+    if (fqRate) {
+      const stoOutFmt = stoOut.toLocaleString('en-US');
+      const silicaFmt = amt.toLocaleString('en-US');
+      fqRate.innerHTML = `${stoOutFmt} SilicaSTO = ${silicaFmt} Silica`;
+    }
+    if (fqPrice)   fqPrice.textContent   = `${fmtUsd(modalLockedQuote.price)} USDT`;
+    if (fqFee) {
+      // (2026-05-08) Modal mirrors the FROM-card display: percent +
+      // floored-to-cents charged amount. The min-1-USDT floor is folded
+      // into computeFeeUsdt() so the user sees exactly what the backend
+      // will debit.
+      if (feeUsdt > 0) {
+        const pctTxt = modalLockedQuote.fee_pct > 0 ? `${modalLockedQuote.fee_pct.toFixed(2)}% · ` : '';
+        fqFee.textContent = `${pctTxt}${feeUsdt.toFixed(2)} USDT`;
+      } else {
+        fqFee.textContent = isKorean() ? '0% (무료)' : '0% (Free)';
+      }
+    }
+    if (fqUsdtBalance) {
+      if (Number.isFinite(usdtAfter)) {
+        fqUsdtBalance.textContent = `${usdtAfter.toLocaleString('en-US', { maximumFractionDigits: 4 })} USDT`;
+        // Highlight in red if it would dip below zero (sanity check; the
+        // backend validates again on execute).
+        fqUsdtBalance.style.color = (usdtAfter < 0) ? '#dc2626' : '';
+      } else {
+        fqUsdtBalance.textContent = '—';
+      }
+    }
+
+    pageRefreshPaused = true;
+    freezeTtlBarAtCurrent();
+    setBlockState('swap-to--quoted', 'swap-to--paused');
+    setStatus(tx('견적 잠김 — 모달에서 확정해 주세요.',
+                 'Quote frozen — confirm in the modal to swap at this exact rate.'),
+              'var(--warning, #f59e0b)');
+
+    fqConfirm.disabled = false;
+    fqTimer.classList.remove('danger');
+    fqTimerFill.classList.remove('danger');
+    fqTimer.textContent = tx(`⏱ ${Math.round(modalTtl / 1000)}초 후 만료`,
+                              `⏱ Expires in ${Math.round(modalTtl / 1000)}s`);
+
+    // (2026-05-08 v2) Animation fix — `.firm-quote-modal { display: none }`
+    //   means a reflow on the timer-fill BEFORE .open is added has no
+    //   effect (the element isn't laid out). The earlier setup forced
+    //   reflow at display:none, then immediately changed transition+width
+    //   in the same frame as adding .open — browsers were collapsing
+    //   the transition (jumping straight to 0%) so the bar stayed flat.
+    //
+    //   Now: prep width=100% with transition=none, add .open (flips to
+    //   display:flex), then in the next animation frame swap the
+    //   transition to the TTL duration and set width=0%. The double
+    //   rAF guarantees the browser has painted the 100% state with
+    //   transition=none BEFORE the new width animation starts.
+    fqTimerFill.style.transition = 'none';
+    fqTimerFill.style.width = '100%';
+    modal.style.setProperty('--fq-ttl', `${modalTtl}ms`);
+    modal.classList.add('open');
+    requestAnimationFrame(() => {
+      // First rAF — browser has now painted with display:flex, width:100%
+      requestAnimationFrame(() => {
+        // Second rAF — committed initial state, safe to start transition
+        fqTimerFill.style.transition = `width ${modalTtl}ms linear`;
+        fqTimerFill.style.width = '0%';
+      });
+    });
+
+    // Reset expired flag for this modal session — confirmSwap reads it
+    // to decide between exec-vs-refresh on click.
+    modal.dataset.expired = '0';
+    fqConfirm.textContent = tx('스왑 확정', 'Confirm Swap');
+    let remaining = Math.round(modalTtl / 1000);
+    if (modalCountdownTimer) clearInterval(modalCountdownTimer);
+    modalCountdownTimer = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        fqTimer.textContent = tx('⚠ 견적 만료 — 새로 받기 클릭', '⚠ Quote expired — click Refresh');
+        fqTimer.classList.add('danger');
+        fqTimerFill.classList.add('danger');
+        // (2026-05-08) Was: fqConfirm.disabled = true (silent). Now: keep
+        //   the button enabled and switch its label to '새로 받기' /
+        //   'Refresh Quote' so a click does something useful — fetches a
+        //   fresh quote and reopens the modal.
+        modal.dataset.expired = '1';
+        fqConfirm.textContent = tx('새로 받기', 'Refresh Quote');
+        clearInterval(modalCountdownTimer);
+        modalCountdownTimer = null;
+        return;
+      }
+      fqTimer.textContent = tx(`⏱ ${remaining}초 후 만료`, `⏱ Expires in ${remaining}s`);
+      if (remaining <= 3) {
+        fqTimer.classList.add('danger');
+        fqTimerFill.classList.add('danger');
+      }
+    }, 1000);
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    if (modalCountdownTimer) { clearInterval(modalCountdownTimer); modalCountdownTimer = null; }
+    modalLockedQuote = null;
+    modalLockedAmount = null;
+    if (pageRefreshPaused) {
+      pageRefreshPaused = false;
+      // Re-derive silica_in from the user's chosen STO and the latest price.
+      const stoNow = Number(toAmt?.value || 0);
+      const priceNow = currentQuote?.price || 0;
+      if (stoNow > 0 && priceNow > 0) {
+        fetchAndApply(silicaInForSto(stoNow, priceNow), { isRefresh: true, stoDesired: stoNow });
+      } else {
+        setBlockState('swap-to--empty');
+        clearAllToEmpty();
+      }
+    }
+  }
+
+  // (2026-05-08) Inline success modal — see swapSuccessModal block at the
+  //   top of swap.html. Shown after POST /api/swap/execute returns 200.
+  //   Click OK / backdrop / Esc to dismiss. Replaces window.alert(...)
+  //   that browsers often suppress.
+  function showSwapSuccessModal(detail) {
+    const ssModal = document.getElementById('swapSuccessModal');
+    if (!ssModal) {
+      // Defensive fallback if the markup was stripped — keep the old
+      // alert path so the user still gets *some* confirmation.
+      window.alert(tx('스왑 완료', 'Swap completed'));
+      return;
+    }
+    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    const isKo = isKorean();
+
+    set('ssTitle',       isKo ? '스왑 완료' : 'Swap Successful');
+    set('ssPaidLbl',     isKo ? '지불' : 'Paid');
+    set('ssReceivedLbl', isKo ? '수령' : 'Received');
+    set('ssFeeLbl',      isKo ? '수수료' : 'Fee');
+    set('ssRateLbl',     isKo ? '잠금 환율' : 'Locked rate');
+    set('ssBalLbl',      isKo ? 'USDT 잔액' : 'USDT balance');
+
+    const paidSilica  = Number(detail?.paidSilica  || 0);
+    const receivedSto = Number(detail?.receivedSto || 0);
+    const feeUsdt     = Number(detail?.feeUsdt     || 0);
+    const price       = Number(detail?.price       || 0);
+    const newUsdt     = Number(detail?.newUsdt     || 0);
+
+    set('ssPaid',     `${paidSilica.toLocaleString('en-US')} Silica`);
+    set('ssReceived', `+${receivedSto.toLocaleString('en-US')} SilicaSTO`);
+    set('ssFee',      `${feeUsdt.toFixed(2)} USDT`);
+    // Use the actual integer pair for "rate" — same policy as fqRate.
+    set('ssRate',     `${receivedSto.toLocaleString('en-US')} SilicaSTO = ${paidSilica.toLocaleString('en-US')} Silica`);
+    set('ssBal',      `${newUsdt.toLocaleString('en-US', { maximumFractionDigits: 4 })} USDT`);
+
+    ssModal.classList.add('open');
+    ssModal.setAttribute('aria-hidden', 'false');
+
+    const closeFn = () => {
+      ssModal.classList.remove('open');
+      ssModal.setAttribute('aria-hidden', 'true');
+    };
+    const okBtn = document.getElementById('ssOk');
+    const backdrop = ssModal.querySelector('.ss-backdrop');
+    if (okBtn) okBtn.onclick = closeFn;
+    if (backdrop) backdrop.onclick = closeFn;
+    const escListener = (e) => {
+      if (e.key === 'Escape' && ssModal.classList.contains('open')) {
+        closeFn();
+        document.removeEventListener('keydown', escListener);
+      }
+    };
+    document.addEventListener('keydown', escListener);
+  }
+
+  async function confirmSwap() {
+    if (fqConfirm.disabled) return;
+    // (2026-05-08) Expired-quote path — click triggers a fresh quote
+    //   fetch and reopens the modal instead of being silently disabled.
+    if (modal.dataset.expired === '1') {
+      fqConfirm.disabled = true;
+      const refreshLabel = fqConfirm.textContent;
+      fqConfirm.textContent = tx('새로고침 중…', 'Refreshing…');
+      try {
+        closeModal();
+        const stoNow = Number(toAmt?.value || 0);
+        const priceNow = currentQuote?.price || 0;
+        if (stoNow > 0 && priceNow > 0) {
+          await fetchAndApply(silicaInForSto(stoNow, priceNow), { isRefresh: true, stoDesired: stoNow });
+          if (currentQuote) openConfirmModal();
+        }
+      } catch (e) {
+        window.alert(tx('견적 갱신 실패: ', 'Failed to refresh quote: ') + (e?.message || e));
+        fqConfirm.disabled = false;
+        fqConfirm.textContent = refreshLabel;
+      }
+      return;
+    }
+    if (!modalLockedQuote) return;
+    fqConfirm.disabled = true;
+    const origLabel = fqConfirm.textContent;
+    fqConfirm.textContent = tx('실행 중…', 'Executing…');
+
+    try {
+      const r = await callApi('/api/swap/execute', {
+        quote_token: modalLockedQuote.token,
+        silica_amount: modalLockedAmount,
+      });
+      const stoOut = Number(r?.sto_out || 0);
+      const feeUsdt = Number(r?.fee_usdt || 0);
+      const newSilica = Number(r?.new_silica_balance || 0);
+      const newSto = Number(r?.new_sto_balance || 0);
+      const newUsdt = Number(r?.new_usdt_balance || 0);
+
+      // Update visible balances with the canonical post-swap values from the server.
+      const balLabel = isKorean() ? '잔액' : 'Balance';
+      if (fromBalEl) fromBalEl.textContent = `${balLabel}: ${newSilica.toFixed(2)}`;
+      if (toBalEl)   toBalEl.textContent   = `${balLabel}: ${newSto.toLocaleString('en-US')}`;
+      if (usdtBalanceEl) usdtBalanceEl.textContent = `${newUsdt.toLocaleString('en-US', { maximumFractionDigits: 4 })} USDT`;
+
+      // (2026-05-08 v2) NPE fix — closeModal() clears modalLockedQuote +
+      //   modalLockedAmount, so we must snapshot them BEFORE calling
+      //   closeModal. Earlier this read modalLockedQuote.price after the
+      //   close and threw 'Cannot read properties of null (reading
+      //   "price")' that the catch turned into a 'Swap failed' alert,
+      //   misleading the user — the swap had actually succeeded.
+      const successDetail = {
+        paidSilica:  modalLockedAmount,
+        receivedSto: stoOut,
+        feeUsdt:     feeUsdt,
+        price:       modalLockedQuote?.price || 0,
+        newUsdt:     newUsdt,
+      };
+
+      // Reset form and close confirm modal first; then open the success modal.
+      closeModal();
+      if (fromAmt) fromAmt.value = '';
+      if (toAmt) toAmt.value = '';
+      clearAllToEmpty();
+
+      // (2026-05-08) Replaces window.alert(...) which was being suppressed
+      //   by the browser ("Prevent additional dialogs"). Custom in-DOM
+      //   modal is reliable across browsers and matches the rest of the
+      //   site's Aurora design.
+      showSwapSuccessModal(successDetail);
+    } catch (e) {
+      const status = e?.status;
+      const msg = e?.message || String(e);
+      // 410 = quote expired/consumed mid-flight. Refresh and reopen.
+      if (status === 410) {
+        closeModal();
+        const stoNow = Number(toAmt?.value || 0);
+        const priceNow = currentQuote?.price || 0;
+        if (stoNow > 0 && priceNow > 0) {
+          await fetchAndApply(silicaInForSto(stoNow, priceNow), { isRefresh: true, stoDesired: stoNow });
+          if (currentQuote) openConfirmModal();
+        }
+        return;
+      }
+      // Generic failure — surface to user, leave modal open so they can cancel.
+      fqConfirm.textContent = origLabel;
+      fqConfirm.disabled = false;
+      window.alert(tx('스왑 실패: ', 'Swap failed: ') + msg);
+    }
+  }
+
+  execBtn?.addEventListener('click', () => {
+    // (2026-06-17 v925) 미연결 시 지갑연결 모달 (기존엔 disabled 라 클릭 무반응이었음).
+    if (!window.RwaCore.requireWalletConnected()) return;
+    if (!execBtn.disabled) openConfirmModal();
+  });
+  fqCancel?.addEventListener('click', closeModal);
+  fqCloseX?.addEventListener('click', closeModal);
+  fqConfirm?.addEventListener('click', confirmSwap);
+  modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  // Initial state
+  clearAllToEmpty();
+
+  // (2026-05-08) Defensive focus — autofocus alone can lose to other
+  //   scripts that touch the DOM during boot. Run focus() after the
+  //   current task settles, then again after a short delay as a safety
+  //   net so the blinking caret always lands in the TO field on first
+  //   paint. Skips when the user has already typed (toAmt has a value)
+  //   or when a modal is open.
+  const focusTo = () => {
+    if (!toAmt) return;
+    if (modal?.classList.contains('open')) return;
+    if (String(toAmt.value || '').length > 0) return;
+    try { toAmt.focus({ preventScroll: true }); } catch (_) { try { toAmt.focus(); } catch (_) {} }
+  };
+  setTimeout(focusTo, 0);
+  setTimeout(focusTo, 250);
+})();
+</script>
+
+</body>
+</html>

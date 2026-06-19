@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deposit · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  .page { max-width: 720px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
+  .page-header { margin-bottom: 32px; }
+  .deposit-form { padding: 32px; }
+
+  /* Custom token dropdown — native <select> can't render <img>/icons inside
+     <option>, so we layer a custom button + menu on top of a hidden <select>
+     that deposit.js continues to read from. */
+  .token-dropdown { position: relative; width: 100%; }
+  .token-dropdown-toggle {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .token-dropdown-toggle:hover { border-color: var(--aurora-3); }
+  .token-dropdown.open .token-dropdown-toggle { border-color: var(--aurora-1); }
+  .token-dropdown-toggle:disabled,
+  .token-dropdown-toggle[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+  .token-dropdown-toggle .token-label { flex: 1; text-align: left; }
+  .token-dropdown-toggle .token-arrow {
+    font-size: 12px; color: var(--steel);
+    transition: transform 0.2s;
+  }
+  .token-dropdown.open .token-dropdown-toggle .token-arrow { transform: rotate(180deg); }
+  /* Menu uses the same surface tokens as the toggle so it stays readable in
+     the light theme. The earlier `var(--glass-1, #181b22)` fallback resolved
+     to a dark navy when --glass-1 wasn't defined, which collided with the
+     light page background and made the menu text invisible. */
+  .token-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px); left: 0; right: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    z-index: 100;
+    overflow: hidden;
+    display: none;
+  }
+  .token-dropdown.open .token-dropdown-menu { display: block; }
+  .token-dropdown-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    color: #111;
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .token-dropdown-item:hover { background: rgba(139, 92, 246, 0.10); }
+  .token-dropdown-item.active { background: rgba(139, 92, 246, 0.16); color: #111; }
+
+  .token-icon {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: #fff;
+    line-height: 1;
+    object-fit: contain;
+  }
+  /* (v634) img.token-icon — admin 업로드 로고를 frame 안에 노출. */
+  img.token-icon { padding: 2px; background-clip: padding-box; }
+  /* (v605) gradient → 단색 로고 컬러. */
+  .token-icon.usdt { background: #26A17B; }
+  .token-icon.sto { background: var(--logo-violet); }
+  .token-icon.silica { background: var(--logo-blue); }
+  .token-icon.other { background: #4B5563; }
+
+  .amount-row {
+    display: flex; gap: 8px; align-items: stretch;
+  }
+  .amount-row .input { flex: 1; min-width: 0; }
+  .amount-row .btn-max {
+    padding: 0 18px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--aurora-3);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .amount-row .btn-max:hover { border-color: var(--aurora-1); color: var(--aurora-1); }
+
+  /* Pending deposits list — 승인 대기중인 입금 내역 */
+  .pending-deposits {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+  }
+  .pending-deposits-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .pending-deposits-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--aurora-3);
+  }
+  .pending-deposits-count {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; color: var(--steel);
+  }
+  .pending-deposits-list {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .pending-deposit-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(217, 119, 6, 0.06);
+    border: 1px solid rgba(217, 119, 6, 0.18);
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .pending-deposit-amt {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .pending-deposit-amt small {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--steel);
+    margin-left: 4px;
+  }
+  .pending-deposit-meta {
+    color: var(--steel);
+    font-family: 'Space Grotesk', sans-serif;
+    word-break: break-all;
+  }
+  .pending-deposit-meta a {
+    color: var(--aurora-3);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .pending-deposit-status {
+    text-align: right;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: #d97706;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    align-self: center;
+  }
+  .pending-empty {
+    padding: 14px 6px;
+    text-align: center;
+    color: var(--steel-dim);
+    font-size: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .pending-loading {
+    padding: 10px 6px;
+    text-align: center;
+    color: var(--steel-dim);
+    font-size: 12px;
+  }
+
+  .address-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 13px;
+    word-break: break-all;
+  }
+  .address-box .copy-btn {
+    background: transparent;
+    border: 1px solid var(--aurora-3);
+    color: var(--aurora-3);
+    padding: 6px 12px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v768) MOBILE RAIL UNIFICATION — landing v756 동일 원칙.
+     기존 mobile @media 없음. .page padding 32px desktop 그대로 모바일 적용되어
+     콘텐츠 폭 좁음. 16px rail + form input iOS 자동 줌 방지 + 안전망 추가.
+     Revert: 본 v768 블록 전체 삭제하면 기존 desktop padding 적용.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="deposit"] { --mobile-rail: 16px; }
+
+    .page { padding: 16px var(--mobile-rail) !important; }
+    .page-header { margin-bottom: 18px !important; }
+    .deposit-form { padding: 18px var(--mobile-rail) !important; }
+
+    /* 페이지 타이틀 */
+    body[data-page="deposit"] h1,
+    body[data-page="deposit"] h2 { font-size: 22px !important; letter-spacing: 0.5px; }
+    body[data-page="deposit"] .eyebrow { font-size: 10px !important; letter-spacing: 1.5px !important; }
+
+    /* 토큰 드롭다운 */
+    .token-dropdown-toggle { padding: 10px 12px !important; font-size: 13px !important; }
+    .token-dropdown-item { padding: 10px 12px !important; font-size: 13px !important; }
+
+    /* 금액 입력 row — MAX 버튼 */
+    .amount-row { gap: 6px !important; }
+    .amount-row .btn-max { padding: 0 14px !important; font-size: 11px !important; min-width: 48px; }
+
+    /* Form inputs — iOS Safari 자동 줌 방지 */
+    body[data-page="deposit"] input,
+    body[data-page="deposit"] select,
+    body[data-page="deposit"] textarea {
+      font-size: 16px !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    /* 카드/패널 padding 통일 */
+    body[data-page="deposit"] .card { padding: 14px var(--mobile-rail) !important; }
+    body[data-page="deposit"] .card .pad { padding: 0 !important; }
+
+    /* 안전망 */
+    body[data-page="deposit"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="deposit"] > main { max-width: 100vw !important; overflow-x: clip; }
+    body[data-page="deposit"] *,
+    body[data-page="deposit"] *::before,
+    body[data-page="deposit"] *::after { box-sizing: border-box; }
+    body[data-page="deposit"] img,
+    body[data-page="deposit"] video { max-width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body data-page="deposit">
+<div class="page">
+  <!-- (2026-05-19 v596) 운영자 요청 — Back to Wallet 링크 + 안내 문구 제거. -->
+  <div class="page-header">
+    <h1 class="heading-lg">Deposit</h1>
+  </div>
+
+  <!-- (v867) VPN/DNS 안내 — 처음에는 hidden. vpn-notice.js 가 GeoIP +
+       browser timezone mismatch 감지 시에만 표시. 운영자 의도: VPN 사용
+       의심 유저에게만 노출. close 버튼 1회 클릭 시 localStorage 에 저장 →
+       이후 다시 안 보임. -->
+  <div id="vpnNoticeCard" style="display:none; position:relative; margin:0 0 14px; padding:10px 36px 10px 14px; background:#fef3c7; border:1px solid #fbbf24; border-radius:10px; font-size:12px; color:#78350f; line-height:1.55;">
+    <span style="margin-right:6px">ℹ</span>
+    <span data-i18n-en="For best experience, please disable VPN and use default DNS settings." data-i18n-ko="원활한 이용을 위해 VPN 을 끄고 기본 DNS 설정 사용을 권장합니다.">For best experience, please disable VPN and use default DNS settings.</span>
+    <button id="vpnNoticeClose" type="button" aria-label="Close" style="position:absolute; top:6px; right:8px; width:22px; height:22px; border:none; background:transparent; color:#78350f; font-size:18px; line-height:1; cursor:pointer; padding:0;">×</button>
+  </div>
+
+  <div class="card deposit-form">
+    <div class="form-group">
+      <label class="form-label" for="tokenDropdownToggle">Select Token</label>
+      <!--
+        (2026-05-07) Token selector — custom dropdown with token logo on the
+          left of each option. Native <select>/<option> can't render images
+          inside the option list, so we maintain a hidden <select id="depAsset">
+          as the canonical state (deposit.js reads .value and rewrites
+          .innerHTML at runtime based on configured mints) and layer a custom
+          button + menu on top.
+          USDT       : stable coin (Solana SPL), credited to balances.usdt
+          SilicaSTO  : pegged 1:1 with USDT, credited to holdings.silica_sto_balance
+          Silica     : reward token, credited to holdings.silica_balance
+        Inline script below uses a MutationObserver on the hidden <select> so
+        the visible dropdown menu stays in sync whenever deposit.js loadAssets()
+        rewrites the option list.
+      -->
+      <div class="token-dropdown" id="tokenDropdown">
+        <button type="button" class="token-dropdown-toggle" id="tokenDropdownToggle"
+          aria-haspopup="listbox" aria-expanded="false">
+          <!-- (v634) <span>글리프</span> → <img data-token-logo>. silica-data-bind.js
+               가 /api/public/config.silica_logo_urls 에서 admin 업로드 URL 주입. -->
+          <img class="token-icon usdt" id="tokenToggleIcon" src="assets/images/token-usdt.svg" alt="USDT" data-token-logo="usdt">
+          <span class="token-label" id="tokenToggleLabel">USDT (Solana)</span>
+          <span class="token-arrow" aria-hidden="true">▾</span>
+        </button>
+        <div class="token-dropdown-menu" id="tokenDropdownMenu" role="listbox" aria-labelledby="tokenDropdownToggle"></div>
+        <select id="depAsset" style="display:none" aria-hidden="true">
+          <option value="USDT" selected>USDT (Solana)</option>
+          <option value="SilicaSTO">SilicaSTO</option>
+          <option value="Silica">Silica</option>
+        </select>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var dd = document.getElementById('tokenDropdown');
+        var sel = document.getElementById('depAsset');
+        var toggle = document.getElementById('tokenDropdownToggle');
+        var menu = document.getElementById('tokenDropdownMenu');
+        var toggleIcon = document.getElementById('tokenToggleIcon');
+        var toggleLabel = document.getElementById('tokenToggleLabel');
+        if (!dd || !sel || !toggle || !menu) return;
+
+        var iconClassFor = function (code) {
+          if (code === 'USDT') return 'usdt';
+          if (code === 'SilicaSTO') return 'sto';
+          if (code === 'Silica') return 'silica';
+          return 'other';
+        };
+        var iconCharFor = function (code) {
+          if (code === 'USDT') return '$';
+          if (code === 'SilicaSTO') return 'S';
+          if (code === 'Silica') return 'Si';
+          return '◆';
+        };
+        var escHtml = function (s) {
+          return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        };
+
+        // (v634) admin 업로드 로고를 위한 data-token-logo 매핑 + 기본 src.
+        // silica-data-bind.js 가 cfg.silica_logo_urls 에서 admin URL src 주입.
+        var dataLogoKeyFor = function (code) {
+          if (code === 'USDT') return 'usdt';
+          if (code === 'SilicaSTO') return 'silicasto';
+          if (code === 'Silica') return 'silica';
+          return '';
+        };
+        var defaultLogoSrcFor = function (code) {
+          if (code === 'USDT') return 'assets/images/token-usdt.svg';
+          if (code === 'SilicaSTO') return 'assets/images/token-silicasto.svg';
+          if (code === 'Silica') return 'assets/images/token-silica.svg';
+          return '';
+        };
+
+        var syncToggle = function () {
+          var v = sel.value || (sel.options[0] && sel.options[0].value) || 'USDT';
+          var label = '';
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === v) { label = sel.options[i].textContent; break; }
+          }
+          var logoKey = dataLogoKeyFor(v);
+          var logoSrc = defaultLogoSrcFor(v);
+          // (v634) toggleIcon 이 <img> 든 <span> 이든 같은 ID 사용. silica-data-bind
+          // 가 src 를 override 한 경우 그것을 보존하려면 data-token-logo 가 동일할
+          // 때만 src 를 default 로 reset 안 함. 안전한 방식: tag 를 항상 <img> 로
+          // 재생성 (silica-data-bind 가 다음 tick 에 다시 override).
+          var newClass = 'token-icon ' + iconClassFor(v);
+          if (toggleIcon.tagName !== 'IMG' || toggleIcon.getAttribute('data-token-logo') !== logoKey) {
+            // tag 또는 token 바뀌면 새 img 로 교체.
+            var img = document.createElement('img');
+            img.className = newClass;
+            img.id = 'tokenToggleIcon';
+            img.alt = v;
+            if (logoKey) img.setAttribute('data-token-logo', logoKey);
+            if (logoSrc) img.src = logoSrc;
+            toggleIcon.replaceWith(img);
+            toggleIcon = img;
+            // silica-data-bind.js 가 다음 bind() 사이클에 admin URL 로 다시 덮어씀.
+            if (typeof window.__RWA_APPLY_LOGOS__ === 'function') {
+              try { window.__RWA_APPLY_LOGOS__(dd); } catch (_) {}
+            }
+          } else {
+            toggleIcon.className = newClass;
+          }
+          toggleLabel.textContent = label || v;
+          if (sel.disabled) toggle.setAttribute('aria-disabled', 'true'); else toggle.removeAttribute('aria-disabled');
+        };
+
+        var rebuildMenu = function () {
+          var html = '';
+          for (var i = 0; i < sel.options.length; i++) {
+            var opt = sel.options[i];
+            var v = opt.value;
+            var label = opt.textContent || v;
+            var icon = iconClassFor(v);
+            var logoKey = dataLogoKeyFor(v);
+            var logoSrc = defaultLogoSrcFor(v);
+            var active = (v === sel.value) ? ' active' : '';
+            // (v634) <img data-token-logo> 사용 — silica-data-bind 가 admin URL 주입.
+            // logoKey 없는 'other' 토큰은 fallback 으로 글리프 span.
+            var iconHtml;
+            if (logoKey && logoSrc) {
+              iconHtml = '<img class="token-icon ' + icon + '" alt="' + escHtml(v) + '"'
+                + ' data-token-logo="' + logoKey + '" src="' + escHtml(logoSrc) + '">';
+            } else {
+              iconHtml = '<span class="token-icon ' + icon + '">' + escHtml(iconCharFor(v)) + '</span>';
+            }
+            html += '<button type="button" class="token-dropdown-item' + active + '" role="option" data-value="' + escHtml(v) + '">'
+              + iconHtml
+              + '<span>' + escHtml(label) + '</span>'
+              + '</button>';
+          }
+          menu.innerHTML = html;
+          syncToggle();
+          // (v634) menu 가 재생성된 후 admin 로고 URL 다시 적용.
+          if (typeof window.__RWA_APPLY_LOGOS__ === 'function') {
+            try { window.__RWA_APPLY_LOGOS__(menu); } catch (_) {}
+          }
+        };
+
+        var openMenu = function () { dd.classList.add('open'); toggle.setAttribute('aria-expanded', 'true'); };
+        var closeMenu = function () { dd.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); };
+
+        toggle.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (sel.disabled) return;
+          if (dd.classList.contains('open')) closeMenu(); else openMenu();
+        });
+
+        menu.addEventListener('click', function (e) {
+          var item = e.target.closest('.token-dropdown-item');
+          if (!item) return;
+          var v = item.getAttribute('data-value');
+          if (sel.value !== v) {
+            sel.value = v;
+            try { sel.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+          }
+          var items = menu.querySelectorAll('.token-dropdown-item');
+          for (var i = 0; i < items.length; i++) {
+            items[i].classList.toggle('active', items[i].getAttribute('data-value') === v);
+          }
+          syncToggle();
+          closeMenu();
+        });
+
+        // Close on outside click + Escape key.
+        document.addEventListener('click', function (e) { if (!dd.contains(e.target)) closeMenu(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+
+        // External value changes (e.g., deposit.js sets sel.value programmatically
+        // after rewriting innerHTML). The 'change' event isn't fired by direct
+        // .value assignment, so we additionally observe childList changes via
+        // MutationObserver below — that catches innerHTML rewrites.
+        sel.addEventListener('change', function () {
+          var items = menu.querySelectorAll('.token-dropdown-item');
+          for (var i = 0; i < items.length; i++) {
+            items[i].classList.toggle('active', items[i].getAttribute('data-value') === sel.value);
+          }
+          syncToggle();
+        });
+
+        if (typeof MutationObserver !== 'undefined') {
+          var obs = new MutationObserver(rebuildMenu);
+          obs.observe(sel, { childList: true, attributes: true, attributeFilter: ['disabled'] });
+        }
+
+        rebuildMenu();
+      })();
+    </script>
+
+    <!--
+    Receiving address display + COPY button intentionally removed
+    (2026-05-04). Showing the address invited users to send manually
+    from external wallets; manual external transfers are not tracked
+    by the platform ledger. Deposits are now performed only via the
+    Deposit button below, which signs the transfer through the
+    connected wallet — the address never needs to be visible.
+    The hidden #depAdmin span below preserves the DOM hook that
+    pages/deposit.js reads/writes.
+    -->
+    <span id="depAdmin" data-no-i18n="1" translate="no" style="display:none">-</span>
+
+    <div class="form-group">
+      <label class="form-label" for="amount">Amount</label>
+      <div class="amount-row">
+        <!--
+          (2026-05-07) 입력 가드 강화 — 정수만, 음수/지수표기/특수문자 차단.
+            pattern  : 숫자 0~9 만 허용 (HTML5 validation 1차)
+            min      : 0 이상
+            maxlength: 12자리 (조 단위 차단)
+          백엔드 deposit_withdraw.php 가 fee-payer 검증 + signedTx 형식 검증을
+          하므로 frontend 가드는 UX 강화 목적.
+        -->
+        <input id="amount"
+               class="input"
+               type="text"
+               inputmode="numeric"
+               pattern="[0-9]*"
+               maxlength="12"
+               placeholder="0"
+               autocomplete="off" />
+        <button id="btnAmountMax" type="button" class="btn-max">MAX</button>
+      </div>
+    </div>
+    <script>
+      // (2026-05-07) keydown 단계에서 minus/dot/e 등 차단 — 사용자가 음수나
+      //   지수 표기를 입력하지 못하도록. paste 도 숫자 외 문자는 strip.
+      (function () {
+        var el = document.getElementById('amount');
+        if (!el) return;
+        el.addEventListener('keydown', function (e) {
+          if (['-', '+', 'e', 'E', '.', ',', 'Subtract', 'Add'].includes(e.key)) {
+            e.preventDefault();
+          }
+        });
+        var clamp = function () {
+          el.value = String(el.value || '').replace(/\D/g, '').slice(0, 12);
+        };
+        el.addEventListener('input', clamp);
+        el.addEventListener('paste', function () { setTimeout(clamp, 0); });
+        el.addEventListener('blur', clamp);
+      })();
+    </script>
+
+    <div class="form-group" style="margin-top: 20px;">
+      <button id="btnDeposit" type="button" class="btn primary btn-block btn-lg">Deposit</button>
+    </div>
+
+    <!--
+    Recent rejection notice — compact card pointing at the most recent admin-
+    rejected deposit. Shows only the amount/date and two actions:
+      - "View Reason" button → opens a modal with the rejection reason, admin
+        contact, and a "Don't show this notice on the deposit page again"
+        checkbox. Closing the modal with the checkbox checked persists the
+        dismissal in localStorage so the banner won't return.
+      - X button (top right) → quick dismiss without opening the modal; same
+        permanent localStorage record.
+    The history page shows the same rejection record with its own Reason
+    button (no checkbox there — history is a read-only audit view).
+    -->
+    <div class="pending-deposits" id="recentRejectBox" style="display:none;border-color:rgba(220,38,38,0.35);background:rgba(220,38,38,0.06);position:relative">
+      <button type="button" id="recentRejectClose" aria-label="Dismiss"
+        title="Dismiss — won't show this rejection here again"
+        style="position:absolute;top:6px;right:8px;background:transparent;border:none;color:#dc2626;font-size:20px;line-height:1;cursor:pointer;padding:4px 8px;font-family:inherit">×</button>
+      <div class="pending-deposits-head" style="padding-right:24px">
+        <span class="pending-deposits-label" style="color:#dc2626">Most Recent Deposit Rejected</span>
+        <span class="pending-deposits-count" id="recentRejectMeta" style="color:#dc2626"></span>
+      </div>
+      <div id="recentRejectBody" style="font-size:12px;line-height:1.55;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <span style="color:#dc2626">The deposit above was rejected by the administrator.</span>
+        <button type="button" id="recentRejectViewBtn"
+          style="background:#dc2626;border:none;color:#fff;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.5px;cursor:pointer;font-family:inherit">View Reason</button>
+      </div>
+    </div>
+
+    <!--
+    Pending deposits — 사용자의 승인 대기 입금만 노출.
+    승인되거나 반려되면 자동으로 사라짐. 30초 마다 자동 갱신.
+    Hidden #lastTx span 은 deposit.js 가 직접 참조하므로 호환용으로 유지.
+    -->
+    <div class="pending-deposits" id="pendingDepositsBox">
+      <div class="pending-deposits-head">
+        <span class="pending-deposits-label">Pending Deposits</span>
+        <span class="pending-deposits-count" id="pendingDepositsCount"></span>
+      </div>
+      <div class="pending-deposits-list" id="pendingDepositsList">
+        <div class="pending-loading">Loading...</div>
+      </div>
+    </div>
+    <span id="lastTx" style="display:none">—</span>
+
+    <!-- (v871) Deposit 에러 진단 패널 — 평소 hidden, 입금 실패 시
+         deposit.js 의 catch 블록이 가시화하고 진단 정보 표시.
+         이전 (v848~v870) 에는 #lastTx (display:none span) 에 진단 카드를
+         append 했으나 부모가 hidden 이라 운영자 화면에 안 보임. v871 부터
+         별도 visible div 에 그려서 운영자가 100% 확인 가능. -->
+    <div id="depositErrorPanel" style="display:none; margin-top:14px;"></div>
+
+    <!-- (v783) 운영자 요청: 안내문 너무 길어 압축 요약. -->
+    <div class="alert alert-warning mt-lg">
+      <div class="alert-icon">⚠</div>
+      <div class="alert-content">
+        <div class="alert-title">External Manual Deposits Prohibited</div>
+        <div class="alert-message">
+          External wallet transfers are not tracked. Use the connected wallet deposit function only.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--
+  (2026-05-17 v437) Transaction overlay — 입금 버튼 클릭 시 트랜잭션 처리부터
+  체인 confirmation 까지 사용자에게 진행 상태를 시각적으로 알리는 풀스크린
+  오버레이. deposit.js 의 openTxOverlay / setOverlayUI / closeTxOverlay 가
+  여기 정의된 요소들을 토글한다. 이전엔 이 HTML 자체가 누락되어 deposit.js
+  의 if (!ov) return 분기가 silent skip 했었음 → 사용자가 대기 중인지 인지
+  못 함 (운영자 보고).
+-->
+<style>
+  #txOverlay {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.58);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: txOverlayFadeIn 0.18s ease-out;
+  }
+  #txOverlay.hidden { display: none; }
+  @keyframes txOverlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .tx-overlay-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px 28px 28px;
+    min-width: 320px;
+    max-width: 92vw;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24);
+    animation: txOverlayCardIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes txOverlayCardIn {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  }
+  #txOverlaySpinner {
+    width: 52px; height: 52px;
+    margin: 18px auto 14px;
+    border: 4px solid rgba(124, 58, 237, 0.16);
+    border-top-color: #7c3aed;
+    border-right-color: #7c3aed;
+    border-radius: 50%;
+    animation: txSpin 0.85s linear infinite;
+  }
+  @keyframes txSpin {
+    to { transform: rotate(360deg); }
+  }
+  .tx-overlay-title {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    color: #1f2937;
+    letter-spacing: 0.5px;
+  }
+  .tx-overlay-msg {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: #6b7280;
+    margin: 6px 0 0;
+    line-height: 1.6;
+    word-break: keep-all;
+  }
+  .tx-overlay-progress {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+  .tx-overlay-progress .dot {
+    width: 6px; height: 6px;
+    background: rgba(124, 58, 237, 0.28);
+    border-radius: 50%;
+    animation: txDotPulse 1.2s ease-in-out infinite;
+  }
+  .tx-overlay-progress .dot:nth-child(2) { animation-delay: 0.18s; }
+  .tx-overlay-progress .dot:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes txDotPulse {
+    0%, 80%, 100% { opacity: 0.28; transform: scale(1);   }
+    40%           { opacity: 1;    transform: scale(1.4); }
+  }
+  #txOverlayActions {
+    margin-top: 20px;
+    display: none;
+    justify-content: center;
+    gap: 12px;
+  }
+  #txOverlayOk {
+    min-width: 120px;
+    padding: 10px 24px;
+    font-family: 'Oswald', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    /* (v605) gradient → 단색 violet. */
+    background: var(--logo-violet);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+  }
+  #txOverlayOk:hover {
+    background: var(--logo-violet-dark);
+    transform: translateY(-1px);
+  }
+</style>
+
+<div id="txOverlay" class="hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="txOverlayTitle">
+  <div class="tx-overlay-card">
+    <div class="tx-overlay-title" id="txOverlayTitle" data-no-i18n="1" translate="no">Processing</div>
+    <div id="txOverlaySpinner" aria-hidden="true"></div>
+    <div class="tx-overlay-msg" id="txOverlayMsg" data-no-i18n="1" translate="no">
+      Processing the transfer. Please wait a moment.
+    </div>
+    <div class="tx-overlay-progress" aria-hidden="true">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div id="txOverlayActions">
+      <button id="txOverlayOk" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/index.iife.js?v=20260526v850-image-swap"></script>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/vpn-notice.js?v=20260607v867"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

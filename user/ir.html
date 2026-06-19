@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investor Relations · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+<!-- (v618) silicachainholding.com 의 본가 폰트 'Inter Tight' 추가 로드. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  /* ========================================================
+     (2026-05-11 v249) Merged page — operator: 'ir.html,
+     asset-detail.html 이 두 페이지를 합치고 asset-detail.html
+     를 제거해줘.' This file is now the single entry point for
+     mine / asset details + investor relations content.
+     ======================================================== */
+
+  /* ===== Asset hero + detail sections (formerly asset-detail.html) ===== */
+  .asset-page { max-width: 1400px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
+  .asset-header { display: grid; grid-template-columns: 1.4fr 1fr; gap: 60px; align-items: center; padding: 60px 0; }
+  @media (max-width: 1000px) { .asset-header { grid-template-columns: 1fr; } }
+
+  .asset-id { font-family: 'Space Grotesk', sans-serif; font-size: 12px; letter-spacing: 4px; color: var(--aurora-3); text-transform: uppercase; margin-bottom: 16px; font-weight: 700; }
+  .asset-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 8vw, 120px);
+    line-height: 0.95;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .asset-name em {
+    font-family: 'Unbounded', sans-serif;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 0.7em;
+    letter-spacing: -3px;
+    background: var(--logo-violet);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .asset-tagline {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--aurora-3);
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    padding-left: 16px;
+    border-left: 3px solid var(--aurora-3);
+  }
+  .asset-desc { color: var(--steel); font-size: 16px; line-height: 1.8; margin-bottom: 32px; }
+
+  /* Hero visual: Crystal hexagon */
+  .crystal-vis {
+    aspect-ratio: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .crystal-ring { position: absolute; inset: 0; border: 1px solid var(--aurora-3); border-radius: 50%; opacity: 0.2; }
+  .crystal-ring-2 { inset: 30px; opacity: 0.15; }
+  .crystal-ring-3 { inset: 60px; border-color: var(--aurora-1); opacity: 0.2; animation: spin 30s linear infinite; }
+  .crystal-ring-3::before {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    background: var(--aurora-1);
+    border-radius: 50%;
+    top: -6px; left: 50%;
+    box-shadow: 0 0 20px var(--aurora-1);
+    transform: translateX(-50%);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* (2026-05-19 v598) 운영자 보고 — 우측 hexagon 텍스트 잘림. v589 zoom: 1.30
+     적용 후 inset: 110px 로 좁혀진 hexagon 내부에 clamp(56-84px) 의 텍스트가
+     overflow. 두 값 동시 조정 + clip-path 자체에 padding 부여 (작은 letter-
+     spacing 도 보정). */
+  .crystal-core {
+    position: absolute;
+    inset: 70px;
+    background: var(--logo-violet);
+    clip-path: polygon(50% 0, 95% 25%, 100% 70%, 50% 100%, 0% 70%, 5% 25%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8%;
+    box-sizing: border-box;
+    box-shadow: 0 0 100px rgba(139, 92, 246, 0.5), inset 0 0 60px rgba(139, 92, 246, 0.4);
+  }
+  /* (2026-05-17 v461) 운영자 보고: '보라 배경 위 텍스트가 안 보임'.
+     기존: aurora-3 (파랑) / platinum (slate-900) / ice (slate-800) — 보라 배경
+     (#8E24AA) 위에서 대비 부족. 흰 톤 + text-shadow 로 가독성 보강. */
+  .crystal-label { font-family: 'Space Grotesk', sans-serif; font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.9); margin-bottom: 6px; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0,0,0,0.35); white-space: nowrap; }
+  .crystal-val { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: clamp(40px, 4.5vw, 64px); line-height: 1; letter-spacing: -2px; color: #ffffff; text-shadow: 0 2px 12px rgba(0,0,0,0.4); white-space: nowrap; }
+  .crystal-unit { font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.8); margin-top: 6px; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0,0,0,0.35); white-space: nowrap; }
+
+  /* Detail grid */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin-bottom: 60px;
+  }
+  @media (max-width: 800px) { .detail-grid { grid-template-columns: 1fr; } }
+  .detail {
+    padding: 24px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .detail:nth-child(2n) { border-right: none; }
+  .detail:nth-last-child(-n+2) { border-bottom: none; }
+  .detail-label { font-family: 'Space Grotesk', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--aurora-3); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+  .detail-val { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: var(--platinum); }
+  .detail-sub { font-size: 12px; color: var(--steel); margin-top: 4px; }
+
+  .breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+  @media (max-width: 800px) { .breakdown { grid-template-columns: 1fr; } }
+
+  /* Use case cards */
+  .uses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 60px; }
+  @media (max-width: 800px) { .uses { grid-template-columns: 1fr; } }
+  .use-card {
+    padding: 28px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    transition: all 0.3s;
+  }
+  .use-card:hover { border-color: var(--aurora-3); transform: translateY(-4px); }
+  .use-icon {
+    width: 56px; height: 56px;
+    border-radius: var(--r-sm);
+    background: var(--logo-violet);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 16px;
+  }
+  .use-name { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .use-desc { color: var(--steel); font-size: 13px; line-height: 1.7; }
+
+  /* Reserves bar */
+  .reserves-card { padding: 32px; }
+  .reserves-bar {
+    height: 24px;
+    background: var(--glass-2);
+    border-radius: 100px;
+    overflow: hidden;
+    margin: 24px 0 16px;
+    position: relative;
+  }
+  .reserves-fill {
+    width: 70%;
+    height: 100%;
+    background: var(--logo-violet);
+    box-shadow: 0 0 20px var(--aurora-1);
+  }
+  .reserves-legend { display: flex; justify-content: space-between; font-size: 12px; }
+
+  /* Section */
+  .section-head { text-align: center; margin-bottom: 40px; }
+  .section-head h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 4vw, 56px); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* Dynamic asset photos block — main image + overview + detail
+     gallery. Section is hidden by default and revealed by ir.js
+     when the DB returns any image / overview / detail images. */
+  .asset-visuals { margin-bottom: 60px; }
+  .asset-hero-image-wrap {
+    aspect-ratio: 16 / 9;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin: 0 auto 24px;
+    position: relative;
+    /* (2026-06-07 v874) 운영자 요청 — facility hero 이미지 60% 크기로 축소.
+       데스크톱: 컨테이너의 60% 폭 + 가운데 정렬.
+       모바일: 작은 화면에서는 90% 까지 풀어서 가독성 유지. */
+    max-width: 60%;
+    width: 60%;
+  }
+  @media (max-width: 768px) {
+    .asset-hero-image-wrap { max-width: 90%; width: 90%; }
+  }
+  .asset-hero-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .asset-overview-card {
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .asset-overview-text {
+    color: var(--steel);
+    font-size: 15px;
+    line-height: 1.85;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .detail-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .detail-gallery a {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--r-sm);
+    background: var(--glass);
+    border: 1px solid var(--line);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .detail-gallery a:hover { transform: translateY(-2px); border-color: var(--aurora-3); }
+
+  /* (2026-05-11 v268) Mine location map card — operator: ir.html 의
+     MINE SITE 섹션 안에 google_map_url 또는 map_query 가 있으면
+     iframe 으로 노출. Hidden by default; pages/ir.js reveals when
+     either field has a usable value. Iframe constrained to a 16:9
+     frame to match the hero image's framing. */
+  .asset-map-wrap {
+    margin-top: 24px;
+  }
+  /* (2026-05-11 v275) Operator: '지도가 너무 크다. 30% 줄여줘'
+     16:9 frame width capped to 70% of the container; centered.
+     On narrow viewports the cap is relaxed so the map still fills
+     the column instead of becoming postage-stamp-sized. */
+  .asset-map-frame {
+    aspect-ratio: 16 / 9;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    max-width: 70%;
+    margin: 0 auto;
+  }
+  @media (max-width: 720px) {
+    .asset-map-frame { max-width: 100%; }
+  }
+  .asset-map-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .detail-gallery img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* (2026-05-11 v276) Operator: '이미지 클릭시 새창이 아닌 팝업으로
+     띄워줘'. Lightbox overlay for DETAIL IMAGES — fixed full-screen
+     dark backdrop, centered image up to 92vw / 88vh, close (✕) +
+     prev (‹) / next (›) buttons, Esc to dismiss. */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2, 6, 23, 0.86);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 32px 64px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox-img {
+    max-width: 92vw;
+    max-height: 88vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+    background: #0a0e1a;
+  }
+  .lightbox-btn {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s ease, transform .15s ease;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .lightbox-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: scale(1.05);
+  }
+  .lightbox-close {
+    top: 20px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 22px;
+    line-height: 1;
+  }
+  .lightbox-nav {
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 1;
+  }
+  .lightbox-nav:hover { transform: translateY(-50%) scale(1.05); }
+  .lightbox-prev { left: 24px; }
+  .lightbox-next { right: 24px; }
+  .lightbox-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 6px 14px;
+    background: rgba(0, 0, 0, 0.45);
+    border-radius: 100px;
+  }
+  @media (max-width: 720px) {
+    .lightbox { padding: 16px; }
+    .lightbox-nav { width: 40px; height: 40px; font-size: 22px; }
+    .lightbox-prev { left: 8px; }
+    .lightbox-next { right: 8px; }
+    .lightbox-close { top: 10px; right: 12px; width: 38px; height: 38px; font-size: 18px; }
+  }
+  .detail-gallery a { cursor: zoom-in; }
+
+  /* ===== IR sections (formerly ir.html standalone) ===== */
+  .ir-section-divider {
+    max-width: 1400px;
+    margin: 80px auto 0;
+    padding: 0 32px;
+  }
+  .ir-section-divider .divider-line {
+    border-top: 1px solid var(--line);
+    margin-bottom: 60px;
+  }
+  .ir-section { max-width: 1100px; margin: 0 auto; padding: 60px 32px; position: relative; z-index: 1; }
+  .doc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 800px) { .doc-grid { grid-template-columns: 1fr; } }
+  .doc-card { padding: 24px; transition: all 0.3s; display:flex; flex-direction:column; }
+  .doc-card:hover { border-color: var(--aurora-3); transform: translateY(-4px); }
+  /* (v605) gradient → 단색 violet. */
+  .doc-icon { width: 48px; height: 48px; background: var(--logo-violet); color: #FFFFFF; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; }
+  /* (2026-05-11 v269) Per-doc rows inside each category card. */
+  .doc-list { display:flex; flex-direction:column; gap:10px; margin-top:auto; }
+  .doc-item {
+    padding: 10px 12px;
+    background: var(--glass-2);
+    border-radius: var(--r-sm);
+    border: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .doc-item-title { font-weight:600; font-size:13px; color: var(--platinum); overflow-wrap:anywhere; }
+  .doc-item-meta { font-size:11px; color: var(--steel); }
+  .doc-item-btn {
+    align-self: flex-end;
+    margin-top: 4px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: var(--glass);
+    border: 1px solid var(--aurora-3);
+    border-radius: var(--r-sm);
+    color: var(--aurora-3);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .doc-item-btn:hover { background: var(--aurora-3); color: var(--void); }
+  .doc-empty {
+    color: var(--steel-dim);
+    font-style: italic;
+    text-align: center;
+    padding: 24px 0;
+    font-size: 13px;
+    margin-top: auto;
+    border-top: 1px dashed var(--line);
+  }
+  .timeline { border-left: 2px solid var(--line-strong); padding-left: 32px; }
+  .timeline-item { padding: 16px 0 24px; position: relative; }
+  .timeline-item::before { content: ''; position: absolute; left: -41px; top: 22px; width: 16px; height: 16px; border-radius: 50%; background: var(--aurora-1); border: 3px solid var(--void); }
+  .timeline-date { font-family: 'Space Grotesk'; font-size: 11px; color: var(--aurora-3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .timeline-title { font-weight: 700; margin-bottom: 6px; }
+  .roadmap-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 800px) { .roadmap-grid { grid-template-columns: 1fr; } }
+  .phase-card { padding: 24px; }
+  .phase-num { font-family: 'Bebas Neue'; font-size: 48px; line-height: 1; letter-spacing: 1px; opacity: 0.3; }
+  /* (v605) gradient text → 단색 violet. */
+  .phase-card.active .phase-num { opacity: 1; color: var(--logo-violet); }
+
+  /* ========================================================
+     (v618) 운영자: 'silicachainholding.com 의 컬러 톤 및 느낌과 동일하게.'
+     본가 (WP + Elementor kit-6) 의 컬러/타이포를 ir.html 에만 적용.
+     (v638) 운영자 정정: '배경 컬러는 화이트 이어야 한다. 박스/버튼 등의
+     컬러가 silicachainholding.com 을 따라가야.' → 다크 테마 (#000000) 폐기
+     하고 라이트 테마 (#FFFFFF 배경 + #151515 텍스트) 로 전환. 본가의 비비드
+     액센트 컬러 팔레트는 박스 border / 버튼 / 액센트 텍스트 등에만 적용.
+     - 컬러 토큰 (kit-6):
+         primary   #000000 (강조 텍스트 / 헤딩)
+         secondary #FFFFFF (배경)
+         text      #151515 (본문)
+         accent    #61CE70 (녹색 액센트)
+         blue      #0065CD (액센트 / 호버)
+         green     #01C853 (CTA gradient 우)
+         red       #E70014
+         orange    #FF6600
+         purple    #9B29B2
+     - 타이포: Bebas Neue 500w (headings) + Inter Tight 400w (body).
+     - 버튼: 30px radius, gradient #0065CD → #01C853.
+     ======================================================== */
+  body[data-page="ir"] {
+    background: #FFFFFF;
+    color: #151515;
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    font-size: 20px;
+  }
+  body[data-page="ir"] .asset-page { background: #FFFFFF; }
+  /* (v638) 본가 타이포 — Bebas Neue (headings, 검정), Inter Tight (body). */
+  body[data-page="ir"] h1,
+  body[data-page="ir"] h2,
+  body[data-page="ir"] h3,
+  body[data-page="ir"] h4,
+  body[data-page="ir"] .heading-xl,
+  body[data-page="ir"] .heading-lg,
+  body[data-page="ir"] .heading-md,
+  body[data-page="ir"] .heading-sm,
+  body[data-page="ir"] .asset-name,
+  body[data-page="ir"] .use-name,
+  body[data-page="ir"] .phase-num,
+  body[data-page="ir"] .cycle-num,
+  body[data-page="ir"] .timeline-title,
+  body[data-page="ir"] .crystal-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 500;
+    color: #000000;
+    letter-spacing: 0.02em;
+  }
+  body[data-page="ir"] h2 { font-size: 78px; line-height: 1.2; }
+  body[data-page="ir"] h3 { font-size: 30px; line-height: 1.2; }
+  body[data-page="ir"] h4 { font-size: 22px; line-height: 1.2; }
+  @media (max-width: 1024px) {
+    body[data-page="ir"] h2 { font-size: 62px; }
+    body[data-page="ir"] h3 { font-size: 24px; }
+  }
+  @media (max-width: 767px) {
+    body[data-page="ir"] h2 { font-size: 48px; }
+    body[data-page="ir"] h3 { font-size: 28px; }
+  }
+  /* (v638) 본문 폰트 — Inter Tight 400, color #151515 (본가 text 토큰). */
+  body[data-page="ir"] p,
+  body[data-page="ir"] .asset-desc,
+  body[data-page="ir"] .asset-overview-text,
+  body[data-page="ir"] .use-desc,
+  body[data-page="ir"] .detail-sub,
+  body[data-page="ir"] .timeline-date,
+  body[data-page="ir"] .doc-item-meta,
+  body[data-page="ir"] .doc-item-title,
+  body[data-page="ir"] .reserves-legend,
+  body[data-page="ir"] .ir-section p {
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    font-weight: 400;
+    color: #151515;
+    font-size: 18px;
+    line-height: 1.7;
+  }
+  body[data-page="ir"] .asset-id,
+  body[data-page="ir"] .detail-label,
+  body[data-page="ir"] .eyebrow {
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: #0065CD;
+    text-transform: uppercase;
+  }
+  /* (v642) 운영자 보고: '◆ SiO₂ PURITY / PERCENT 가 배경 컬러와 겹쳐서
+     안 보인다.' v638 에서 .crystal-label / .crystal-unit 도 blue (#0065CD)
+     로 설정 → blue 크리스탈 배경 (#0065CD) 위 blue 텍스트 = 보이지 않음.
+     이 두 라벨은 blue 배경 위 흰색으로 명시 (base CSS 의 white 톤 복원). */
+  body[data-page="ir"] .crystal-label {
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.95);
+    text-transform: uppercase;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  body[data-page="ir"] .crystal-unit {
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.92);
+    text-transform: uppercase;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  body[data-page="ir"] .crystal-val {
+    color: #FFFFFF;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+  }
+  body[data-page="ir"] .asset-tagline {
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    font-size: 18px;
+    color: #000000;
+    border-left-color: #0065CD;
+    font-weight: 500;
+  }
+  body[data-page="ir"] .detail-val {
+    font-family: 'Bebas Neue', sans-serif;
+    color: #000000;
+    font-size: 28px;
+    font-weight: 500;
+  }
+  /* (v638) gradient text → 단색 blue 액센트. */
+  body[data-page="ir"] .asset-name em {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: #0065CD;
+    color: #0065CD;
+  }
+  body[data-page="ir"] .phase-card.active .phase-num { color: #0065CD; }
+  /* (v638) 카드 — 흰 배경 + 미세한 회색 border + 호버 시 blue. */
+  body[data-page="ir"] .card,
+  body[data-page="ir"] .doc-card,
+  body[data-page="ir"] .use-card,
+  body[data-page="ir"] .phase-card,
+  body[data-page="ir"] .detail,
+  body[data-page="ir"] .asset-overview-card,
+  body[data-page="ir"] .detail-grid {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    color: #151515;
+  }
+  body[data-page="ir"] .detail { border-color: #F1F5F9; }
+  body[data-page="ir"] .use-card:hover,
+  body[data-page="ir"] .doc-card:hover {
+    border-color: #0065CD;
+    box-shadow: 0 4px 16px rgba(0, 101, 205, 0.10);
+  }
+  /* (v638) 액센트 컬러 — 본가 blue. */
+  body[data-page="ir"] .asset-id { color: #0065CD; }
+  body[data-page="ir"] a,
+  body[data-page="ir"] a:hover { color: #0065CD; }
+  body[data-page="ir"] .timeline-item::before { background: #0065CD; border-color: #FFFFFF; }
+  body[data-page="ir"] .timeline-date { color: #0065CD; font-weight: 600; }
+  body[data-page="ir"] .timeline { border-left-color: #E5E7EB; }
+  /* (v639) 운영자: 'ir.html 그라데이션 컬러 쓰지마라.' 모두 단색으로 교체. */
+  body[data-page="ir"] .reserves-fill { background: #0065CD; box-shadow: none; }
+  body[data-page="ir"] .reserves-bar { background: #F1F5F9; }
+  body[data-page="ir"] .use-icon { background: #0065CD; color: #FFFFFF; }
+  /* (v638) Crystal hex — 흰 배경에서도 잘 보이도록 gradient blue→green 유지. */
+  /* (v639) crystal-core 그라데이션 → 단색 blue. */
+  body[data-page="ir"] .crystal-core {
+    background: #0065CD;
+    box-shadow: 0 8px 40px rgba(0, 101, 205, 0.25);
+  }
+  body[data-page="ir"] .crystal-ring,
+  body[data-page="ir"] .crystal-ring-2 { border-color: #0065CD; opacity: 0.30; }
+  body[data-page="ir"] .crystal-ring-3 { border-color: #01C853; opacity: 0.40; }
+  body[data-page="ir"] .crystal-ring-3::before { background: #01C853; box-shadow: 0 0 20px #01C853; }
+  /* (v639) 버튼 — 본가 스타일 (rounded 30px, 단색 blue, white text).
+     gradient 제거 + hover 시 green 으로 색만 전환. */
+  body[data-page="ir"] .btn,
+  body[data-page="ir"] .doc-item-btn {
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 30px;
+    padding: 14px 28px;
+    background: #0065CD;
+    background-image: none;
+    color: #FFFFFF;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 101, 205, 0.15);
+    transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+  }
+  body[data-page="ir"] .btn:hover,
+  body[data-page="ir"] .doc-item-btn:hover {
+    background: #01C853;
+    background-image: none;
+    color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(1, 200, 83, 0.22);
+    transform: translateY(-1px);
+  }
+  /* (v638) Section heads 본가 톤 — 검정 헤딩. */
+  body[data-page="ir"] .section-head h2 {
+    color: #000000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 500;
+  }
+  /* (v638) Detail rows — 검정 헤딩 + 회색 sub. */
+  body[data-page="ir"] .detail-sub { color: #797979; }
+  body[data-page="ir"] .doc-item { background: #F8FAFC; border: 1px solid #E5E7EB; }
+  body[data-page="ir"] .doc-item-title { color: #000000; font-weight: 600; }
+  body[data-page="ir"] .doc-item-meta { color: #797979; }
+  body[data-page="ir"] .doc-empty { color: #797979; border-top: 1px dashed #E5E7EB; }
+
+  /* (v642) Document Library 카드 hover 컬러 매핑.
+     (v646) 운영자 요청: '마우스호버에서 카드 컬러 변경 애니메이션. 원색,
+     텍스트 컬러 겹침 유의.' 카드 자체 배경이 원색으로 전환되며 모든 텍스트는
+     흰색으로 동시 전환. transition: 0.25s ease 로 부드러운 컬러 모핑.
+     v645 detail 셀과 동일 톤 (어두운 saturated) 으로 통일. */
+
+  /* 기본 상태 — transition + 카드 내부 모든 텍스트가 hover 시 흰색으로 변할
+     수 있도록 transition 부착. */
+  body[data-page="ir"] .doc-card {
+    transition: background 0.25s ease, border-color 0.25s ease,
+                box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  body[data-page="ir"] .doc-card .doc-icon,
+  body[data-page="ir"] .doc-card h3,
+  body[data-page="ir"] .doc-card .doc-empty,
+  body[data-page="ir"] .doc-card .doc-item,
+  body[data-page="ir"] .doc-card .doc-item-title,
+  body[data-page="ir"] .doc-card .doc-item-meta,
+  body[data-page="ir"] .doc-card .doc-item-btn {
+    transition: background 0.25s ease, color 0.25s ease,
+                border-color 0.25s ease, transform 0.25s ease;
+  }
+
+  /* hover: 카드 전체 원색 배경 + 흰색 텍스트 + lift. */
+  body[data-page="ir"] .doc-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+    border-color: transparent;
+  }
+  body[data-page="ir"] .doc-card:hover .doc-icon { transform: scale(1.08); }
+  body[data-page="ir"] .doc-card:hover h3,
+  body[data-page="ir"] .doc-card:hover .doc-item-title {
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  }
+  body[data-page="ir"] .doc-card:hover .doc-empty,
+  body[data-page="ir"] .doc-card:hover .doc-item-meta {
+    color: rgba(255, 255, 255, 0.92);
+    border-top-color: rgba(255, 255, 255, 0.30);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.20);
+  }
+  body[data-page="ir"] .doc-card:hover .doc-item {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  body[data-page="ir"] .doc-card:hover .doc-item-btn {
+    background: #FFFFFF;
+    color: var(--logo-violet);
+    background-image: none;
+    box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.15);
+  }
+  /* hover 시 doc-icon 자체는 흰색 frame + 카테고리 컬러 아이콘 (대비 강조). */
+  body[data-page="ir"] .doc-card:hover .doc-icon {
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  /* 7개 카테고리 — 카드 자체 배경 원색 (v645 detail 셀과 동일 톤). */
+  body[data-page="ir"] .doc-card[data-cat="registry"]:hover   { background: #E53935; }  /* red */
+  body[data-page="ir"] .doc-card[data-cat="valuation"]:hover  { background: #F57C00; }  /* orange */
+  body[data-page="ir"] .doc-card[data-cat="accounting"]:hover { background: #2E7D32; }  /* green */
+  body[data-page="ir"] .doc-card[data-cat="official1"]:hover  { background: #0065CD; }  /* blue */
+  body[data-page="ir"] .doc-card[data-cat="official2"]:hover  { background: #9B29B2; }  /* purple */
+  body[data-page="ir"] .doc-card[data-cat="proof"]:hover      { background: #0E7490; }  /* cyan-dark */
+  body[data-page="ir"] .doc-card[data-cat="general"]:hover    { background: #B45309; }  /* amber-dark */
+
+  /* hover 시 doc-icon 안쪽 이모지(아이콘 텍스트) 색은 카테고리 컬러로 — 흰
+     frame 위 컬러풀한 emoji 잘 안 보이는 경우 대비. emoji 는 자체 컬러가
+     있어 색 override 가 한정적이지만 텍스트 글리프 fallback 카테고리는 적용됨. */
+  body[data-page="ir"] .doc-card[data-cat="registry"]:hover .doc-icon   { color: #E53935; }
+  body[data-page="ir"] .doc-card[data-cat="valuation"]:hover .doc-icon  { color: #F57C00; }
+  body[data-page="ir"] .doc-card[data-cat="accounting"]:hover .doc-icon { color: #2E7D32; }
+  body[data-page="ir"] .doc-card[data-cat="official1"]:hover .doc-icon  { color: #0065CD; }
+  body[data-page="ir"] .doc-card[data-cat="official2"]:hover .doc-icon  { color: #9B29B2; }
+  body[data-page="ir"] .doc-card[data-cat="proof"]:hover .doc-icon      { color: #0E7490; }
+  body[data-page="ir"] .doc-card[data-cat="general"]:hover .doc-icon    { color: #B45309; }
+
+  /* (v653) 운영자 선택: Concept D — Colored Badge + White Card.
+     v645 의 전체 셀 원색 배경 → 흰 카드 + 좌측 84×84 원색 배지 + 좌측
+     6px 원색 border-left 로 전환. 카드 내부에 원색은 배지/border 에 집중. */
+  body[data-page="ir"] .detail-grid {
+    background: transparent;
+    border: none;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 800px) { body[data-page="ir"] .detail-grid { grid-template-columns: 1fr; } }
+  body[data-page="ir"] .detail {
+    display: flex; gap: 18px; align-items: center;
+    background: #FFFFFF; border-radius: 14px;
+    padding: 20px;
+    border: none;
+    border-left: 6px solid;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  body[data-page="ir"] .detail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  /* (v653) ::before 로 84×84 원색 배지 생성 (markup 변경 없이). */
+  body[data-page="ir"] .detail::before {
+    content: attr(data-badge);
+    width: 84px; height: 84px; flex-shrink: 0;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  }
+  /* 텍스트 영역 — flex column 으로 label/val/sub 적층. */
+  body[data-page="ir"] .detail > * {
+    flex: 1; min-width: 0;
+  }
+  body[data-page="ir"] .detail .detail-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: #6B7280;
+    margin-bottom: 6px;
+    text-shadow: none;
+  }
+  body[data-page="ir"] .detail .detail-val {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #000000;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+    text-shadow: none;
+  }
+  body[data-page="ir"] .detail .detail-sub {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+    text-shadow: none;
+  }
+  /* 카테고리별 컬러 — border-left + ::before 배지 배경. */
+  body[data-page="ir"] .detail:nth-child(1) { border-left-color: #E53935; }
+  body[data-page="ir"] .detail:nth-child(1)::before { background: #E53935; }
+  body[data-page="ir"] .detail:nth-child(2) { border-left-color: #F57C00; }
+  body[data-page="ir"] .detail:nth-child(2)::before { background: #F57C00; }
+  body[data-page="ir"] .detail:nth-child(3) { border-left-color: #2E7D32; }
+  body[data-page="ir"] .detail:nth-child(3)::before { background: #2E7D32; }
+  body[data-page="ir"] .detail:nth-child(4) { border-left-color: #0065CD; }
+  body[data-page="ir"] .detail:nth-child(4)::before { background: #0065CD; }
+  body[data-page="ir"] .detail:nth-child(5) { border-left-color: #9B29B2; }
+  body[data-page="ir"] .detail:nth-child(5)::before { background: #9B29B2; }
+  body[data-page="ir"] .detail:nth-child(6) { border-left-color: #0E7490; }
+  body[data-page="ir"] .detail:nth-child(6)::before { background: #0E7490; }
+  body[data-page="ir"] .detail:nth-child(7) { border-left-color: #B45309; }
+  body[data-page="ir"] .detail:nth-child(7)::before { background: #B45309; }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v787) IR 페이지 MOBILE RAIL UNIFICATION
+     landing v756 패턴 동일 — 16px rail + typography 모바일 fit + 안전망.
+     운영자 보고: '기존 mobile 룰들이 desktop 사이즈 그대로 사용해 답답.'
+     기존 IR 브랜드 정체성 (라이트 테마, Bebas Neue 헤딩, 컬러풀 detail
+     배지) 은 유지 — 사이즈만 축소.
+     Revert: 본 v787 블록 전체 삭제하면 기존 IR mobile 룰만 적용.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="ir"] { --mobile-rail: 16px; }
+
+    /* ─── 1. 페이지 컨테이너 — 32px → 16px (콘텐츠 +32px 확장) ──── */
+    body[data-page="ir"] .asset-page {
+      padding: 16px var(--mobile-rail) !important;
+      max-width: 100% !important;
+    }
+
+    /* ─── 2. 베이스 폰트 — 20px → 16px (모바일 적정 사이즈) ──────── */
+    body[data-page="ir"] { font-size: 16px !important; }
+    body[data-page="ir"] p,
+    body[data-page="ir"] .asset-desc,
+    body[data-page="ir"] .asset-overview-text,
+    body[data-page="ir"] .use-desc,
+    body[data-page="ir"] .detail-sub,
+    body[data-page="ir"] .timeline-date,
+    body[data-page="ir"] .doc-item-meta,
+    body[data-page="ir"] .doc-item-title,
+    body[data-page="ir"] .reserves-legend,
+    body[data-page="ir"] .ir-section p {
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+    }
+
+    /* ─── 3. Heading 폰트 축소 + h3 progression 정상화 ──────────── */
+    body[data-page="ir"] h2 { font-size: 32px !important; line-height: 1.1 !important; letter-spacing: 0.5px; }
+    body[data-page="ir"] h3 { font-size: 20px !important; line-height: 1.2 !important; }
+    body[data-page="ir"] h4 { font-size: 17px !important; line-height: 1.25 !important; }
+    body[data-page="ir"] .heading-xl { font-size: 32px !important; }
+    body[data-page="ir"] .heading-lg { font-size: 24px !important; }
+    body[data-page="ir"] .heading-md { font-size: 18px !important; }
+    body[data-page="ir"] .heading-sm { font-size: 16px !important; }
+
+    /* asset-name (자산 이름 hero) — clamp 최소 56px → 32px */
+    body[data-page="ir"] .asset-name {
+      font-size: clamp(28px, 8vw, 40px) !important;
+      letter-spacing: 0.3px !important;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    body[data-page="ir"] .asset-name em {
+      font-size: 0.7em;
+      letter-spacing: -1px;
+    }
+
+    /* tagline / id / eyebrow */
+    body[data-page="ir"] .asset-tagline { font-size: 13px !important; letter-spacing: 1px !important; padding-left: 10px; }
+    body[data-page="ir"] .asset-id,
+    body[data-page="ir"] .detail-label,
+    body[data-page="ir"] .eyebrow {
+      font-size: 11px !important;
+      letter-spacing: 1px !important;
+    }
+
+    /* ─── 4. asset-header (hero) — 패딩 축소 ────────────────────── */
+    body[data-page="ir"] .asset-header {
+      gap: 24px !important;
+      padding: 24px 0 !important;
+    }
+
+    /* ─── 5. Detail card (v791) — 56→44 배지 + value word-break + 카드 width 강제 ──── */
+    body[data-page="ir"] .detail {
+      gap: 10px !important;
+      padding: 12px !important;
+      border-radius: 12px;
+      max-width: 100% !important;          /* 카드 viewport overflow 차단 */
+      box-sizing: border-box;
+      min-width: 0;
+    }
+    body[data-page="ir"] .detail::before {
+      width: 44px !important;              /* 56 → 44 (badge 더 작게) */
+      height: 44px !important;
+      font-size: 18px !important;          /* 24 → 18 (badge 글자) */
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    body[data-page="ir"] .detail > * {
+      min-width: 0 !important;             /* flex item 압축 허용 */
+      max-width: 100% !important;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    body[data-page="ir"] .detail .detail-label {
+      font-size: 10px !important;
+      letter-spacing: 1px !important;
+      margin-bottom: 4px;
+    }
+    /* .detail-val (실제 값 "#79907", "Republic of Korea" 등) — 강제 wrap */
+    body[data-page="ir"] .detail .detail-val,
+    body[data-page="ir"] .detail strong,
+    body[data-page="ir"] .detail .text-mono {
+      font-size: 16px !important;
+      word-break: break-all !important;     /* "#79907" 같은 break point 없는 string 도 break */
+      overflow-wrap: anywhere !important;
+      max-width: 100% !important;
+    }
+
+    /* ─── Crystal vis (Sio2 PURITY hex) ──────────────────────────── */
+    /* (v791) crystal-core 의 inset 70px (fixed) → percentage 로 전환.
+       desktop 의 70px 은 320×320 hex 기준 적절하지만, 모바일에서 hex 가
+       300px 이하면 core 가 너무 작아져 'SIO₂ PURITY' 텍스트 안 보임.
+       inset: 18% → core 가 hex 의 64% 차지 → 텍스트 명확 노출. */
+    body[data-page="ir"] .crystal-vis {
+      max-width: 280px !important;
+      margin: 0 auto !important;
+    }
+    body[data-page="ir"] .crystal-core {
+      inset: 18% !important;
+      padding: 6% 10% !important;
+    }
+    body[data-page="ir"] .crystal-ring-2 { inset: 8% !important; }
+    body[data-page="ir"] .crystal-ring-3 { inset: 14% !important; }
+    body[data-page="ir"] .crystal-label { font-size: 10px !important; letter-spacing: 1.2px !important; }
+    body[data-page="ir"] .crystal-unit { font-size: 9px !important; letter-spacing: 1.5px; }
+    body[data-page="ir"] .crystal-val { font-size: clamp(28px, 9vw, 40px) !important; letter-spacing: -1px !important; }
+
+    /* ─── 6. Detail grid / Doc grid / Roadmap — gap 축소 ─────────── */
+    body[data-page="ir"] .detail-grid { gap: 10px !important; }
+    body[data-page="ir"] .doc-grid { gap: 10px !important; }
+    body[data-page="ir"] .roadmap-grid { gap: 10px !important; }
+    body[data-page="ir"] .breakdown { gap: 10px !important; }
+    body[data-page="ir"] .uses { gap: 10px !important; }
+
+    /* asset-map-frame — 모바일 full width */
+    body[data-page="ir"] .asset-map-frame {
+      max-width: 100% !important;
+    }
+
+    /* ─── 7. IR sections — 섹션 간격 축소 ──────────────────────── */
+    body[data-page="ir"] .ir-section { padding: 24px 0 !important; }
+    body[data-page="ir"] .ir-section-divider { margin: 16px 0 !important; }
+
+    /* ─── 8. 안전망 (다른 페이지와 동일 패턴) ───────────────────── */
+    html,
+    body[data-page="ir"] {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+    body[data-page="ir"] *,
+    body[data-page="ir"] *::before,
+    body[data-page="ir"] *::after { box-sizing: border-box; }
+    body[data-page="ir"] img,
+    body[data-page="ir"] video,
+    body[data-page="ir"] iframe { max-width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body data-page="ir">
+<div id="siteHeaderMount"></div>
+
+<div id="toast" class="pill hidden"
+     style="position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:999; max-width:min(520px, calc(100% - 28px));"></div>
+
+<!-- ============================================================
+     ASSET DETAIL — Mine Hero, Visuals, Specs, Application Areas
+     (merged from former asset-detail.html, 2026-05-11 v249)
+     ============================================================ -->
+<div class="asset-page">
+  <div class="asset-header">
+    <div>
+      <!-- (2026-05-11 v251) Eyebrow / title / desc — dynamically
+           composed by pages/ir.js. EN defaults below are the legal-
+           ish marketing copy that was hardcoded before this page went
+           dynamic; they render when the lang toggle is EN, since
+           DB-stored asset.name / asset.overview are Korean. KO users
+           still get the DB values (which is the language the operator
+           types into admin/assets.html). -->
+      <div class="asset-id" id="adetId">◆ OPERATION · LOADING…</div>
+      <h1 class="asset-name" id="adetName">Rare Metal<br><em>Smelting</em><br>Operation</h1>
+      <div class="asset-tagline" id="adetTagline">// Recovery 95% · Refined Purity ≥99.9% · 15,000 t/yr</div>
+      <p class="asset-desc" id="adetShortDesc">
+        Korean rare metal smelting and refining operation specializing in iridium (Ir) recovery and
+        multi-metal extraction (Au · Ag · Fe · PGMs) from polymetallic ore. Refined products supply
+        global semiconductor, AI infrastructure, and aerospace markets.
+      </p>
+      <div class="flex gap-md" style="flex-wrap: wrap;">
+        <a href="assets.html" class="btn btn-primary" data-wallet-gate="1">Invest Now</a>
+        <!-- (2026-05-11 v249) 'IR Materials' button removed — this
+             page IS the IR materials page now. The 'Download Documents'
+             popup link kept for direct doc-library access. -->
+        <a href="#ir-documents" class="btn btn-secondary">Download Documents</a>
+      </div>
+    </div>
+    <div class="crystal-vis">
+      <div class="crystal-ring"></div>
+      <div class="crystal-ring crystal-ring-2"></div>
+      <div class="crystal-ring crystal-ring-3"></div>
+      <div class="crystal-core">
+        <div class="crystal-label">◆ REFINED PURITY</div>
+        <div class="crystal-val">99.9</div>
+        <div class="crystal-unit">PERCENT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic asset photos + overview + detail gallery. Whole section
+       hidden by default; pages/ir.js reveals it once the API returns
+       at least one image OR overview text. -->
+  <div class="asset-visuals" id="adetVisuals" style="display:none">
+    <div class="section-head">
+      <div class="eyebrow mb-md">◆ FACILITY</div>
+      <h2>Facility &amp; Overview</h2>
+    </div>
+
+    <div class="asset-hero-image-wrap" id="adetHeroImageWrap" style="display:none">
+      <img id="adetHeroImage" alt="Smelting facility main image">
+    </div>
+
+    <div class="card asset-overview-card" id="adetOverviewCard" style="display:none">
+      <div class="eyebrow mb-md">◆ OVERVIEW</div>
+      <div class="asset-overview-text" id="adetOverview"></div>
+    </div>
+
+    <div id="adetGalleryWrap" style="display:none">
+      <div class="eyebrow mb-md">◆ DETAIL IMAGES</div>
+      <div class="detail-gallery" id="adetGallery"></div>
+    </div>
+
+    <!-- (2026-05-11 v268) Location map — pages/ir.js fills the iframe
+         src either from a sanitized asset.google_map_url (iframe HTML
+         snippet) or from a generated embed URL using asset.map_query. -->
+    <div class="asset-map-wrap" id="adetMapWrap" style="display:none">
+      <div class="eyebrow mb-md">◆ LOCATION</div>
+      <div class="asset-map-frame">
+        <iframe id="adetMap" title="Facility location"
+                allowfullscreen loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="eyebrow mb-md">◆ ASSET DETAILS</div>
+    <h2>Operation Information</h2>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail" data-badge="ID">
+      <div class="detail-label">Asset ID</div>
+      <div class="detail-val" id="adetLicense">#—</div>
+      <div class="detail-sub">Operation Identifier</div>
+    </div>
+    <div class="detail" data-badge="KR">
+      <div class="detail-label">Jurisdiction</div>
+      <div class="detail-val" id="adetJurisdiction">—</div>
+      <div class="detail-sub">Governing Law</div>
+    </div>
+    <div class="detail" data-badge="T">
+      <div class="detail-label">Annual Capacity</div>
+      <div class="detail-val">15,000 t</div>
+      <div class="detail-sub">Ore Processing Throughput</div>
+    </div>
+    <div class="detail" data-badge="%">
+      <div class="detail-label">Refined Purity</div>
+      <div class="detail-val">≥99.9 %</div>
+      <div class="detail-sub">Semiconductor &amp; Aerospace Grade</div>
+    </div>
+    <div class="detail" data-badge="↗">
+      <div class="detail-label">Recovery Rate</div>
+      <div class="detail-val">95 %</div>
+      <div class="detail-sub">Multi-Metal Recovery</div>
+    </div>
+    <div class="detail" data-badge="Ir">
+      <div class="detail-label">Iridium Output</div>
+      <div class="detail-val">10 t / yr</div>
+      <div class="detail-sub">High-Value Rare Metal</div>
+    </div>
+    <div class="detail" data-badge="S">
+      <div class="detail-label">Network</div>
+      <div class="detail-val">Solana</div>
+    </div>
+  </div>
+
+  <div class="breakdown">
+    <div class="reserves-card card">
+      <div class="eyebrow mb-md">◆ ORE CONTENT</div>
+      <h3 class="heading-sm mb-sm">Polymetallic Ore Composition</h3>
+      <p class="text-muted" style="font-size: 13px;">Iron (Fe) makes up the largest mass share, while iridium (Ir) — concentrated at 11% — drives the bulk of refined-output value.</p>
+      <div class="reserves-bar"><div class="reserves-fill"></div></div>
+      <div class="reserves-legend">
+        <div>
+          <div style="font-family: 'Unbounded'; font-weight: 800; font-size: 24px; color: var(--aurora-3);">11%</div>
+          <div class="text-muted" style="font-size: 11px;">IRIDIUM (Ir)</div>
+        </div>
+        <div class="text-right">
+          <div style="font-family: 'Unbounded'; font-weight: 800; font-size: 24px; color: var(--steel);">26%</div>
+          <div class="text-muted" style="font-size: 11px;">IRON (Fe)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-aurora">
+      <div class="eyebrow mb-md">◆ REFINED OUTPUT</div>
+      <h3 class="heading-sm mb-md">Refined Purity Comparison</h3>
+      <div class="flex-col gap-md">
+        <div>
+          <div class="flex-between mb-sm">
+            <span style="font-weight: 600;">Silica Chain Refined Output</span>
+            <span class="text-mono text-cyan" style="font-weight: 700;">≥99.9%</span>
+          </div>
+          <div style="height: 8px; background: var(--glass-2); border-radius: 100px; overflow: hidden;">
+            <div style="width: 99%; height: 100%; background: var(--logo-violet);"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex-between mb-sm">
+            <span class="text-muted">Industry Average Refined</span>
+            <span class="text-mono text-muted">95~97%</span>
+          </div>
+          <div style="height: 8px; background: var(--glass-2); border-radius: 100px; overflow: hidden;">
+            <div style="width: 96%; height: 100%; background: var(--steel);"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex-between mb-sm">
+            <span class="text-muted">Semiconductor Grade Standard</span>
+            <span class="text-mono text-muted">99.9%+</span>
+          </div>
+          <div style="height: 8px; background: var(--glass-2); border-radius: 100px; overflow: hidden;">
+            <div style="width: 99%; height: 100%; background: var(--warning);"></div>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-success mt-lg">
+        <div class="alert-icon">◆</div>
+        <div class="alert-content">
+          <div class="alert-title">Semiconductor &amp; Aerospace Grade Met</div>
+          <div class="alert-message">Silica Chain refined output meets the purity standards required for semiconductor and aerospace component manufacturing.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="eyebrow mb-md">◆ END USES</div>
+    <h2>Application Areas</h2>
+  </div>
+
+  <div class="uses">
+    <div class="use-card">
+      <div class="use-icon">◐</div>
+      <div class="use-name">Semiconductors</div>
+      <p class="use-desc">Iridium and PGM target materials for patterning and deposition equipment, plus high-purity refined output for advanced chip processes. Demand accelerating with AI chip growth.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon">◑</div>
+      <div class="use-name">AI Data Centers</div>
+      <p class="use-desc">Heat-resistant electrode coatings and power-thermal management materials for high-performance AI infrastructure. Demand surging with hyperscaler buildouts.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon">◇</div>
+      <div class="use-name">Aerospace</div>
+      <p class="use-desc">Ultra-high-temperature alloys, catalysts, and structural coatings for spacecraft and next-generation propulsion. Iridium's heat resistance is irreplaceable in this segment.</p>
+    </div>
+  </div>
+
+  <div class="card card-aurora" style="padding: 48px; text-align: center;">
+    <div class="eyebrow mb-md">◆ INVESTMENT CONTRACT</div>
+    <h3 class="heading-md mb-md">Investment Contract Details</h3>
+    <div class="grid grid-3 mb-lg" style="text-align: left;">
+      <div>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 2px;">REPORT FREQ</div>
+        <div style="font-family: 'Oswald'; font-size: 18px; font-weight: 600;">Quarterly Operations Report</div>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 2px;">AUDIT</div>
+        <div style="font-family: 'Oswald'; font-size: 18px; font-weight: 600;">Annual External Audit</div>
+      </div>
+      <!--
+        (2026-05-17 v462) 운영자 요청: 'Governed by Korean Law' 텍스트 전체 사이트
+        에서 제거. CONTRACT 셀 자체를 제거하고 grid 를 3-셀 (REPORT/AUDIT/...)
+        형태로 유지. 보존하고 싶다면 다른 자산 메타 (예: 발행통화) 로 교체 가능.
+      -->
+    </div>
+    <a href="assets.html" class="btn btn-primary btn-lg" data-wallet-gate="1">Invest Now →</a>
+  </div>
+</div>
+
+<!-- ============================================================
+     IR DOCUMENT LIBRARY + ROADMAP + MILESTONES
+     (formerly the standalone ir.html, now appended below the mine
+     detail sections so investors land on a single 'everything you
+     need to evaluate' page)
+     ============================================================ -->
+<div class="ir-section-divider">
+  <div class="divider-line"></div>
+</div>
+
+<section id="ir-documents" class="ir-section">
+  <div class="text-center mb-xl">
+    <div class="eyebrow mb-md">◆ DOWNLOADS</div>
+    <h2 class="heading-md">Document Library</h2>
+  </div>
+  <!-- (2026-05-11 v269) Dynamic document grid — populated by
+       pages/ir.js from /api/assets/{id} → data.docs. Each card =
+       one admin doc category (등기부등본 / 자산평가서 / 회계자료 /
+       공식문서1 / 공식문서2 / 증빙문서 / 일반문서). Categories with
+       no uploaded docs show '(준비중)' / '(Coming Soon)' instead of
+       being hidden so the operator-facing roadmap of which document
+       slots exist stays visible to investors. -->
+  <div class="doc-grid" id="adetDocsGrid"></div>
+</section>
+
+<section class="ir-section">
+  <div class="text-center mb-xl">
+    <div class="eyebrow mb-md">◆ ROADMAP</div>
+    <h2 class="heading-md">Roadmap</h2>
+  </div>
+  <div class="roadmap-grid">
+    <div class="card phase-card">
+      <div class="phase-num">01</div>
+      <span class="badge badge-success">Complete</span>
+      <h3 class="heading-sm mt-sm" style="font-size: 22px;">Launch</h3>
+      <p class="text-muted" style="font-size: 13px;">2026 Q1 · Platform beta launch, KYC, Pre-sale start</p>
+    </div>
+    <div class="card phase-card active">
+      <div class="phase-num">02</div>
+      <span class="badge badge-cyan">In Progress</span>
+      <h3 class="heading-sm mt-sm" style="font-size: 22px;">Build</h3>
+      <p class="text-muted" style="font-size: 13px;">2026 Q2 · Public Sale, pilot smelting line expansion</p>
+    </div>
+    <div class="card phase-card">
+      <div class="phase-num">03</div>
+      <span class="badge">Upcoming</span>
+      <h3 class="heading-sm mt-sm" style="font-size: 22px;">Production</h3>
+      <p class="text-muted" style="font-size: 13px;">2026 Q3-Q4 · First offtake contracts, refined product shipments</p>
+    </div>
+    <div class="card phase-card">
+      <div class="phase-num">04</div>
+      <span class="badge">Upcoming</span>
+      <h3 class="heading-sm mt-sm" style="font-size: 22px;">Expansion</h3>
+      <p class="text-muted" style="font-size: 13px;">2027 Q1 · Commercial smelting plant live, Silica exchange listing, first annual dividend</p>
+    </div>
+  </div>
+</section>
+
+<section class="ir-section">
+  <div class="text-center mb-xl">
+    <div class="eyebrow mb-md">◆ MAJOR EVENTS</div>
+    <h2 class="heading-md">Key Milestones</h2>
+  </div>
+  <div class="card" style="padding: 32px;">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-date">May 15, 2026</div>
+        <div class="timeline-title">Public Sale Closes</div>
+        <p class="text-muted" style="font-size: 13px;">May close early upon reaching $1,000,000 fundraising target</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">June 1, 2026</div>
+        <div class="timeline-title">Pilot Smelting Line Expansion Begins</div>
+        <p class="text-muted" style="font-size: 13px;">Use-of-Funds report published (CapEx/Opex breakdown)</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">April 2027</div>
+        <div class="timeline-title">FY2026 Financial Closing</div>
+        <p class="text-muted" style="font-size: 13px;">First annual dividend after external audit (Silica token Distribution)</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Q2 2027</div>
+        <div class="timeline-title">Silica Exchange Listing</div>
+        <p class="text-muted" style="font-size: 13px;">Simultaneous listing on domestic and international exchanges</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="siteFooterMount"></div>
+
+<!-- (2026-05-11 v276) Detail-image lightbox — populated by pages/ir.js -->
+<div id="adetLightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" aria-hidden="true">
+  <button id="adetLightboxClose" class="lightbox-btn lightbox-close" type="button" aria-label="Close">✕</button>
+  <button id="adetLightboxPrev"  class="lightbox-btn lightbox-nav lightbox-prev" type="button" aria-label="Previous">‹</button>
+  <img id="adetLightboxImg" class="lightbox-img" alt="">
+  <button id="adetLightboxNext" class="lightbox-btn lightbox-nav lightbox-next" type="button" aria-label="Next">›</button>
+  <div id="adetLightboxCounter" class="lightbox-counter"></div>
+</div>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+</body>
+</html>

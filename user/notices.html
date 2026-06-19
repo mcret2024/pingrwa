@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notices · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  .notices-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 32px;
+    position: relative; z-index: 1;
+  }
+  .notices-head {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .notices-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .notices-tab {
+    padding: 10px 20px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--steel);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .notices-tab:hover { color: var(--platinum); border-color: var(--aurora-3); }
+  /* (v605) gradient → 단색 violet. */
+  .notices-tab.active {
+    color: #FFFFFF;
+    background: var(--logo-violet);
+    border-color: var(--logo-violet);
+  }
+
+  .notices-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .notice-card {
+    padding: 20px 24px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.15s;
+  }
+  .notice-card:hover { border-color: var(--aurora-3); transform: translateY(-2px); }
+  @media (max-width: 700px) {
+    .notice-card { grid-template-columns: 1fr; gap: 12px; }
+  }
+  .notice-period {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--aurora-3);
+    letter-spacing: 1px;
+  }
+  .notice-cat-badge {
+    display: inline-block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--aurora-1);
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 6px;
+  }
+  .notice-body {
+    min-width: 0;
+  }
+  .notice-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--platinum);
+    margin-bottom: 6px;
+    overflow-wrap: anywhere;
+  }
+  .notice-meta {
+    font-size: 12px;
+    color: var(--steel);
+  }
+  .notice-body-text {
+    margin-top: 10px;
+    color: var(--steel);
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .notice-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .notice-dl {
+    padding: 10px 16px;
+    border-radius: var(--r-sm);
+    background: var(--glass-2);
+    border: 1px solid var(--aurora-3);
+    color: var(--aurora-3);
+    text-decoration: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .notice-dl:hover {
+    background: var(--aurora-3);
+    color: var(--void);
+  }
+
+  .notices-empty {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--steel-dim);
+    background: var(--glass);
+    border: 1px dashed var(--line);
+    border-radius: var(--r-md);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body data-page="notices">
+
+<div id="siteHeaderMount"></div>
+
+<div id="toast" class="pill hidden"
+     style="position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:999; max-width:min(520px, calc(100% - 28px));"></div>
+
+<div class="notices-page">
+  <div class="notices-head">
+    <div class="eyebrow mb-md">◆ NOTICES</div>
+    <h1 class="heading-xl gradient-text-aurora" id="noticesHeading">공지</h1>
+    <p class="text-muted mt-md" id="noticesSubtitle" style="font-size: 14px;">
+      연간 / 분기 회계 자료 및 일반 공지를 확인하세요.
+    </p>
+  </div>
+
+  <!-- (2026-05-11 v270) Category filter — populated dynamically by
+       pages/notices.js from /api/notices `categories` map so adding
+       new categories backend-side doesn't require markup changes. -->
+  <div class="notices-tabs" id="noticesTabs"></div>
+
+  <div class="notices-list" id="noticesList">
+    <!-- Populated by pages/notices.js -->
+  </div>
+</div>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+</body>
+</html>

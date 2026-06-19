@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staking · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v915) FOUC fix — 본문을 즉시 숨기고 로더 먼저(html.rwa-booting-early).
+      //   app.js __removeBootLoader 가 부트 완료 시 해제. silica-user.css 규칙 참조.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  /* (v641) 운영자: '스테이킹 카드 세로폭을 줄여 한눈에 볼 수 있도록.'
+     page/card padding 32 → 20, apr-display margin 24→12, stake-grid 32→16. */
+  .page { max-width: 1200px; margin: 0 auto; padding: 20px 32px; position: relative; z-index: 1; }
+
+  .stake-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-top: 16px; align-items: stretch; }
+  @media (max-width: 1000px) { .stake-grid { grid-template-columns: 1fr; } }
+  /* (v649) 운영자: 'CYCLE 2026-06 세로 길이를 늘려 양측 카드 길이를 동일하게.'
+     우측 컬럼 (flex-col) 이 grid row stretch 로 좌측 컬럼 높이까지 확장되지만,
+     내부 .card 와 그 안의 #currentCycle 이 content size 로 멈춰서 빈 공간 발생.
+     → 우측 column 의 flex-col + .card + #currentCycle 까지 flex chain 으로
+     stretch 되도록 height/flex 룰 추가. */
+  .stake-grid > .flex-col:last-child {
+    height: 100%;
+  }
+  .stake-grid > .flex-col:last-child > .card {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .stake-grid > .flex-col:last-child > .card > #currentCycle {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  /* cycle-card 내부도 column flex 로 만들어 cycle-progress 까지 자연스럽게
+     분포. cyclePeriod / cycleDday 텍스트는 카드 하단으로 밀려나도록. */
+  .stake-grid > .flex-col:last-child > .card > #currentCycle .cycle-progress {
+    margin-top: auto;
+  }
+
+  .stake-card { padding: 20px; }
+
+  .apr-display {
+    text-align: center;
+    padding: 18px 24px;
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  /* (v605) gradient → 단색. */
+  .apr-display::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--logo-violet);
+  }
+  .apr-label { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--platinum); margin-bottom: 12px; }
+  /* (v605) gradient text → 단색 violet.
+     (v633) 운영자: '5.00% Annual Interest 의 Annual Interest 를 이자 아래에서
+     더 작은 글씨로.' inline-flex (가로) → flex column (세로 적층) + suffix 가
+     수치 아래 작은 텍스트로 노출. */
+  /* (v641) apr-value 폰트 56-88 → 44-68px 로 축소 (vertical compaction). */
+  .apr-value {
+    font-family: 'Unbounded';
+    font-weight: 900;
+    font-size: clamp(44px, 5.5vw, 68px);
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--logo-violet);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  /* (v615) 5.00% 옆 'Annual Interest'.
+     (v633) 옆 → 아래로 이동, 폰트 더 작게 (0.18em → 0.14em). */
+  .apr-value .apr-suffix {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.14em;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-top: 2px;
+    padding-bottom: 0;
+  }
+
+  /* (v615) MAX btn 폰트 11→13px, weight 700→800. */
+  .form-max-btn {
+    padding: 0 16px;
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--aurora-3);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.05s;
+  }
+  .form-max-btn:hover { background: var(--aurora-3); color: #FFFFFF; }
+  .form-max-btn:active { transform: scale(0.96); }
+  .form-max-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .apr-value small { font-size: 0.4em; }
+  /* (v615) apr-detail 14→16px, weight 600, color 진함. */
+  .apr-detail { color: var(--ice); margin-top: 8px; font-size: 16px; font-weight: 600; }
+
+  /* Stake summary */
+  /* (2026-05-08) 3 → 2 columns after the operator removed the Pending
+     stat card. Mobile breakpoint stays single-column. */
+  .stake-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+  @media (max-width: 700px) { .stake-stats { grid-template-columns: 1fr; } }
+  /* (2026-05-07) flex column with both-axis center so the value (200 / 100 /
+     0.00) lines up across cells even when one label wraps to two lines
+     ("Cumulative Interest"). Without justify-content the shorter-labelled
+     cells anchor content at the top while the wrapped label pushes its value
+     down, producing a misaligned row. */
+  /* (v644) stake-stat padding 24 → 14 (-10px × 2 셀 = -20px 절감). */
+  .stake-stat {
+    padding: 14px;
+    background: var(--glass);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  /* (2026-05-07) white-space: nowrap — letter-spacing 2px 와 좌우 padding 24px
+     조합 때문에 "TOTAL INTEREST" 같은 2-단어 라벨도 줄바꿈으로 깨졌었다. 모든
+     라벨을 강제로 한 줄로 유지해 row 정렬 보장. 라벨이 셀보다 길면 잘리는 대신
+     overflow: hidden + ellipsis 로 처리. */
+  /* (v605) stake-stat-label 10→13px, weight 800, color 진함. */
+  .stake-stat-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--platinum);
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  /* (v644) stake-stat-val 34→28px — v615 강조 후 v644 컴팩트 모드. */
+  .stake-stat-val { font-family: 'Unbounded'; font-weight: 800; font-size: 28px; letter-spacing: -1px; }
+
+  /* Cycle countdown — populated at runtime by silica-data-bind.js. Card shows
+     the active monthly cycle (16th of the previous month → 15th of this month
+     for payout), the days remaining until the 15th payout, a progress bar,
+     and the expected USDT interest based on the user's staked amount. */
+  /* (v641) cycle-card padding 24→16, margin-top 24→14. */
+  .cycle-card { padding: 16px 20px; background: var(--glass-2); border: 1px solid var(--aurora-3); border-radius: var(--r-md); margin-top: 14px; }
+  .cycle-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .cycle-num { font-family: 'Bebas Neue'; font-size: 24px; letter-spacing: 1px; }
+  .cycle-bar { height: 8px; background: var(--glass); border-radius: 100px; overflow: hidden; margin-bottom: 6px; }
+  /* (v605) gradient → 단색 violet. */
+  .cycle-fill { height: 100%; background: var(--logo-violet); width: 0%; transition: width 0.5s ease-out; }
+  /* (v615) cycle-progress 14→15px. */
+  .cycle-progress { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; color: var(--ice); }
+  /* (v651) 운영자: 'D-27 남은 기간 폰트 크기 더 크게.' #cycleDday 만 카운트
+     다운 강조 폰트로 격상. */
+  #cycleDday {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--aurora-3);
+  }
+
+  /* Stake form */
+  /* (v641) stake-tabs margin-bottom 24→14, stake-tab padding 14→10. */
+  .stake-tabs { display: flex; background: var(--glass-2); border-radius: var(--r-sm); padding: 3px; margin-bottom: 14px; }
+  .stake-tab { flex: 1; padding: 10px; background: transparent; border: none; color: var(--steel); font-family: 'Oswald'; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
+  /* (2026-05-05) var(--platinum) 은 #0F172A 다크슬레이트로 정의되어 있어
+     보라 배경 위에서 가독성이 떨어졌음. 명시적 흰색으로 교체. */
+  .stake-tab.active { background: var(--aurora-1); color: #ffffff; font-weight: 800; }
+
+  /* (v615) Cycle history row 13→15px, weight 600. */
+  .cycle-history-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 15px; font-weight: 600; }
+  .cycle-history-row:last-child { border-bottom: none; }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v761) MOBILE RAIL UNIFICATION — landing v756 동일 원칙.
+     기존 mobile @media 가 stake-grid/stake-stats 의 grid collapse 만 처리.
+     세부 padding/font 통일 추가.
+     Revert: 본 v761 블록 전체 삭제하면 기존 룰만 유지.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="staking"] { --mobile-rail: 16px; }
+
+    .page { padding: 16px var(--mobile-rail) !important; }
+    .stake-card { padding: var(--mobile-rail) !important; }
+    .stake-grid { gap: 16px !important; margin-top: 12px !important; }
+
+    /* APR display — 큰 5.00% 표시 */
+    .apr-display { padding: 14px var(--mobile-rail) !important; }
+    .apr-label { font-size: 11px !important; letter-spacing: 1.5px !important; margin-bottom: 8px; }
+    .apr-value { font-size: clamp(36px, 14vw, 56px) !important; letter-spacing: -1px; }
+    .apr-detail { font-size: 13px !important; margin-top: 6px; }
+
+    /* Stake stats (Total Staked / Cumulative Interest 등) */
+    .stake-stat { padding: 12px var(--mobile-rail) !important; }
+    .stake-stat-label { font-size: 11px !important; letter-spacing: 1px !important; margin-bottom: 6px; }
+    .stake-stat-val { font-size: 22px !important; letter-spacing: -0.5px; }
+
+    /* Cycle card */
+    .cycle-card { padding: 14px var(--mobile-rail) !important; margin-top: 12px; }
+    .cycle-num { font-size: 18px !important; }
+    #cycleDday { font-size: 20px !important; }
+    .cycle-progress { font-size: 12px !important; }
+
+    /* Stake tabs */
+    .stake-tabs { margin-bottom: 12px !important; }
+    .stake-tab { padding: 8px !important; font-size: 12px !important; letter-spacing: 1px !important; }
+
+    /* Form input — iOS Safari 자동 줌 방지 */
+    .page input, .page select, .page textarea {
+      font-size: 16px !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    /* (v782→v786) 운영자 요청: 'MAX 버튼은 STAKE AMOUNT 텍스트 우측에 작은
+       버튼으로 배치.' 기존: MAX 가 input + suffix 사이 끼어있음.
+       해결: assets.html v777 동일 패턴 — MAX 를 label 우측 absolute 로 이동.
+
+       (v786 추가) 운영자 보고:
+       1) 'MAX 버튼이 입력칸과 너무 붙어있다.' → label margin-bottom 추가
+       2) '버튼 누르면 텍스트와 배경색이 겹쳐 텍스트 안 보임.' → :active /
+          :focus 색상 명시 + mobile tap-highlight 제거. */
+    .page .form-group { position: relative !important; }
+    .page .form-input-group { position: static !important; }
+    #stakeMaxBtn,
+    .page .form-max-btn {
+      position: absolute !important;
+      top: 0 !important;
+      right: 0 !important;
+      bottom: auto !important;
+      left: auto !important;
+      transform: none !important;
+      padding: 5px 14px !important;
+      font-size: 11px !important;
+      letter-spacing: 0.5px !important;
+      font-weight: 700 !important;
+      min-width: 52px;
+      height: 30px;                                /* 26 → 30, 가독성 ↑ */
+      line-height: 1 !important;
+      border-radius: 6px;
+      z-index: 2;
+      border-left: none !important;
+      background: var(--glass-2, transparent) !important;
+      border: 1px solid var(--aurora-3) !important;
+      color: var(--aurora-3) !important;           /* 명시적 색상 (inherit 차단) */
+      -webkit-tap-highlight-color: rgba(0,0,0,0) !important;   /* 모바일 tap 회색 overlay 제거 */
+      outline: none !important;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    /* (v786) active / focus 상태 — 텍스트 + 배경 명시 대비 보장 */
+    #stakeMaxBtn:hover,
+    #stakeMaxBtn:active,
+    #stakeMaxBtn:focus,
+    .page .form-max-btn:hover,
+    .page .form-max-btn:active,
+    .page .form-max-btn:focus {
+      background: var(--aurora-3) !important;
+      color: #ffffff !important;
+      border-color: var(--aurora-3) !important;
+      outline: none !important;
+    }
+    /* Label — MAX 우측 padding + 아래 input 과 호흡 */
+    .page .form-label,
+    #stakeFormLabel {
+      padding-right: 62px !important;
+      display: block !important;
+      box-sizing: border-box;
+      margin-bottom: 12px !important;             /* (v786) 4 → 12 — MAX/input 간격 */
+    }
+
+    /* Cycle history row */
+    .cycle-history-row { padding: 10px 0 !important; font-size: 13px !important; }
+
+    /* 안전망 */
+    body[data-page="staking"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="staking"] > main { max-width: 100vw !important; overflow-x: clip; }
+    body[data-page="staking"] *, body[data-page="staking"] *::before, body[data-page="staking"] *::after { box-sizing: border-box; }
+    body[data-page="staking"] img, body[data-page="staking"] video { max-width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body data-page="staking">
+<div class="page">
+  <!-- (2026-05-19 v592) 운영자 요청 — eyebrow/subtitle/APR label/APR detail
+       문구 제거. APR 수치만 단독 노출. -->
+  <!-- (v641) mb-xl (margin-bottom: 40px) → mb-md (16px) 으로 압축. -->
+  <div class="text-center mb-md">
+    <h1 class="heading-lg" style="font-size: clamp(36px, 5vw, 56px); line-height: 1;">Staking</h1>
+  </div>
+
+  <!-- APR Big Display (dynamic per admin setting) -->
+  <div class="apr-display">
+    <div class="apr-label" id="aprLabel"></div>
+    <div class="apr-value"><span><span id="aprValueInt">—</span><small><span id="aprValueDec">.00%</span></small></span><span class="apr-suffix">Annual Interest</span></div>
+    <div class="apr-detail" id="aprDetail"></div>
+  </div>
+
+  <div class="stake-grid">
+    <!-- Left: Stake form + Recent Cycle History -->
+    <div class="flex-col gap-md">
+    <div class="card stake-card">
+      <!--
+        (2026-05-07) Staking / Unstaking 탭 — 같은 form 을 모드 전환으로 재사용한다.
+          - id 부여: silica-data-bind.js 가 클릭 핸들러를 바인딩하고 mode 토글.
+          - 모드 전환 시 라벨 / Available 행 / Expected Yield 카드 / 버튼 라벨이
+            함께 갱신된다 (#stakeFormLabel, #stakeAvailableLabelText,
+            #stakeYieldCard, #stakeBtn 의 textContent).
+      -->
+      <div class="stake-tabs">
+        <button id="stakeTabBtn" type="button" class="stake-tab active">Staking</button>
+        <button id="unstakeTabBtn" type="button" class="stake-tab">Unstaking</button>
+      </div>
+
+      <!-- (v644) form-group 마진 압축. -->
+      <div class="form-group" style="margin-bottom: 8px;">
+        <label class="form-label" id="stakeFormLabel" style="margin-bottom: 4px;">Stake Amount</label>
+        <div class="form-input-group">
+          <input type="text" inputmode="numeric" pattern="[0-9]*" id="stakeAmountInput" placeholder="0" value="" autocomplete="off">
+          <button id="stakeMaxBtn" type="button" class="form-max-btn">MAX</button>
+          <span class="suffix">SILICASTO</span>
+        </div>
+        <div class="form-help flex-between" style="margin-top: 4px;">
+          <span><span id="stakeAvailableLabelText">Available</span>: <span class="text-cyan" id="stakeAvailable">0 SilicaSTO</span></span>
+          <span id="stakeUsdtEst">≈ 0 USDT</span>
+        </div>
+      </div>
+
+      <!-- (v644) yield card 추가 압축: padding 14→10, margin 12 0 → 8 0,
+           row padding 10→4, eyebrow mb-md(16) → mb-sm 인라인 → 6, font 14→13. -->
+      <div class="card" id="stakeYieldCard" style="background: var(--glass-2); padding: 10px 14px; margin: 8px 0; font-size: 13px;">
+        <div class="eyebrow" style="margin-bottom: 6px;">◆ Expected Yield</div>
+        <div class="flex-between" style="padding: 4px 0;">
+          <span class="text-muted" style="font-weight:600">Monthly Interest (USDT)</span>
+          <span class="text-mono" style="font-weight:800"><span class="text-success" id="stakeMonthlyInterest">+0.00 USDT</span></span>
+        </div>
+        <div class="flex-between" style="padding: 4px 0;">
+          <span class="text-muted" style="font-weight:600">Annual Interest (USDT)</span>
+          <span class="text-mono" style="font-weight:800"><span class="text-success" id="stakeAnnualInterest">+0.00 USDT</span></span>
+        </div>
+        <div class="flex-between" style="padding: 6px 0 0; border-top: 1px solid var(--line); margin-top: 4px;">
+          <span class="text-muted" style="font-weight:600">Annual Dividend (Silica)</span>
+          <span class="text-mono" style="font-weight:800" id="stakeAnnualDividend">— Silica</span>
+        </div>
+      </div>
+
+      <!-- (v644) btn-lg → btn (기본 padding 12×24, 더 컴팩트). -->
+      <button id="stakeBtn" class="btn btn-primary btn-block" type="button" style="padding: 11px;">Stake</button>
+
+      <!-- (2026-05-19 v592) ℹ 아이콘 + 보조 메시지 제거. 알림 박스 자체도 비움 —
+           실제 안내가 필요한 시점엔 silica-data-bind.js 가 직접 메시지 채움. -->
+      <div class="alert alert-info mt-md" id="stakeInfoAlert" style="display:none">
+        <div class="alert-content">
+          <div class="alert-message" id="stakeInfoMessage"></div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      (2026-05-08) Recent Cycle History moved here — operator wants it
+      directly below the 'Interest payouts begin from the next cycle…'
+      info alert in the left column. Was previously in the right column
+      under the MY STAKING + cycle countdown stack.
+    -->
+    <!-- (v644) Recent Cycle History 카드 압축: h3 24→18, padding 24→14,
+         empty state padding 32→14. -->
+    <div class="card" style="padding: 14px 18px;">
+      <div class="panel-title" style="margin-bottom: 8px;">
+        <h3 class="heading-sm" style="font-size: 18px;">
+          Recent Cycle History
+          <a href="claim.html" style="color: var(--aurora-3); font-size: 13px; text-decoration: none; margin-left: 10px; font-weight: 700;">View All →</a>
+        </h3>
+      </div>
+      <div id="cycleHistoryList">
+        <div class="text-center text-muted" style="padding:14px 0;font-size:14px;font-weight:600">
+          -
+        </div>
+      </div>
+    </div>
+    </div><!-- /left column flex-col -->
+
+    <!-- Right: Status. (v644) gap-md (16) → gap-sm (8). card padding 24→14. -->
+    <div class="flex-col gap-sm">
+      <div class="card" style="padding: 14px 18px;">
+        <div class="eyebrow" style="margin-bottom: 8px;">◆ MY STAKING</div>
+        <div class="stake-stats">
+          <div class="stake-stat">
+            <div class="stake-stat-label">Staked</div>
+            <div class="stake-stat-val" id="stakeStaked">0</div>
+            <div class="text-muted" style="font-size: 12px; font-weight: 600; margin-top: 2px;">SilicaSTO</div>
+          </div>
+          <!--
+            (2026-05-08) Pending stat card removed per operator request.
+            #stakeIdle is kept in the DOM (hidden) so silica-data-bind.js's
+            setText("stakeIdle", …) call keeps working without null-checks
+            and the value remains available to any other consumer.
+          -->
+          <span id="stakeIdle" hidden>0</span>
+          <div class="stake-stat">
+            <div class="stake-stat-label">Interest</div>
+            <div class="stake-stat-val text-success" id="stakeCumulInterest">0.00</div>
+            <div class="text-muted" style="font-size: 12px; font-weight: 600; margin-top: 2px;">USDT</div>
+          </div>
+        </div>
+
+        <!-- (v644) pendingInterestCard margin-top 18 → 10, inner gap 컴팩트. -->
+        <div id="pendingInterestCard" class="cycle-card" style="margin-top:10px;">
+          <div class="cycle-head">
+            <span id="pendingInterestHeading" class="cycle-num">Interest Claim</span>
+            <span id="pendingInterestBadge" class="badge">—</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:14px; margin-top:8px; flex-wrap:wrap;">
+            <div>
+              <div class="text-muted" style="font-size: 14px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--platinum);">Pending</div>
+              <div class="text-mono" id="pendingInterestAmountWrap" style="font-family: 'Unbounded'; font-weight: 800; font-size: 32px; line-height: 1; margin-top: 4px;">
+                <span id="pendingInterestAmount">0.00</span>
+                <span style="font-size: 16px; color: var(--steel); font-weight: 600;">USDT</span>
+              </div>
+              <div id="pendingInterestRounds" class="text-muted mt-sm" style="font-size: 14px; font-weight: 600;">— rounds</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <button id="interestDetailBtn" type="button" class="btn btn-secondary" style="white-space:nowrap;">Details</button>
+              <button id="interestClaimBtn" type="button" class="btn btn-primary" style="white-space:nowrap;" disabled>Claim</button>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          Active cycle countdown — silica-data-bind.js populates this whenever
+          the staking page loads. Cycle period = 16th of last month → 15th of
+          current month (when today <= 15) or 16th of this month → 15th of
+          next month (when today >= 16). Badge becomes "Active" (green) once
+          stoStaked > 0, otherwise stays "Pending".
+        -->
+        <div class="cycle-card" id="currentCycle">
+          <div class="cycle-head">
+            <span class="cycle-num" id="cycleName">— No cycle info</span>
+            <span class="badge" id="cycleBadge" style="background:rgba(148,163,184,0.15);color:var(--steel)">Pending</span>
+          </div>
+          <div class="cycle-bar"><div class="cycle-fill" id="cycleFill" style="width:0%"></div></div>
+          <div class="cycle-progress">
+            <span id="cyclePeriod">The cycle starts after you begin staking</span>
+            <span class="text-cyan" id="cycleDday">—</span>
+          </div>
+          <div class="text-mono text-muted" id="cycleExpected" style="font-size: 13px; margin-top: 6px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

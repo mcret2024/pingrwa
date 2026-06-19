@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preview Mode · SilicaChain User</title>
+<link rel="shortcut icon" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .preview-wrap {
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  .preview-card {
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    padding: 48px 40px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--aurora-1), var(--aurora-3), var(--aurora-2));
+  }
+  .preview-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .preview-header img {
+    height: 48px;
+    margin-bottom: 16px;
+    );
+  }
+  .preview-header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .preview-header p {
+    color: var(--steel);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .preview-status {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .preview-status.active {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--green);
+  }
+  .preview-status.inactive {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: var(--amber);
+  }
+  .activate-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--logo-violet);
+    color: var(--platinum);
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+    margin-bottom: 24px;
+    transition: all var(--t);
+  }
+  .activate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6); }
+  .pages-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (max-width: 600px) { .pages-grid { grid-template-columns: 1fr; } }
+  .page-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    text-decoration: none;
+    transition: all var(--t);
+    font-size: 13px;
+  }
+  .page-link:hover {
+    border-color: var(--aurora-3);
+    background: rgba(6, 182, 212, 0.05);
+    transform: translateX(4px);
+  }
+  .page-link.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .page-link .num {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    color: var(--steel-dim);
+    width: 22px;
+  }
+  .page-link .name { flex: 1; font-weight: 500; }
+  .page-link .arrow { color: var(--aurora-3); }
+  .page-section {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--aurora-3);
+    font-weight: 600;
+  }
+  .preview-info {
+    margin-top: 24px;
+    padding: 16px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    color: var(--blue);
+    line-height: 1.7;
+  }
+  .preview-info strong {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .danger-clear {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: var(--steel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .danger-clear:hover {
+    color: var(--red);
+    border-color: var(--red);
+  }
+</style>
+</head>
+<body>
+
+<div class="preview-wrap">
+  <div class="preview-card">
+    <div class="preview-header">
+      <img src="assets/images/logo_W.png" alt="SilicaChain">
+      <h1>User Preview Mode</h1>
+      <p>지갑 연결 없이 모든 사용자 페이지를 검토할 수 있는 우회 모드입니다.<br>
+      localStorage에 가짜 지갑 데이터를 설정하여 인증 체크를 통과합니다.</p>
+    </div>
+
+    <div id="status" class="preview-status inactive">
+      ⚠ Preview Mode 비활성 — 활성화 버튼을 누르세요.
+    </div>
+
+    <button id="activateBtn" class="activate-btn">
+      ◆ Preview Mode 활성화
+    </button>
+
+    <div id="pagesGrid">
+      <div class="page-section">◆ MAIN</div>
+      <div class="pages-grid">
+        <a class="page-link" href="landing.html"><span class="num">01</span><span class="name">랜딩 (소개)</span><span class="arrow">→</span></a>
+        <a class="page-link" href="index.html"><span class="num">02</span><span class="name">홈 / 대시보드</span><span class="arrow">→</span></a>
+        <a class="page-link" href="portfolio.html"><span class="num">03</span><span class="name">포트폴리오</span><span class="arrow">→</span></a>
+        <a class="page-link" href="profile.html"><span class="num">04</span><span class="name">프로필</span><span class="arrow">→</span></a>
+      </div>
+
+      <div class="page-section">◆ INVESTMENT (단일 자산)</div>
+      <div class="pages-grid">
+        <a class="page-link" href="assets.html"><span class="num">05</span><span class="name">광산 STO 투자</span><span class="arrow">→</span></a>
+        <a class="page-link" href="ir.html"><span class="num">06</span><span class="name">광산 상세 정보</span><span class="arrow">→</span></a>
+      </div>
+
+      <div class="page-section">◆ TRADING / STAKING</div>
+      <div class="pages-grid">
+        <a class="page-link" href="trade.html"><span class="num">07</span><span class="name">거래 (Silica/USDT)</span><span class="arrow">→</span></a>
+        <a class="page-link" href="markets.html"><span class="num">08</span><span class="name">마켓</span><span class="arrow">→</span></a>
+        <a class="page-link" href="chart.html"><span class="num">09</span><span class="name">차트</span><span class="arrow">→</span></a>
+        <a class="page-link" href="staking.html"><span class="num">10</span><span class="name">스테이킹</span><span class="arrow">→</span></a>
+        <a class="page-link" href="claim.html"><span class="num">11</span><span class="name">클레임 (이자/배당)</span><span class="arrow">→</span></a>
+        <!-- (2026-05-11 v253) '펀딩 (legacy)' 항목은 별도 funding.html 페이지
+             자체가 제거되면서 assets.html 와 중복이라 제거. assets.html (위
+             #08) 가 자산 목록 + 모금 참여 폼을 모두 포함한다. -->
+        <a class="page-link" href="sales.html"><span class="num">13</span><span class="name">매각 (legacy)</span><span class="arrow">→</span></a>
+        <a class="page-link" href="sale-detail.html"><span class="num">14</span><span class="name">매각 상세 (legacy)</span><span class="arrow">→</span></a>
+      </div>
+
+      <div class="page-section">◆ WALLET</div>
+      <div class="pages-grid">
+        <a class="page-link" href="deposit.html"><span class="num">15</span><span class="name">입금</span><span class="arrow">→</span></a>
+        <a class="page-link" href="history.html"><span class="num">16</span><span class="name">거래 이력</span><span class="arrow">→</span></a>
+      </div>
+
+      <div class="page-section">◆ KYC / REFERRAL / TERMS</div>
+      <div class="pages-grid">
+        <a class="page-link" href="kyc-certification.html"><span class="num">17</span><span class="name">KYC 인증</span><span class="arrow">→</span></a>
+        <a class="page-link" href="kyc-ready.html"><span class="num">18</span><span class="name">KYC 시작</span><span class="arrow">→</span></a>
+        <a class="page-link" href="kyc-return.html"><span class="num">19</span><span class="name">KYC 복귀</span><span class="arrow">→</span></a>
+        <a class="page-link" href="referral.html"><span class="num">20</span><span class="name">추천인</span><span class="arrow">→</span></a>
+        <!-- (2026-05-12 v306) terms.html 이 동적 KO/EN 전환을 처리하므로
+             terms-en.html 항목 제거. -->
+        <a class="page-link" href="terms.html"><span class="num">21</span><span class="name">이용약관</span><span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <div class="preview-info">
+      <strong>📌 알아두실 사항</strong>
+      • 모든 페이지에서 가짜 지갑 연결 상태로 표시됩니다<br>
+      • API 호출은 Mock으로 응답됨 (지갑 잔액 등 빈 값)<br>
+      • Phantom 지갑 실제 연결은 작동하지 않을 수 있습니다<br>
+      • Preview 데이터는 클라이언트 측만 우회합니다
+    </div>
+
+    <button id="clearBtn" class="danger-clear">Preview 데이터 제거 (실제 지갑 연결 모드로)</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'rwa_wallet_v3';
+  const FAKE_WALLET = {
+    connected: true,
+    address: '5fHneW46xGXgs5mUiveM4rPQEyKfxxMGgB1qgYWQcHjJ',
+    token: 'silica-preview-bypass-' + Date.now(),
+    mode: 'preview',
+  };
+  const statusEl = document.getElementById('status');
+  const activateBtn = document.getElementById('activateBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  function checkStatus() {
+    let wallet = null;
+    try { wallet = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (_) {}
+    if (wallet && wallet.connected && wallet.mode === 'preview') {
+      statusEl.className = 'preview-status active';
+      statusEl.innerHTML = '✓ Preview Mode 활성 — 모든 페이지 접근 가능';
+      activateBtn.textContent = '◆ Preview 토큰 갱신';
+    } else {
+      statusEl.className = 'preview-status inactive';
+      statusEl.innerHTML = '⚠ Preview Mode 비활성 — 활성화 버튼을 누르세요';
+      activateBtn.textContent = '◆ Preview Mode 활성화';
+    }
+  }
+
+  activateBtn.addEventListener('click', () => {
+    const wallet = { ...FAKE_WALLET, token: 'silica-preview-bypass-' + Date.now() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(wallet));
+    checkStatus();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Preview 데이터를 제거하시겠습니까?\n실제 지갑 연결 모드로 돌아갑니다.')) {
+      localStorage.removeItem(STORAGE_KEY);
+      checkStatus();
+    }
+  });
+
+  // Auto-activate on load
+  let wallet = null;
+  try { wallet = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (_) {}
+  if (!wallet || !wallet.connected || wallet.mode !== 'preview') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(FAKE_WALLET));
+  }
+  checkStatus();
+})();
+</script>
+
+</body>
+</html>

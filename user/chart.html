@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>차트 · SilicaChain</title>
+  <link rel="shortcut icon" href="assets/images/favicon.png">
+  <link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+  <script>
+    (function () {
+      try {
+        var key = 'rwa_lang_user_v1';
+        var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+        var lang = /^(ko|en)$/.test(raw) ? raw : 'ko';
+        var de = document.documentElement;
+        de.lang = lang === 'zh' ? 'zh-CN' : lang;
+        de.setAttribute('data-rwa-lang', lang);
+        de.setAttribute('data-rwa-i18n-ready', lang === 'ko' ? '1' : '0');
+        // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+        de.classList.add("rwa-booting-early");
+        window.__RWA_I18N_BOOT_LANG__ = lang;
+      } catch (_) {}
+    })();
+  </script>
+  <style id="rwaI18nBootStyle">
+    html[data-rwa-i18n-ready="0"] body { visibility: hidden; }
+    html[data-rwa-i18n-ready="1"] body { visibility: visible; }
+  </style>
+  <script>
+    (function () {
+      var released = false;
+      function release() {
+        if (released) return;
+        released = true;
+        try {
+          document.documentElement.setAttribute('data-rwa-i18n-ready', '1');
+          document.documentElement.removeAttribute('data-rwa-i18n-pending');
+        } catch (_) {}
+      }
+      window.__RWA_I18N_BOOT_RELEASE__ = release;
+      window.addEventListener('load', function () { setTimeout(release, 0); }, { once: true });
+      setTimeout(release, 4500);
+    })();
+  </script>
+</head>
+<body data-page="chart">
+
+<div id="siteHeaderMount"></div>
+
+<div id="toast" class="pill hidden" style="position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:999; max-width:min(520px, calc(100% - 28px));"></div>
+
+<main>
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <h1 style="margin:0 0 8px">차트</h1>
+            <div id="chartTitle" class="muted">-</div>
+          </div>
+          <!--
+          Silica 거래 / 마켓 비활성 — 2026-05-04.
+          markets.html 은 trade.html 으로 자동 redirect 하는 페이지라 함께 숨김.
+          향후 활성화 시 아래 .tagrow 블록의 주석을 해제하면 복원됩니다.
+          -->
+          <!--
+          <div class="tagrow">
+            <a class="btn small" href="markets.html">마켓</a>
+            <a class="btn small" href="trade.html">거래</a>
+          </div>
+          -->
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="split">
+          <div class="field">
+            <label for="chartAssetSelect">자산</label>
+            <select id="chartAssetSelect"></select>
+          </div>
+          <div class="notice">
+            <strong>최근 체결</strong><br>
+            <span id="chartLast">-</span> <span class="muted">·</span> <span id="chartLastAt" class="muted">-</span>
+          </div>
+        </div>
+
+        <div style="margin-top:14px" id="bigChart" class="spark"></div>
+
+        <div class="hr"></div>
+
+        <div class="two-col">
+          <div>
+            <h2 style="margin:0 0 10px">월간 기준(요약)</h2>
+            <div style="overflow:auto">
+              <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>월</th>
+                    <th class="right">시가</th>
+                    <th class="right">고가</th>
+                    <th class="right">저가</th>
+                    <th class="right">종가</th>
+                  </tr>
+                </thead>
+                <tbody id="monthlyOhlc"></tbody>
+              </table>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2 style="margin:0 0 10px">최근 체결</h2>
+            <div style="overflow:auto">
+              <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>시간</th>
+                    <th class="right">가격</th>
+                    <th class="right">수량</th>
+                  </tr>
+                </thead>
+                <tbody id="chartRecent"></tbody>
+              </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="links">
+      <a class="pill-link" href="landing.html">소개</a>
+      <a class="pill-link" href="assets.html">자산 목록</a>
+      <a class="pill-link" href="markets.html">거래</a>
+      <a class="pill-link" href="staking.html">스테이킹</a>
+      <a class="pill-link" href="claim.html">클레임</a>
+      <!-- (v393) 매각 링크 hidden — admin 비활성. 다른 사이트에서 활성화 시 제거. -->
+      <a class="pill-link" href="sales.html" hidden>매각</a>
+    </div>
+    <div style="margin-top:10px" class="small-note">
+      투자 상품은 원금 손실 가능성이 있으며, 시세와 수익은 변동될 수 있습니다. 이 페이지의 표기는 이해를 돕기 위한 정보입니다.
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+
+</body>
+</html>

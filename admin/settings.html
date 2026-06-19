@@ -1,0 +1,2029 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>환경설정 · SilicaChain</title>
+  <link rel="shortcut icon" href="img/favicon.png">
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <style>
+    .admin-shell { max-width: 1400px; margin: 0 auto; padding: 24px 32px; position: relative; z-index: 1; }
+    .settings-grid { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: flex-start; }
+    @media (max-width: 1000px) { .settings-grid { grid-template-columns: 1fr; } }
+
+    .settings-nav {
+      position: sticky;
+      top: 96px;
+      padding: 16px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+    .settings-nav::-webkit-scrollbar { width: 6px; }
+    .settings-nav::-webkit-scrollbar-track { background: transparent; }
+    .settings-nav::-webkit-scrollbar-thumb {
+      background: var(--border-strong); border-radius: 3px;
+    }
+    .settings-nav::-webkit-scrollbar-thumb:hover { background: var(--steel-dim); }
+    .settings-nav-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--aurora-3);
+      font-weight: 600;
+      padding: 0 12px 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-nav-link {
+      display: block;
+      padding: 8px 12px;
+      border-radius: var(--r-sm);
+      color: var(--steel);
+      text-decoration: none;
+      font-size: 13px;
+      transition: all var(--t);
+      margin-bottom: 2px;
+    }
+    .settings-nav-link:hover { color: var(--text); background: var(--glass-2); }
+    .settings-nav-link.active { color: var(--aurora-1); background: rgba(139, 92, 246, 0.1); }
+    .settings-nav-link.new::after {
+      content: 'NEW';
+      margin-left: 6px;
+      padding: 1px 5px;
+      background: var(--aurora-2);
+      color: white;
+      font-family: 'Oswald', sans-serif;
+      font-size: 9px;
+      letter-spacing: 1px;
+      border-radius: 3px;
+      vertical-align: middle;
+    }
+
+    .settings-section {
+      padding: 28px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .settings-section.aurora { border-color: rgba(139, 92, 246, 0.3); }
+    .settings-section.aurora::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--logo-violet);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .section-sub {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      color: var(--steel);
+      letter-spacing: 0.5px;
+    }
+    .section-tag-new {
+      padding: 3px 8px;
+      background: var(--aurora-2);
+      color: white;
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 3px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+    .fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 800px) { .fx-grid { grid-template-columns: 1fr; } }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--aurora-3);
+      margin-bottom: 8px;
+    }
+    .field .help, .help {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--steel-dim);
+    }
+
+    .input, input[type="text"], input[type="number"], input[type="date"], select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: all var(--t);
+      font-feature-settings: 'tnum' 1;
+    }
+    .input:focus, input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--aurora-3);
+      background: rgba(6, 182, 212, 0.05);
+    }
+    .input::placeholder, input::placeholder { color: var(--steel-dim); }
+
+    .notice {
+      padding: 14px 16px;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      color: var(--steel);
+      line-height: 1.7;
+    }
+    .notice strong { color: var(--text); display: block; margin-bottom: 4px; font-weight: 600; }
+
+    /* 접고 펴기 가능한 정책 안내 (기본 닫힘) */
+    .notice.policy-notice { padding: 0; cursor: default; }
+    .notice.policy-notice > summary {
+      padding: 12px 16px;
+      list-style: none;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--text);
+      font-size: 13px;
+      letter-spacing: 0.3px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background var(--t);
+    }
+    .notice.policy-notice > summary::-webkit-details-marker { display: none; }
+    .notice.policy-notice > summary::before {
+      content: '▶';
+      font-size: 9px;
+      color: var(--aurora-3);
+      transition: transform 0.15s ease;
+      flex-shrink: 0;
+    }
+    .notice.policy-notice[open] > summary::before { transform: rotate(90deg); }
+    .notice.policy-notice > summary:hover { background: rgba(6, 182, 212, 0.04); }
+    .notice.policy-notice[open] > summary {
+      border-bottom: 1px solid var(--border);
+    }
+    .notice.policy-notice ul {
+      margin: 0;
+      padding: 12px 16px 14px 36px;
+      list-style: disc;
+    }
+    .notice.policy-notice li {
+      margin-bottom: 6px;
+      line-height: 1.65;
+      color: var(--steel);
+    }
+    .notice.policy-notice li:last-child { margin-bottom: 0; }
+    .notice.policy-notice li b {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .notice code {
+      background: var(--glass);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      color: var(--aurora-3);
+    }
+
+    .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+    .tagrow { display: flex; gap: 8px; flex-wrap: wrap; }
+    .hr { display: none; }
+
+    .danger-box {
+      margin-top: 16px;
+      border: 1px solid var(--red-border);
+      background: var(--red-bg);
+      border-radius: var(--r-md);
+      padding: 20px;
+    }
+    .danger-box .danger-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--red); }
+    .danger-box .danger-note { margin-top: 10px; color: var(--text); line-height: 1.7; font-size: 13px; }
+    .danger-box .danger-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .danger-box .danger-meta { font-size: 12px; color: var(--steel); }
+
+    /* Hide non-KRW FX fields for Silica (single-currency Korea-focused) */
+    .fx-non-krw { display: none; }
+  </style>
+</head>
+<body data-page="settings">
+
+<div id="toast" class="pill hidden"></div>
+<div id="adminHeaderMount"></div>
+
+<div class="admin-shell">
+
+  <!-- Page Header -->
+  <div class="admin-page-header">
+    <div>
+      <h1 class="admin-page-title">환경 설정</h1>
+      <div class="admin-page-subtitle">// 토큰, 네트워크, 환율, 보안, AMM 등 핵심 설정</div>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+
+    <!-- Settings Nav -->
+    <aside class="settings-nav">
+      <div class="settings-nav-title">CATEGORIES</div>
+      <a href="#tokens" class="settings-nav-link">토큰 Mints</a>
+      <a href="#silica-price" class="settings-nav-link">Silica 시세</a>
+      <a href="#solana" class="settings-nav-link">Solana 네트워크</a>
+      <a href="#fx" class="settings-nav-link">환율 (FX)</a>
+      <a href="#deposit-wallet" class="settings-nav-link">입금 지갑</a>
+      <a href="#fees" class="settings-nav-link">출금 수수료</a>
+      <a href="#swap-fee" class="settings-nav-link">스왑 수수료</a>
+      <a href="#trade-fee" class="settings-nav-link">거래 수수료</a>
+      <a href="#referral" class="settings-nav-link">추천인 보상</a>
+      <a href="#security" class="settings-nav-link">KYC</a>
+      <a href="#amm" class="settings-nav-link">AMM 유동성</a>
+      <a href="#amm-recycle" class="settings-nav-link">AMM 매도</a>
+      <a href="#amm-audit" class="settings-nav-link">AMM 감사</a>
+      <a href="#winddown" class="settings-nav-link" style="color: #DC2626; font-weight: 700;">🛑 운영 종료</a>
+      <a href="#prod-checklist" class="settings-nav-link" style="color: #DC2626; font-weight: 700;">⚠ 운영 전환 체크리스트</a>
+      <a href="#danger" class="settings-nav-link" style="color: var(--red);">테스트 초기화</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+
+      <!-- ============ TOKENS (NEW) ============ -->
+      <section class="settings-section aurora" id="tokens">
+        <div class="section-head">
+          <div>
+            <div class="section-title">토큰 Mint 주소</div>
+            <div class="section-sub">// 외부에서 발행한 SPL 토큰의 Mint 주소를 등록합니다.</div>
+          </div>
+          <div class="tagrow">
+            <button id="silicaTokensSaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="solUsdtMint">USDT Mint (Devnet/Mainnet)</label>
+          <input id="solUsdtMint" class="input" placeholder="예: Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB" />
+          <div class="help">Mainnet USDT: <code>Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB</code></div>
+        </div>
+
+        <div class="field">
+          <label for="silicaStoMint">SilicaSTO Mint (Token 1 · 투자증서)</label>
+          <input id="silicaStoMint" class="input" placeholder="외부에서 배포한 SilicaSTO Mint 주소를 입력" />
+        </div>
+
+        <div class="field">
+          <label>SilicaSTO 사전 발행량 (on-chain)</label>
+          <div class="row" style="gap:10px; align-items:center; justify-content:flex-start; flex-wrap:nowrap">
+            <div id="silicaStoTotalMintedDisplay" class="input" style="flex:1; background: var(--glass); cursor:default; user-select:all" data-no-i18n="1" translate="no">-</div>
+            <button id="silicaStoSupplyRefreshBtn" class="btn small" type="button">↻ 새로고침</button>
+          </div>
+          <div class="help" id="silicaStoSupplyHelp">SilicaSTO Mint 의 on-chain 총 발행량 (Solana RPC <code>getTokenSupply</code> 조회). 관리자 입력값이 아닌 블록체인상 실제 발행량입니다.</div>
+        </div>
+
+        <div class="field">
+          <label for="silicaStoReserveWallet">SilicaSTO Reserve Wallet</label>
+          <input id="silicaStoReserveWallet" class="input" placeholder="사전 발행분을 보관 중인 지갑 주소" />
+        </div>
+
+        <div class="field">
+          <label for="silicaTokenMint">Silica Mint (Token 2 · 보상 토큰)</label>
+          <input id="silicaTokenMint" class="input" placeholder="외부에서 배포한 Silica Mint 주소를 입력" />
+        </div>
+
+        <details class="notice policy-notice">
+          <summary>STO 분배 정책 (Silica · 장부 모델)</summary>
+          <ul>
+            <li><b>사전 발행:</b> 모금 시작 전 reserve 지갑에 1B STO 일괄 발행 → 영구 보관 (플랫폼 원장의 1:1 backing).</li>
+            <li><b>분배 트리거:</b> 유저 투자 → 관리자 계약 서명 → 유저 Claim 클릭 → 플랫폼 내부 원장(ledger) 에 보유 기록 (on-chain SPL Transfer ❌).</li>
+            <li><b>사이트 내부 이동:</b> Claim · 스테이킹 · 스왑 · 거래 · 매각 정산 모두 장부 처리.</li>
+            <li><b>외부 출금:</b> 유저가 외부 지갑으로 출금 신청 시에만 관리자가 reserve 에서 수동으로 on-chain SPL Transfer 실행.</li>
+            <li><b>매각 분배 계산식 분모:</b> 누적 분배(Claim) 수량 (장부 기준). 사전 발행량 1B 또는 reserve 잔량은 분모에 사용되지 않음.</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- ============ SALE SUPPLY CAP (2026-05-07) ============
+        Global SilicaSTO max sale quantity. Once total invested USDT
+        (= total STO sold under the 1:1 peg) hits this cap, new invest
+        contracts are rejected with a 409 and the user-side assets.html
+        page renders a "sale temporarily suspended" banner.
+
+        - Setting key: silica_max_sto_supply (integer; 0 = unlimited)
+        - Sold total counts both 'completed' AND 'awaiting_admin' contracts
+          so concurrent users can't slip past the cap before admin signs.
+        - Admin cannot lower the cap below the already-sold total — the
+          POST endpoint enforces that (returns 400 with the floor value).
+      -->
+      <section class="settings-section aurora" id="sale-supply">
+        <div class="section-head">
+          <div>
+            <div class="section-title">SilicaSTO 최대 판매량</div>
+            <div class="section-sub">// 도달 시 신규 투자 신청이 자동으로 차단됩니다 (이미 판매된 수량보다 낮게 설정 불가).</div>
+          </div>
+          <div class="tagrow">
+            <button id="silicaSupplyRefreshBtn" class="btn small" type="button">↻ 새로고침</button>
+            <button id="silicaSupplySaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="silicaMaxSupplyInput">최대 판매량 (STO)</label>
+            <input id="silicaMaxSupplyInput" class="input" type="number" min="0" step="1" placeholder="예: 1000000 · 0 = 무제한" />
+            <div class="help">정수. <code>0</code> 입력 시 무제한 (캡 비활성화).</div>
+          </div>
+          <div class="field">
+            <label>판매 현황</label>
+            <div id="silicaSupplyStats" class="input" style="background: var(--glass); cursor:default; user-select:all" data-no-i18n="1" translate="no">—</div>
+            <div class="help" id="silicaSupplyStatsHelp">투자 신청(awaiting_admin) 도 합산되어 동시 신청자가 캡을 넘기지 못하도록 합니다.</div>
+          </div>
+        </div>
+
+        <!--
+          (2026-05-16 v423) 운영자 안내 문구 — assets.html 의
+          '◆ Total Sale Supply' 카드 상단에 노출. 국문/영문 각각 입력.
+          예: '1차 판매 수량 100만 STO 까지 진행' / 'Phase 1: Up to 1M STO'.
+          빈 칸으로 두면 사용자 페이지에 미표시. 최대 500자.
+        -->
+        <div class="split" style="margin-top:14px">
+          <div class="field">
+            <label for="silicaSaleNoticeKo">사용자 안내 문구 — 국문</label>
+            <textarea id="silicaSaleNoticeKo" class="input" rows="3" maxlength="500"
+                      style="resize:vertical; min-height:72px; font-family:inherit"
+                      placeholder="예: 1차 판매 수량 100만 STO 까지 진행"></textarea>
+            <div class="help">사용자 페이지의 ‘◆ Total Sale Supply’ 카드 상단에 표시됩니다. 비워두면 미표시.</div>
+          </div>
+          <div class="field">
+            <label for="silicaSaleNoticeEn">사용자 안내 문구 — 영문</label>
+            <textarea id="silicaSaleNoticeEn" class="input" rows="3" maxlength="500"
+                      style="resize:vertical; min-height:72px; font-family:inherit"
+                      placeholder="e.g. Phase 1: Up to 1,000,000 STO"></textarea>
+          </div>
+        </div>
+
+        <div class="notice" id="silicaSupplyStatusNotice" style="margin-top:12px"></div>
+      </section>
+
+      <!-- ============ SILICA PRICE (NEW) ============ -->
+      <section class="settings-section aurora" id="silica-price">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Silica 시세 모드</div>
+            <div class="section-sub">// 이 시세가 배당·스왑·거래 기준 가격에 동시 적용됩니다.</div>
+          </div>
+          <div class="tagrow">
+            <button id="silicaPriceSaveBtn" class="btn small primary" type="button">저장</button>
+            <a class="btn small" href="silica-price.html">상세 관리 →</a>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="silicaPriceMode">시세 결정 모드</label>
+            <select id="silicaPriceMode" class="input">
+              <option value="manual">관리자 직접 설정</option>
+              <!-- (2026-05-12 v323) MECCA 옵션 추가 — silica-price.html 의 MEA
+                   동기화로 mode='linked_mea' 가 저장되면 이 미니 패널에서도
+                   드롭다운에 표시할 수 있어야 함 (이전엔 매칭 옵션이 없어 빈
+                   값으로 보였음). 모드 전환 자체는 상세 관리 페이지에서만 —
+                   여기서 직접 manual ↔ linked_mea 변경은 혼란 유발하므로
+                   load 시 disabled 처리 (아래 JS 참고). -->
+              <option value="linked_mea">MECCA(MEA) 시세 연동 (상세 관리에서만 변경)</option>
+              <option value="exchange_api" disabled>거래소 API 자동 (상장 후 활성화)</option>
+            </select>
+            <div class="help" id="silicaPriceModeHelp">상장 전: 관리자가 직접 시세 입력. 상장 후: API 자동 호출 가능.</div>
+          </div>
+          <div class="field">
+            <label for="silicaPriceUsdt">현재 Silica 시세 (USDT)</label>
+            <input id="silicaPriceUsdt" class="input" type="number" step="0.0001" min="0" placeholder="예: 0.05" />
+            <div class="help">Silica 1개당 USDT 가격.</div>
+          </div>
+        </div>
+
+        <div class="notice">
+          <strong>적용 영향 (즉시 반영)</strong>
+          ① 연 배당 계산 (USDT 풀 → Silica 수량 환산)<br>
+          ② 단방향 스왑 비율 (Silica → SilicaSTO)<br>
+          ③ 거래 페이지 시세 표시
+        </div>
+      </section>
+
+      <!-- ============ SOLANA NETWORK ============ -->
+      <section class="settings-section" id="solana">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Solana 네트워크</div>
+          </div>
+          <div class="tagrow">
+            <button id="solSaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="solNetwork">네트워크</label>
+            <select id="solNetwork" class="input">
+              <option value="devnet">Devnet (테스트)</option>
+              <option value="mainnet-beta">Mainnet-Beta (프로덕션)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>연결 상태</label>
+            <div id="solHealthCard" style="padding:14px 16px; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; min-height:80px; display:flex; flex-direction:column; gap:6px; justify-content:center;">
+              <div id="solHealthBadge" style="font-weight:800; font-size:15px;">⏳ 검사 중…</div>
+              <div id="solHealthDetail" style="font-size:12px; color:#475569; line-height:1.5;">-</div>
+            </div>
+            <div class="tagrow" style="margin-top:8px; justify-content:flex-end;">
+              <button id="solHealthRecheckBtn" class="btn small" type="button">↻ 재검사</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 이전 설정값이 남아있어 자동 적용을 막는 경우 — 한 번 클릭으로 해제. -->
+        <div id="solLegacyOverrideWarn" hidden style="margin-top:12px; padding:12px 14px; border-radius:10px; background:#FFF7ED; border:1px solid #FDBA74; color:#9A3412; font-size:13px; line-height:1.6;">
+          <strong>⚠ 이전 설정값이 남아있어 자동 적용을 막고 있습니다.</strong><br>
+          아래 버튼을 눌러 해제하면 선택한 네트워크가 정상 적용됩니다.
+          <div style="margin-top:8px;">
+            적용 중인 주소: <code id="solLegacyOverrideUrl" style="word-break:break-all"></code>
+          </div>
+          <div class="tagrow" style="margin-top:10px; justify-content:flex-end;">
+            <button id="solClearLegacyOverrideBtn" class="btn small primary" type="button">이전 설정 해제</button>
+          </div>
+        </div>
+      </section>
+
+      <!--
+        ============ FX ============
+        (2026-05-08) 사장님 정책:
+          - 수동 입력 완전 제거 (워커 장애 대응이 너무 늦음).
+          - Provider chain 으로 자동 fallback: 1차 실패 → 2차 → 3차 시도.
+          - 모든 provider 실패 + fresh 데이터 없음 → 환율 의존 거래 차단.
+        cron/fx_worker_cron.php 가 chain 을 순서대로 호출하고,
+        fx_quote_latest 테이블에 첫 성공값을 기록한다. 이 값은
+        getFxPerUsdt() 가 실제 환산 로직에 그대로 사용한다.
+      -->
+      <section class="settings-section" id="fx">
+        <div class="section-head">
+          <div>
+            <div class="section-title">환율 (FX) — KRW</div>
+          </div>
+          <div class="tagrow">
+            <button id="fxRefreshBtn" class="btn small" type="button" title="Live 환율 다시 가져오기">↻ 새로고침</button>
+            <a class="btn small" href="fx-live.html">실시간 환율 상세</a>
+          </div>
+        </div>
+
+        <!-- Live FX summary (provider · rate · last fetched) -->
+        <div class="fx-live-summary" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div class="notice" style="margin:0">
+            <strong style="display:block;margin-bottom:4px">현재 사용 Provider</strong>
+            <span id="fxLiveProvider" class="mono" style="font-weight:700">-</span>
+          </div>
+          <div class="notice" style="margin:0">
+            <strong style="display:block;margin-bottom:4px">현재 환율 (1 USDT)</strong>
+            <span id="fxLiveRate" class="mono" style="font-weight:700">-</span>
+          </div>
+          <div class="notice" style="margin:0">
+            <strong style="display:block;margin-bottom:4px">마지막 갱신</strong>
+            <span id="fxLiveLastAt" class="mono" style="font-weight:700">-</span>
+          </div>
+        </div>
+        <div id="fxLiveError" class="help" style="color:var(--red);display:none;margin-bottom:8px"></div>
+
+        <!-- Provider chain editor — comma-separated, ordered try list -->
+        <div class="field" style="margin-top:8px">
+          <label for="fxProviderChain">Provider 체인 (시도 순서, 콤마 구분)</label>
+          <input id="fxProviderChain" class="input mono" placeholder="coingecko, exchangerate-api, frankfurter" />
+        </div>
+        <div style="text-align:right;margin-top:8px">
+          <button id="fxProviderSaveBtn" class="btn small primary" type="button">체인 저장</button>
+        </div>
+
+        <!-- Hidden compatibility shims so legacy settings.js code that may
+             still look up these IDs doesn't crash. They are unused — the
+             manual save flow has been removed entirely. -->
+        <div style="display:none">
+          <input id="fxKRW" value="">
+          <input id="fxUSD" type="hidden" value="1">
+          <input id="fxKZT" type="hidden" value="0">
+          <input id="fxPHP" type="hidden" value="0">
+          <input id="fxGEL" type="hidden" value="0">
+          <input id="fxIDR" type="hidden" value="0">
+          <input id="fxVND" type="hidden" value="0">
+          <span id="fxNow"></span>
+          <button id="fxSaveBtn" type="button" hidden></button>
+        </div>
+      </section>
+
+      <!-- ============ DEPOSIT WALLET ============ -->
+      <section class="settings-section" id="deposit-wallet">
+        <div class="section-head">
+          <div>
+            <div class="section-title">입금 전용 관리자 지갑</div>
+          </div>
+          <div class="tagrow">
+            <button id="depSaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="depositAddrInput">입금 지갑 주소 (Solana)</label>
+            <input id="depositAddrInput" class="input" placeholder="예: 5fHneW46xGXgs5mUiveM4rPQEyKfxxMGgB1qgYWQcHjJ" />
+            <div class="help">비워두면 미설정.</div>
+          </div>
+          <div class="notice">
+            <strong>현재 저장 값</strong>
+            <span id="depositAddrNow">-</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FEES ============ -->
+      <section class="settings-section" id="fees">
+        <div class="section-head">
+          <div>
+            <div class="section-title">출금 수수료</div>
+            <div class="section-sub">// 모든 출금에 USDT 고정 수수료 적용 (토큰 출금 포함)</div>
+          </div>
+          <div class="tagrow">
+            <button id="wdFeeSaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <!--
+          (2026-05-05) "퍼센트" 옵션 제거됨.
+          USDT/토큰 모든 출금에 동일한 USDT 고정 수수료를 적용한다는 정책으로 단순화.
+          드롭다운은 단일 옵션이지만 settings.js 와의 호환을 위해 셀렉트 구조 유지.
+          기존 DB 에 mode='percent' 로 저장된 값이 있으면 settings.js 가 로드 시점에
+          자동으로 'fixed_usdt' 로 보정한다.
+        -->
+        <div class="split">
+          <div class="field">
+            <label for="withdrawFeeMode">수수료 방식</label>
+            <select id="withdrawFeeMode" class="input">
+              <option value="fixed_usdt">고정 USDT</option>
+            </select>
+          </div>
+          <div class="notice">
+            <strong>현재 수수료</strong>
+            <span id="withdrawFeeNow">-</span>
+          </div>
+        </div>
+
+        <div class="split" style="margin-top: 12px;">
+          <div class="field" id="withdrawFeeFixedWrap">
+            <label for="withdrawFeeInput">고정 수수료 (USDT)</label>
+            <input id="withdrawFeeInput" class="input" type="number" step="0.000001" min="0" max="10000" placeholder="예: 1" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SWAP FEE (2026-05-07) ============ -->
+      <section class="settings-section" id="swap-fee">
+        <div class="section-head">
+          <div>
+            <div class="section-title">스왑 수수료</div>
+            <div class="section-sub"><strong>최소 1 USDT</strong> (0% 설정 시에만 무료)</div>
+          </div>
+          <div class="tagrow">
+            <button id="swapFeeSaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="swapFeePctInput">수수료율 (%)</label>
+            <!--
+              브라우저 단계 1차 차단:
+                min=0, max=10, step=0.01, type=number → 음수/문자/지수표기 거부.
+              백엔드 (admin_settings.php POST /swap-fee) 에서 동일 검증을 한 번 더.
+            -->
+            <input id="swapFeePctInput" class="input" type="number" step="0.01" min="0" max="10" placeholder="예: 1.0" inputmode="decimal" />
+            <div class="help">
+              <strong>최소 수수료 1 USDT</strong>: 0% 초과 설정 시 수수료율 계산 결과가 1 USDT 미만이어도 1 USDT 로 끌어올려 차감 (swap.php #251).<br>
+              <strong>0% 설정 시 진짜 무료</strong>: 수수료 자체를 차감하지 않음 (markets.php의 trade fee와 동일 동작).
+            </div>
+          </div>
+          <div class="notice">
+            <strong>현재 수수료율</strong>
+            <span id="swapFeeNow">-</span>
+            <hr style="border:none;border-top:1px solid var(--line);margin:8px 0">
+            <strong>최소 수수료</strong>
+            <span>1.00 USDT (0% 초과 설정 시)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TRADE FEE (2026-05-11) ============ -->
+      <!-- Operator: '거래 수수료 (매수 / 매도) 매수와 매도 수수료를
+           통합 해줘'. Single 거래 수수료 input that writes the same
+           value to both fee_buyer and fee_seller on SILICA-79907. -->
+      <section class="settings-section" id="trade-fee">
+        <div class="section-head">
+          <div>
+            <div class="section-title">거래 수수료</div>
+            <div class="section-sub">// SilicaSTO 호가창 거래 시 매수/매도 양측에 동일 % 부과 · <strong>최소 0.001 USDT</strong></div>
+          </div>
+          <div class="tagrow">
+            <button id="tradeFeeSaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="tradeFeeInput">수수료 (%)</label>
+            <input id="tradeFeeInput" class="input" type="number" step="0.01" min="0" max="10" placeholder="예: 0.1" inputmode="decimal" />
+            <div class="help">매수자와 매도자에게 동일하게 적용되는 거래 수수료율 (gross USDT × %). 0% 입력 시 수수료 없음.</div>
+          </div>
+          <div class="notice">
+            <strong>현재 수수료율</strong>
+            <span id="tradeFeeNow">-</span>
+            <hr style="border:none;border-top:1px solid var(--line);margin:8px 0">
+            <strong>최소 거래 수수료</strong>
+            <span>0.001 USDT</span>
+            <br><span style="font-size:12px;color:var(--steel)">→ 0.1% × 0.5 USDT = 0.0005 → 0.001 로 끌어올림.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REFERRAL ============ -->
+      <section class="settings-section" id="referral">
+        <div class="section-head">
+          <div>
+            <div class="section-title">추천인 보상률</div>
+          </div>
+          <div class="tagrow">
+            <button id="refRateSaveBtn" class="btn small primary" type="button">저장</button>
+            <a class="btn small" href="referrals.html">상세 관리 →</a>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="settingsRefBonusRate">보상률 (%)</label>
+            <!-- (2026-05-16 v420) 1% 미만 값도 입력 가능하게 (최소 0.01%).
+                 referrals.html 의 동일 입력칸과 정책 동기화. -->
+            <input id="settingsRefBonusRate" class="input" type="number" step="0.01" min="0.01" max="50" placeholder="예: 0.5" inputmode="decimal" />
+          </div>
+          <div class="notice">
+            <strong>현재 보상률</strong>
+            <span id="settingsRefRateNow">-</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SECURITY ============ -->
+      <!-- (2026-05-19 v587) 운영자 결정: 관리자 로그인 흐름에서 OTP 완전 제거.
+           지갑 화이트리스트 (.env ADMIN_WALLET_ADDRESSES, v583/v584) 가 2-factor.
+           OTP 토글 자체를 UI 에서 제거. 백엔드 verifyAdminOtpOrThrow 함수는
+           dormant 로 보존 (호출처 없음) — 향후 재활성 필요 시 수동 복원. -->
+      <section class="settings-section" id="security">
+        <div class="section-head">
+          <div>
+            <div class="section-title">보안 (KYC)</div>
+          </div>
+          <div class="tagrow">
+            <button id="secSaveBtn" class="btn small primary" type="button">저장</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="secBypassKyc">KYC 인증</label>
+            <select id="secBypassKyc" class="input">
+              <option value="0">활성화 (KYC 필수)</option>
+              <option value="1">비활성화 (테스트용)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="notice" style="margin-top: 12px;">
+          <strong>현재 상태</strong>
+          <div id="secNow">-</div>
+        </div>
+      </section>
+
+      <!-- (2026-05-06) 스테이킹 전역 설정 (표시) 섹션 제거.
+           스테이킹 관리는 admin/staking.html 으로 이동. -->
+
+      <!-- ============ AMM LIQUIDITY ============ -->
+      <section class="settings-section" id="amm">
+        <div class="section-head">
+          <div>
+            <div class="section-title">자동 매수 유동성 관리</div>
+            <div class="section-sub">// 시세 대비 일정 비율 이하 저가 매도 자동 매수 풀</div>
+          </div>
+          <div class="tagrow">
+            <button id="ammSweepBtn" class="btn small primary" type="button" title="기존 OPEN 매도 주문 중 임계값 이하 가격을 AMM 풀로 일괄 매수">▷ 미체결 매도 일괄 처리</button>
+            <button id="ammRefreshBtn" class="btn small" type="button">새로고침</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="field">
+            <label for="ammEnabled">자동 매수 모드</label>
+            <select id="ammEnabled" class="input">
+              <option value="1">활성화 (임계값 이하 자동 매수)</option>
+              <option value="0">비활성화 (오더북만)</option>
+            </select>
+            <div style="margin-top: 8px;">
+              <button id="ammToggleSaveBtn" class="btn small primary" type="button">모드 저장</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="ammThresholdInput">자동 매수 임계값 (USDT 절대값)</label>
+            <input id="ammThresholdInput" class="input" type="number" step="0.01" min="0.01" max="1" value="0.8" placeholder="0.80" />
+            <div class="help">매도 호가가 이 값 이하면 시스템이 자동 매수합니다. (기본 0.80, 범위 0.01~1.00)</div>
+            <div style="margin-top: 8px;">
+              <button id="ammThresholdSaveBtn" class="btn small primary" type="button">임계값 저장</button>
+            </div>
+          </div>
+          <div class="notice">
+            <strong>현재 상태</strong>
+            <div id="ammStatusNow">-</div>
+            <div style="margin: 8px 0; height: 1px; background: var(--border);"></div>
+            <strong>현재 유동성</strong>
+            <span id="ammBalanceNow" style="font-weight: 700; font-size: 18px; color: var(--aurora-3);">-</span>
+            <div id="ammUpdatedAt" class="help">-</div>
+          </div>
+        </div>
+
+        <div class="split" style="margin-top: 12px;">
+          <div class="field">
+            <label for="ammTopupAmount">조정 금액 (USDT)</label>
+            <input id="ammTopupAmount" class="input" type="number" step="0.000001" min="0" placeholder="예: 10000" />
+            <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <button id="ammTopupAddBtn" class="btn small primary" type="button">+ 충전</button>
+              <button id="ammTopupSubBtn" class="btn small danger" type="button">- 회수</button>
+            </div>
+          </div>
+          <div class="notice">
+            <strong>AMM 축적 토큰</strong>
+            <div id="ammTokensNow">-</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============ SYSTEM TOKEN SALE (Silica 단일 자산) ============ -->
+      <section class="settings-section" id="amm-recycle">
+        <div class="section-head">
+          <div>
+            <div class="section-title">시스템 보유 토큰 판매</div>
+            <div class="section-sub">// 시스템(AMM) 보유 SilicaSTO 를 오더북에 매도 등록</div>
+          </div>
+          <div class="tagrow">
+            <button id="ammSellRefreshBtn" class="btn small" type="button">새로고침</button>
+          </div>
+        </div>
+
+        <div class="split" style="gap: 16px;">
+
+          <!-- ===== Card 1: SilicaSTO 판매 ===== -->
+          <div class="card" style="padding: 16px; background: rgba(139, 92, 246, .06); border: 1px solid rgba(139, 92, 246, .25);">
+            <div style="font-weight: 800; font-size: 15px; margin-bottom: 4px; color: var(--aurora-1);">
+              SilicaSTO 판매
+            </div>
+            <div class="muted" style="font-size: 12px; margin-bottom: 10px;">
+              1 USDT peg · 투자증서 토큰
+            </div>
+            <div style="font-size: 13px; margin-bottom: 12px;">
+              보유량: <strong id="ammSellStoBalance">-</strong> SilicaSTO
+            </div>
+
+            <div class="field">
+              <label for="ammSellStoAmount">매도 수량 (SilicaSTO)</label>
+              <input id="ammSellStoAmount" class="input" type="number" step="0.000001" min="0" placeholder="예: 1000" />
+            </div>
+            <div class="field" style="margin-top: 8px;">
+              <label for="ammSellStoPrice">매도 가격 (USDT)</label>
+              <input id="ammSellStoPrice" class="input" type="number" step="0.000001" min="0" placeholder="예: 1.0" value="1.0" />
+              <div class="help">권장: 1.0 USDT (peg 가격)</div>
+            </div>
+            <div class="field" style="margin-top: 8px;">
+              <label for="ammSellStoExpiry">만료일 (선택)</label>
+              <input id="ammSellStoExpiry" class="input" type="date" />
+            </div>
+            <button id="ammSellStoCreateBtn" class="btn primary" type="button" style="margin-top: 12px; width: 100%;">
+              SilicaSTO 매도 주문 생성
+            </button>
+          </div>
+
+          <!--
+          ===== Card 2: Silica 판매 (DISABLED 2026-05-04) =====
+          향후 Silica 토큰 거래 활성화 시 아래 블록의 주석을 해제하면 복원됩니다.
+          연결된 ammSellSilica* DOM ID 도 같이 살아납니다.
+          -->
+          <!--
+          <div class="card" style="padding: 16px; background: rgba(236, 72, 153, .06); border: 1px solid rgba(236, 72, 153, .25);">
+            <div style="font-weight: 800; font-size: 15px; margin-bottom: 4px; color: var(--aurora-2);">
+              Silica 판매
+            </div>
+            <div class="muted" style="font-size: 12px; margin-bottom: 10px;">
+              시장가 변동 · 보상 토큰
+            </div>
+            <div style="font-size: 13px; margin-bottom: 12px;">
+              보유량: <strong id="ammSellSilicaBalance">-</strong> Silica
+            </div>
+
+            <div class="field">
+              <label for="ammSellSilicaAmount">매도 수량 (Silica)</label>
+              <input id="ammSellSilicaAmount" class="input" type="number" step="0.000001" min="0" placeholder="예: 10000" />
+            </div>
+            <div class="field" style="margin-top: 8px;">
+              <label for="ammSellSilicaPrice">매도 가격 (USDT)</label>
+              <input id="ammSellSilicaPrice" class="input" type="number" step="0.000001" min="0" placeholder="예: 0.05" />
+              <div class="help">현재 Silica 시세 기준 입력</div>
+            </div>
+            <div class="field" style="margin-top: 8px;">
+              <label for="ammSellSilicaExpiry">만료일 (선택)</label>
+              <input id="ammSellSilicaExpiry" class="input" type="date" />
+            </div>
+            <button id="ammSellSilicaCreateBtn" class="btn primary" type="button" style="margin-top: 12px; width: 100%;">
+              Silica 매도 주문 생성
+            </button>
+          </div>
+          -->
+
+        </div>
+
+        <div style="margin-top: 20px;">
+          <div style="font-weight: 700; margin-bottom: 8px;">현재 오픈 매도 주문</div>
+          <div id="ammOpenOrders" style="font-size: 13px;">
+            <div class="muted">-</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ AMM AUDIT ============ -->
+      <!-- (2026-05-16 v404) 운영자: '로그가 있는날만 표기. 클릭시 팝업으로
+           그날 거래 로그 모두 표기 (페이지당 10개) + 화살표로 페이지네이션.'
+           기존 단순 list → 날짜 그리드 + 모달 패턴으로 변경. -->
+      <section class="settings-section" id="amm-audit">
+        <div class="section-head">
+          <div>
+            <div class="section-title">AMM 감사 로그</div>
+            <div class="section-sub">// 충전·회수·매도 이력 — 날짜를 클릭하면 그날 거래 로그가 표시됩니다 (최근 60일)</div>
+          </div>
+          <div class="tagrow">
+            <button id="ammAuditRefreshBtn" class="btn small" type="button">새로고침</button>
+          </div>
+        </div>
+
+        <div id="ammAuditDays" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; padding: 8px 0;">
+          <div class="muted">로딩 중…</div>
+        </div>
+      </section>
+
+      <!-- AMM 감사 상세 모달 -->
+      <div id="ammAuditModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+        <div style="background:#fff; border-radius:14px; max-width:760px; width:100%; max-height:calc(100vh - 48px); overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(15,23,42,0.30);">
+          <div style="padding:18px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:950; font-size:16px;" id="ammAuditModalTitle">AMM 감사 상세</div>
+              <div class="small-note" id="ammAuditModalMeta" style="margin-top:4px;">-</div>
+            </div>
+            <button id="ammAuditModalClose" class="btn small" type="button">✕ 닫기</button>
+          </div>
+          <div id="ammAuditModalBody" style="flex:1; overflow-y:auto; padding:14px 20px;">
+            <div class="muted">로딩 중…</div>
+          </div>
+          <div style="padding:12px 20px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+            <span id="ammAuditModalPageInfo" class="small-note">- / -</span>
+            <div class="tagrow">
+              <button id="ammAuditModalPrev" class="btn small" type="button">◀ 이전</button>
+              <button id="ammAuditModalNext" class="btn small" type="button">다음 ▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ WIND-DOWN (운영 종료) ============ -->
+      <!-- (2026-05-16 v400) 운영자: '⚠ 운영 종료 / Wind-down 카드를
+           admin/staking.html 에서 모두 제거하고, 4단계와 5단계만 settings
+           의 AMM 감사 아래에 추가하여 구현해라.' admin/staking.html 에
+           있던 1~3단계 (begin / AMM / deadline) 는 약관 제10조 의 운영
+           수동 절차로 통합. 시스템 자동화는 4/5 단계만. 1/2/3 단계는:
+             - 1단계 (공지) → admin/popups.html / notices 운영자 직접 게시
+             - 2단계 (AMM) → 기존 자동 매수 유동성 관리 (이 페이지 #amm)
+                 임계값 / 유동성 조정
+             - 3단계 (마감일) → 공지로 안내 (시스템 기록 안 함)
+           backend (admin_silica_winddown.php) 의 state 검증도 완화: 4단계
+           실행 시 state=active 면 자동으로 winding_down 으로 전환. 5단계
+           실행 시 deadline 검증 제거. -->
+      <section class="settings-section" id="winddown" style="border-color: rgba(220,38,38,0.30); background: rgba(220,38,38,0.02);">
+        <div class="section-head">
+          <div>
+            <div class="section-title" style="color: #991B1B;">🛑 운영 종료 / Wind-down</div>
+            <div class="section-sub">// 약관 제10조 — 매각 또는 서비스 종료 시 실행. 한 번 실행하면 되돌릴 수 없음.</div>
+          </div>
+          <div class="tagrow">
+            <button id="winddownRefreshBtn" class="btn small" type="button">새로고침</button>
+          </div>
+        </div>
+
+        <!-- 현재 상태 박스 -->
+        <div style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:14px; font-size:12.5px;">
+          <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
+            <strong>현재 상태:</strong>
+            <span id="winddownState" style="padding:3px 10px; border-radius:999px; background:#f1f5f9; font-weight:700;">로딩 중…</span>
+          </div>
+          <div class="kv" style="font-size:12px;"><div class="k">강제 unstake 시점</div><div class="v" id="winddownStakingDisabledAt">-</div></div>
+        </div>
+
+        <!-- (v401) 운영자: '1~3단계 없이 4~5단계 가능해야한다.' 두 단계는
+             서로 독립 실행 — 어느 한쪽만 사용해도 정상 작동. 사전 절차
+             (공지 / AMM / 마감일 안내) 는 선택. backend 도 state=active
+             에서 바로 4 또는 5단계 호출 시 자동 winding_down 전환. -->
+        <div style="padding:10px 14px; border-radius:8px; background:rgba(124,58,237,0.04); border:1px solid rgba(124,58,237,0.20); margin-bottom:14px; font-size:12.5px; line-height:1.6;">
+          📋 <strong>참고 (선택 사항)</strong>
+          <ul style="margin:6px 0 0 18px; padding:0;">
+            <li><strong>공지</strong>: <a href="popups.html">팝업 관리</a> 또는 <a href="notices.html">공지사항</a> 에서 종료 사실 + 출금 마감일 안내.</li>
+          </ul>
+        </div>
+
+        <!-- (v402) A. 미회수 자금 현황 (미리보기) — 5단계 실행 전 확인용.
+             (v405) [세부 보기] + [엑셀 다운로드] 버튼 추가. -->
+        <div style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <strong style="font-size:14px;">📊 미회수 자금 현황 (현재 시점)</strong>
+            <div class="tagrow">
+              <button id="winddownPrevDetailBtn" class="btn small" type="button">세부 보기</button>
+              <button id="winddownPrevExportBtn" class="btn small" type="button">📥 엑셀 다운로드</button>
+              <button id="winddownPreviewRefreshBtn" class="btn small" type="button">↻ 새로고침</button>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:8px; font-size:12.5px;">
+            <div class="kv"><div class="k">활성 사용자</div><div class="v" id="winddownPrevActiveUsers">-</div></div>
+            <div class="kv"><div class="k">SilicaSTO 보유</div><div class="v" id="winddownPrevStoBalance">-</div></div>
+            <div class="kv"><div class="k">SilicaSTO 스테이킹</div><div class="v" id="winddownPrevStoStaked">-</div></div>
+            <div class="kv"><div class="k">Silica 보유</div><div class="v" id="winddownPrevSilicaBalance">-</div></div>
+            <div class="kv"><div class="k">USDT 잔액</div><div class="v" id="winddownPrevUsdtBalance">-</div></div>
+            <div class="kv"><div class="k">미수령 이자 (USDT)</div><div class="v" id="winddownPrevPendingInterest">-</div></div>
+            <div class="kv"><div class="k">미수령 배당 (Silica)</div><div class="v" id="winddownPrevPendingDividend">-</div></div>
+            <div class="kv"><div class="k">미수령 추천 보너스 (USDT)</div><div class="v" id="winddownPrevPendingReferral">-</div></div>
+            <div class="kv"><div class="k">조회 시점</div><div class="v" id="winddownPrevFetchedAt">-</div></div>
+          </div>
+        </div>
+
+        <!-- (v405) 미회수 자금 사용자별 세부 모달 -->
+        <div id="winddownPrevDetailModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+          <div style="background:#fff; border-radius:14px; max-width:1100px; width:100%; max-height:calc(100vh - 48px); overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(15,23,42,0.30);">
+            <div style="padding:18px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:950; font-size:16px;">📊 사용자별 미회수 자금 세부</div>
+                <div class="small-note" style="margin-top:4px;">활성 사용자 정렬: USDT 잔액 → SilicaSTO 순.</div>
+              </div>
+              <button id="winddownPrevDetailClose" class="btn small" type="button">✕ 닫기</button>
+            </div>
+            <div style="padding:12px 20px; border-bottom:1px solid #e2e8f0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <input id="winddownPrevDetailSearch" class="input" type="search" placeholder="🔍 지갑 주소 검색 (전체 또는 일부)" style="flex:1; min-width:220px;">
+              <button id="winddownPrevDetailSearchClear" class="btn small" type="button">✕</button>
+            </div>
+            <div id="winddownPrevDetailBody" style="flex:1; overflow:auto; padding:0;">
+              <table class="table" style="font-size:12px; margin:0;">
+                <thead>
+                  <tr>
+                    <th>지갑</th>
+                    <th class="right">SilicaSTO 보유</th>
+                    <th class="right">SilicaSTO 스테이킹</th>
+                    <th class="right">Silica 보유</th>
+                    <th class="right">USDT 잔액</th>
+                    <th class="right">미수령 이자</th>
+                    <th class="right">미수령 배당</th>
+                  </tr>
+                </thead>
+                <tbody id="winddownPrevDetailTbody">
+                  <tr><td colspan="7" class="text-center muted" style="padding:24px 0;">로딩 중…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="padding:12px 20px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+              <span id="winddownPrevDetailPageInfo" class="small-note">- / -</span>
+              <div class="tagrow">
+                <button id="winddownPrevDetailPrev" class="btn small" type="button">◀ 이전</button>
+                <button id="winddownPrevDetailNext" class="btn small" type="button">다음 ▶</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- (v402) B. 폐쇄 후 안내 페이지 (사전 작성) — state=closed 시 user 측에 노출. -->
+        <div style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:14px;">
+          <div style="font-weight:800; margin-bottom:6px;">📝 폐쇄 후 안내 페이지 (사전 작성)</div>
+          <div class="small-note" style="margin-bottom:10px; line-height:1.6;">
+            영구 폐쇄 후 사용자가 사이트 접속 시 보게 될 안내 페이지를 미리 작성하세요.
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label class="small-note" style="display:block; margin-bottom:4px; font-weight:700;">제목 (한국어)</label>
+              <input id="closureNoticeTitleKo" class="input" placeholder="예: 서비스가 종료되었습니다." style="margin-bottom:8px; width:100%;">
+              <label class="small-note" style="display:block; margin-bottom:4px; font-weight:700;">본문 (한국어, HTML 가능)</label>
+              <textarea id="closureNoticeBodyKo" class="input" rows="6" placeholder="<p>SilicaChain 서비스가 영구 종료되었습니다...</p>" style="width:100%; font-family:'Space Grotesk',monospace; font-size:12px;"></textarea>
+            </div>
+            <div>
+              <label class="small-note" style="display:block; margin-bottom:4px; font-weight:700;">Title (English)</label>
+              <input id="closureNoticeTitleEn" class="input" placeholder="e.g., Service has been closed." style="margin-bottom:8px; width:100%;">
+              <label class="small-note" style="display:block; margin-bottom:4px; font-weight:700;">Body (English, HTML allowed)</label>
+              <textarea id="closureNoticeBodyEn" class="input" rows="6" placeholder="<p>SilicaChain service has been permanently closed...</p>" style="width:100%; font-family:'Space Grotesk',monospace; font-size:12px;"></textarea>
+            </div>
+          </div>
+          <div class="tagrow" style="margin-top:10px;">
+            <button id="closureNoticeSaveBtn" class="btn small primary" type="button">저장</button>
+            <a id="closureNoticePreviewLink" class="btn small" href="../user/closed.html" target="_blank" rel="noopener">미리보기 ↗</a>
+            <span id="closureNoticeSaveHint" class="small-note"></span>
+          </div>
+        </div>
+
+        <!-- 4단계 -->
+        <div style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:10px;">
+          <div style="font-weight:800; margin-bottom:6px; color:#991B1B;">⚠ 스테이킹 강제 중단</div>
+          <div class="small-note" style="margin-bottom:10px; line-height:1.65;">
+            모든 stakers 의 SilicaSTO 가 즉시 언스테이킹되어 보유 잔액으로 이동합니다.
+            이후 신규 스테이킹 / 투자 참여 / 스왑 이 자동 차단됩니다.
+            <br><strong>매월 14~16일 KST 락 윈도우 기간에는 실행 불가.</strong> 관리자 지갑 연결 필수.
+          </div>
+          <div class="tagrow">
+            <button id="winddownDisableStakingBtn" class="btn small danger" type="button">스테이킹 중단</button>
+            <span id="winddownStakingHint" class="small-note" style="line-height:1.6;"></span>
+          </div>
+        </div>
+
+        <!-- 5단계 -->
+        <div style="padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e2e8f0;">
+          <div style="font-weight:800; margin-bottom:6px; color:#991B1B;">🛑 영구 폐쇄</div>
+          <div class="small-note" style="margin-bottom:10px; line-height:1.65;">
+            서비스가 영구 폐쇄됩니다.
+          </div>
+          <button id="winddownCloseBtn" class="btn small danger" type="button">서비스 종료</button>
+        </div>
+      </section>
+
+      <!-- Wind-down 스테이킹 중단 확인 모달 -->
+      <div id="winddownConfirmModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+        <div style="background:#fff; border-radius:14px; max-width:540px; width:100%; padding:24px; box-shadow:0 24px 60px rgba(15,23,42,0.30);">
+          <div style="font-weight:950; font-size:18px; color:#991B1B; margin-bottom:10px;">
+            ⚠ 스테이킹 강제 중단 확인
+          </div>
+          <div style="line-height:1.65; color:#475569; margin-bottom:14px; font-size:13px;">
+            이 작업은 되돌릴 수 없습니다. 실행 즉시:
+            <ul style="margin:8px 0 8px 22px; padding:0;">
+              <li>모든 stakers 의 SilicaSTO 가 강제 언스테이킹됩니다.</li>
+              <li>이 시점 이후 더 이상 이자가 발생하지 않습니다.</li>
+              <li>신규 스테이킹 / 투자 / 스왑 이 자동 차단됩니다.</li>
+              <li>유저 거래 내역과 시스템 audit 로그에 자동 기록됩니다.</li>
+            </ul>
+            계속하려면 아래에 정확히 <strong style="color:#991B1B;">스테이킹 중단</strong> 을 입력하세요.
+          </div>
+          <input id="winddownConfirmInput" class="input" placeholder="스테이킹 중단" style="margin-bottom:10px; width:100%;">
+          <div id="winddownConfirmError" style="font-size:12px; color:#dc2626; margin-bottom:10px; min-height:16px;"></div>
+          <div class="tagrow" style="justify-content:flex-end;">
+            <button id="winddownConfirmCancel" class="btn small" type="button">취소</button>
+            <button id="winddownConfirmSubmit" class="btn small danger" type="button">실행</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wind-down 영구 폐쇄 확인 모달 -->
+      <div id="winddownCloseModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+        <div style="background:#fff; border-radius:14px; max-width:540px; width:100%; padding:24px; box-shadow:0 24px 60px rgba(15,23,42,0.30);">
+          <div style="font-weight:950; font-size:18px; color:#991B1B; margin-bottom:10px;">
+            🛑 서비스 영구 폐쇄 확인
+          </div>
+          <div style="line-height:1.65; color:#475569; margin-bottom:14px; font-size:13px;">
+            이 작업은 되돌릴 수 없습니다. 실행 즉시:
+            <ul style="margin:8px 0 8px 22px; padding:0;">
+              <li>운영 상태가 closed 로 변경됩니다.</li>
+              <li>미회수 자금 합계 (참고용) 가 audit 에 기록됩니다.</li>
+              <li>약관 제10.5조에 따라 미회수 자금은 회사에 귀속됩니다.</li>
+            </ul>
+            계속하려면 아래에 정확히 <strong style="color:#991B1B;">서비스 종료</strong> 를 입력하세요.
+          </div>
+          <input id="winddownCloseInput" class="input" placeholder="서비스 종료" style="margin-bottom:10px; width:100%;">
+          <div id="winddownCloseError" style="font-size:12px; color:#dc2626; margin-bottom:10px; min-height:16px;"></div>
+          <div class="tagrow" style="justify-content:flex-end;">
+            <button id="winddownCloseCancel" class="btn small" type="button">취소</button>
+            <button id="winddownCloseSubmit" class="btn small danger" type="button">서비스 종료 실행</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- (2026-05-11) API Base 섹션 제거 — 운영 패널에서는 필요 없는
+           디버깅 표시였음. 필요시 자세한 환경 정보는 hPanel 또는 git에서 확인. -->
+
+      <!-- ============ PRODUCTION CHECKLIST (v380) ============ -->
+      <!-- (2026-05-15 v380) 운영자: '관리자 패널의 설정탭에 업데이트 해야 할
+           항목을 추가하고, 이것을 기록해두어줘.' devnet → mainnet 운영
+           전환 시 필수 점검 항목. UI 표시 + 별도 docs/PRODUCTION_CHECKLIST.md
+           둘 다 동기화. 각 항목의 더 자세한 배경은 git history (인용된
+           commit) 참조. -->
+      <!-- (2026-05-18 v566) 운영자 요청 — 체크리스트를 핵심 항목만 남기고 축약.
+           삭제 항목 (운영자 결정): 보안 카테고리의 admin 비밀번호 변경 / OTP 등록,
+           데이터·회계 전체, UI 항목 중 payment-delay 검증 / 캐시 버스트, 법적·약관
+           전체, 인프라의 SSL 항목, 운영 종료 / Wind-down 전체, 푸터 안내. 남은
+           항목은 신규 도메인 운영 전환 시 .env / 인프라 측에서 직접 조정해야
+           하는 핵심 키 5종 + 인프라 4종 + UI 1종. -->
+      <section class="settings-section" id="prod-checklist" style="border-color: rgba(220,38,38,0.30); background: rgba(220,38,38,0.02);">
+        <details>
+        <summary style="cursor:pointer; list-style:none; outline:none;">
+          <div class="section-head" style="margin:0">
+            <div>
+              <div class="section-title" style="color: #991B1B;">⚠ 운영 전환 체크리스트 <span style="font-size:12px;font-weight:400;color:var(--steel)">(클릭하여 펼치기)</span></div>
+            </div>
+          </div>
+        </summary>
+
+        <div style="display:flex; flex-direction:column; gap:14px; margin-top:14px;">
+
+          <!-- Category: 보안 (Critical) -->
+          <div style="padding:14px; background:#fff; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-weight:800; font-size:14px; color:#991B1B; margin-bottom:10px;">🔐 보안 (Critical)</div>
+            <ul style="margin:0; padding-left:20px; line-height:1.85; font-size:13px;">
+              <li><strong><code>JWT_SECRET</code> / <code>ADMIN_JWT_SECRET</code> 재발급</strong> — devnet 의 secret 그대로 두면 다른 환경에서 발급된 토큰 통용 가능. 32+자 랜덤.</li>
+              <li><strong><code>CRON_KEY</code> 재발급</strong> — Hostinger cron URL 의 <code>?key=</code> 와 .env 의 값 모두 새로 발급. devnet key 노출 위험 차단.</li>
+              <li><strong><code>ADMIN_KEY</code> 재발급</strong> — admin API 호출용 키. .env 의 값 갱신.</li>
+              <li><strong><code>ADMIN_WALLET_ADDRESSES</code> 설정 (v583)</strong> — 관리자 Phantom 지갑 화이트리스트. 쉼표 구분 다중 등록. 비워두면 화이트리스트 비활성 — 운영 환경에서는 반드시 채워두기.</li>
+            </ul>
+          </div>
+
+          <!-- Category: UI / 운영 도구 -->
+          <div style="padding:14px; background:#fff; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-weight:800; font-size:14px; color:#0F172A; margin-bottom:10px;">🛠 UI / 운영 도구</div>
+            <ul style="margin:0; padding-left:20px; line-height:1.85; font-size:13px;">
+              <li>
+                <strong style="color:#991B1B;">🔴 [BLOCKER] testInterestBtn 코드 완전 제거 (운영 전환 차단 조건)</strong>
+                <div style="margin-top:6px; padding:10px 12px; background:#FEF2F2; border:1px solid #FCA5A5; border-radius:6px; color:#7F1D1D;">
+                  devnet 회귀 테스트용 버튼. <code>force-interest</code> 의 <code>mode='test'</code> 가
+                  중복 체크를 우회하므로, mainnet 에서 운영자가 실수로 누르면 사용자에게 진짜 USDT
+                  더블 지급이 발생합니다.
+                  <br><br>
+                  <strong>운영 전환 전 반드시 제거:</strong>
+                  <ul style="margin:6px 0 0 0; padding-left:18px; line-height:1.7;">
+                    <li><code>admin/staking.html</code> — <code>&lt;button id="testInterestBtn"&gt;</code> 블록 및 testInterestCard 제거</li>
+                    <li><code>admin/js/staking.js</code> — <code>testInterestBtn</code> 관련 변수 선언/이벤트 등록 제거</li>
+                    <li><code>admin/staking.html</code> 페이지에서 'testInterestBtn' 텍스트 검색 → 0건 확인</li>
+                    <li>(선택) <code>php-api/routes/staking.php</code> 의 <code>force-interest</code> 엔드포인트에서 <code>mode='test'</code> 분기 코드 제거 — UI 호출자가 없으면 무해하지만 dead code 정리 차원</li>
+                  </ul>
+                  <br>
+                  미제거 시 위험: <code>force-interest</code> 의 <code>mode='disaster'</code> (기본) 는
+                  per-holder 중복 체크가 있어 안전하지만, <code>mode='test'</code> 는 의도적으로
+                  중복 체크 우회 → 같은 회차에 두 번 클릭하면 모든 사용자가 두 번 지급됨.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Category: 인프라 -->
+          <div style="padding:14px; background:#fff; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-weight:800; font-size:14px; color:#0F172A; margin-bottom:10px;">🌐 인프라</div>
+            <ul style="margin:0; padding-left:20px; line-height:1.85; font-size:13px;">
+              <li><strong>Hostinger cron 설정 확인</strong> — accrue-interest + distribute-dividends 양쪽 등록. 매월 15일 KST 발화. CRON_KEY 일치.</li>
+              <li><strong>Solana 네트워크 전환</strong> — devnet → mainnet-beta. admin 설정 "Solana 네트워크" 갱신.</li>
+              <li><strong>SilicaSTO + Silica 토큰 Mint 주소</strong> — mainnet 발행 주소로 갱신. admin 설정 "토큰 Mints".</li>
+              <li><strong>관리자 입금 지갑</strong> — mainnet 지갑 주소로 갱신. admin 설정 "입금 지갑".</li>
+            </ul>
+          </div>
+
+        </div>
+        </details>
+      </section>
+
+      <!-- ============ DANGER ============ -->
+      <section class="settings-section" id="danger" style="border-color: var(--red-border);">
+        <div class="danger-box">
+          <div class="danger-title">⚠ 테스트 데이터 전체 초기화</div>
+          <div class="danger-note">
+            유저, 자산, 계약, 모금, 추천인, 입출금, 거래, 클레임, 스테이킹, 업로드 파일을 한 번에 비웁니다.<br>
+            유지: <strong>관리자 계정</strong>, <strong>환경설정</strong>, <strong>계약서 템플릿</strong>, <strong>토큰 Mint</strong>, <strong>Devnet 설정</strong>.
+          </div>
+          <div class="danger-actions">
+            <div id="resetTestDataInfo" class="danger-meta">버튼을 누르면 현재 테스트 데이터가 모두 삭제됩니다.</div>
+            <button id="resetTestDataBtn" class="btn danger" type="button">테스트 데이터 전체 초기화</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/settings.js?v=20260608v898-remove-help-texts"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    window.AdminHeader?.loadHeader?.();
+
+    // Settings nav active state on scroll
+    const sections = document.querySelectorAll('.settings-section');
+    const navLinks = document.querySelectorAll('.settings-nav-link');
+    function updateActiveNav() {
+      const scrollY = window.scrollY + 120;
+      let activeId = '';
+      sections.forEach(s => {
+        if (s.offsetTop <= scrollY) activeId = s.id;
+      });
+      navLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + activeId);
+      });
+    }
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav();
+
+    // Smooth scroll for nav clicks
+    navLinks.forEach(l => {
+      l.addEventListener('click', (e) => {
+        const href = l.getAttribute('href');
+        if (!href || !href.startsWith('#')) return;
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          window.scrollTo({ top: target.offsetTop - 90, behavior: 'smooth' });
+        }
+      });
+    });
+
+    // ============ Silica Token Mints ============
+    // window.AdminCore 가 admin.core.js 로드 후에야 사용 가능 → 안전하게 참조
+    const apiCall = (path, opt) => {
+      const fn = window.AdminCore?.api;
+      if (typeof fn !== 'function') {
+        return Promise.reject(new Error('AdminCore.api 가 아직 준비되지 않았습니다.'));
+      }
+      return fn(path, opt);
+    };
+
+    // 페이지 로드 시 현재 저장된 mint 주소 불러오기
+    (async () => {
+      try {
+        // AdminCore 로드 대기 (최대 3초)
+        for (let i = 0; i < 30 && !window.AdminCore?.api; i++) {
+          await new Promise(r => setTimeout(r, 100));
+        }
+        const r = await apiCall('/api/admin/silica/tokens', { method: 'GET' });
+        if (r) {
+          const stoEl = document.getElementById('silicaStoMint');
+          const tokEl = document.getElementById('silicaTokenMint');
+          const usdtEl = document.getElementById('solUsdtMint');
+          const rsvEl = document.getElementById('silicaStoReserveWallet');
+          if (stoEl) stoEl.value = r.silica_sto_mint || '';
+          if (tokEl) tokEl.value = r.silica_token_mint || '';
+          if (usdtEl && !usdtEl.value) usdtEl.value = r.usdt_mint || '';
+          if (rsvEl && r.silica_sto_reserve_wallet != null) rsvEl.value = String(r.silica_sto_reserve_wallet);
+        }
+        // 저장된 mint 가 있으면 on-chain 발행량 자동 조회
+        await refreshOnchainSupply().catch(() => {});
+      } catch (e) {
+        console.warn('[silica.tokens] load failed', e?.message || e);
+      }
+    })();
+
+    // ── on-chain SilicaSTO 발행량 조회 ──
+    async function refreshOnchainSupply() {
+      const display = document.getElementById('silicaStoTotalMintedDisplay');
+      const help = document.getElementById('silicaStoSupplyHelp');
+      if (!display) return;
+      const mintEl = document.getElementById('silicaStoMint');
+      const mint = mintEl?.value?.trim() || '';
+      if (!mint) {
+        display.textContent = '— (Mint 주소 미설정)';
+        return;
+      }
+      display.textContent = '조회 중...';
+      try {
+        const r = await apiCall('/api/admin/silica/onchain-supply', { method: 'GET' });
+        if (!r) throw new Error('empty response');
+        const ui = Number(r.ui_supply || 0);
+        const decimals = Number(r.decimals ?? 0);
+        const fmt = ui.toLocaleString('en-US', {
+          maximumFractionDigits: decimals,
+          minimumFractionDigits: 0,
+        });
+        display.textContent = `${fmt} STO`;
+        if (help) {
+          const ts = new Date(r.fetched_at || Date.now()).toLocaleString('ko-KR');
+          help.innerHTML = `on-chain 총 발행량 (decimals=${decimals}). 마지막 조회: ${ts}`;
+        }
+      } catch (e) {
+        display.textContent = '— (조회 실패)';
+        console.warn('[silica.onchain-supply] fail', e?.message || e);
+      }
+    }
+    document.getElementById('silicaStoSupplyRefreshBtn')?.addEventListener('click', () => {
+      refreshOnchainSupply().catch(() => {});
+    });
+
+    // Save Silica token mints → POST /api/admin/silica/tokens
+    document.getElementById('silicaTokensSaveBtn')?.addEventListener('click', async () => {
+      const stoMint = document.getElementById('silicaStoMint')?.value?.trim() || '';
+      const silicaMint = document.getElementById('silicaTokenMint')?.value?.trim() || '';
+      const usdtMint = document.getElementById('solUsdtMint')?.value?.trim() || '';
+      const stoReserve = document.getElementById('silicaStoReserveWallet')?.value?.trim() || '';
+      const toast = document.getElementById('toast');
+      const showToast = (msg, ok = true) => {
+        if (!toast) return;
+        toast.classList.remove('hidden', ok ? 'bad' : 'good');
+        toast.classList.add(ok ? 'good' : 'bad');
+        toast.textContent = msg;
+        setTimeout(() => toast.classList.add('hidden'), 3000);
+      };
+      try {
+        // STO decimals / total_minted 는 더 이상 UI 입력값으로 보내지 않음
+        // (decimals 는 고정 1, total_minted 는 on-chain 으로 조회).
+        await apiCall('/api/admin/silica/tokens', {
+          method: 'POST',
+          body: {
+            usdt_mint: usdtMint,
+            silica_sto_mint: stoMint,
+            silica_token_mint: silicaMint,
+            silica_sto_reserve_wallet: stoReserve,
+          },
+        });
+        showToast('토큰 Mint 저장 완료', true);
+        console.log('[silica.tokens] saved', { usdtMint, stoMint, silicaMint, stoReserve });
+        // 저장 직후 on-chain 발행량 재조회 (mint 가 바뀌었을 수 있음)
+        await refreshOnchainSupply().catch(() => {});
+      } catch (e) {
+        const msg = e?.message || String(e);
+        showToast('저장 실패: ' + msg, false);
+        console.error('[silica.tokens] save failed', e);
+      }
+    });
+
+    // ============ Sale Supply Cap (2026-05-07) ============
+    // GET /api/admin/silica/max-supply → fill input + status block
+    // POST /api/admin/silica/max-supply { max_supply } → validate + save
+    const silicaSupplyToast = (msg, ok = true) => {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.classList.remove('hidden', 'good', 'bad');
+      toast.classList.add(ok ? 'good' : 'bad');
+      toast.textContent = msg;
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    };
+    const silicaSupplyFmt = (n) => {
+      const v = Number(n);
+      if (!Number.isFinite(v)) return '0';
+      return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    };
+    async function silicaSupplyLoad() {
+      const input = document.getElementById('silicaMaxSupplyInput');
+      const stats = document.getElementById('silicaSupplyStats');
+      const notice = document.getElementById('silicaSupplyStatusNotice');
+      // (2026-05-16 v423) 사용자 안내 문구 textarea — 카드 내 추가됨.
+      const noticeKoEl = document.getElementById('silicaSaleNoticeKo');
+      const noticeEnEl = document.getElementById('silicaSaleNoticeEn');
+      if (!input || !stats || !notice) return;
+      try {
+        const r = await apiCall('/api/admin/silica/max-supply', { method: 'GET' });
+        if (!r) return;
+        const max = Number(r.max_supply || 0);
+        const sold = Number(r.sold_total || 0);
+        const remaining = (r.remaining === null || r.remaining === undefined) ? null : Number(r.remaining);
+        const open = !!r.sale_open;
+
+        input.value = max > 0 ? String(max) : '0';
+        input.dataset.canSetMin = String(r.can_set_min ?? 0);
+
+        // (2026-05-16 v423) 안내 문구 채우기 (값 자체는 textContent 위치가 아닌
+        //   textarea.value 이므로 XSS 우려 없음).
+        if (noticeKoEl) noticeKoEl.value = String(r.notice_ko ?? '');
+        if (noticeEnEl) noticeEnEl.value = String(r.notice_en ?? '');
+
+        const remStr = remaining === null ? '무제한' : silicaSupplyFmt(remaining);
+        const pctStr = max > 0 ? ((sold / max) * 100).toFixed(2) + '%' : '—';
+        stats.textContent = `판매됨 ${silicaSupplyFmt(sold)} / 최대 ${max > 0 ? silicaSupplyFmt(max) : '무제한'} STO  ·  남음 ${remStr}  ·  진행률 ${pctStr}`;
+
+        if (max <= 0) {
+          notice.style.background = 'rgba(99, 102, 241, 0.08)';
+          notice.style.border = '1px solid rgba(99, 102, 241, 0.25)';
+          notice.style.color = '#4f46e5';
+          notice.innerHTML = '<strong>현재: 무제한</strong> — 판매량 캡이 비활성화되어 있습니다.';
+        } else if (!open) {
+          notice.style.background = 'rgba(220, 38, 38, 0.08)';
+          notice.style.border = '1px solid rgba(220, 38, 38, 0.25)';
+          notice.style.color = '#dc2626';
+          notice.innerHTML = '<strong>판매 중단</strong> — 최대 판매량에 도달하여 신규 투자 신청이 자동 차단됩니다.';
+        } else {
+          notice.style.background = 'rgba(16, 185, 129, 0.08)';
+          notice.style.border = '1px solid rgba(16, 185, 129, 0.25)';
+          notice.style.color = '#059669';
+          notice.innerHTML = `<strong>판매 진행 중</strong> — ${remStr} STO 추가 판매 가능.`;
+        }
+      } catch (e) {
+        console.warn('[silica.supply] load failed', e?.message || e);
+      }
+    }
+
+    document.getElementById('silicaSupplyRefreshBtn')?.addEventListener('click', () => {
+      silicaSupplyLoad().catch(() => {});
+    });
+
+    document.getElementById('silicaSupplySaveBtn')?.addEventListener('click', async () => {
+      const input = document.getElementById('silicaMaxSupplyInput');
+      if (!input) return;
+      const raw = String(input.value || '').trim();
+      if (raw === '' || !/^\d+$/.test(raw)) {
+        silicaSupplyToast('최대 판매량은 0 이상의 정수여야 합니다.', false);
+        return;
+      }
+      const newMax = Number(raw);
+      const floor = Number(input.dataset.canSetMin || 0);
+      if (newMax > 0 && newMax < floor) {
+        silicaSupplyToast(`이미 판매된 ${floor} STO 보다 낮게 설정할 수 없습니다.`, false);
+        return;
+      }
+      // (2026-05-16 v423) 사용자 안내 문구 (KO/EN) 도 함께 저장. 길이 검증은
+      //   백엔드가 한 번 더 수행(500자) — UI 에서도 maxlength=500 으로 1차 차단.
+      const noticeKoEl = document.getElementById('silicaSaleNoticeKo');
+      const noticeEnEl = document.getElementById('silicaSaleNoticeEn');
+      const noticeKo = noticeKoEl ? String(noticeKoEl.value || '').trim() : '';
+      const noticeEn = noticeEnEl ? String(noticeEnEl.value || '').trim() : '';
+      if (noticeKo.length > 500 || noticeEn.length > 500) {
+        silicaSupplyToast('안내 문구는 각 500자 이하여야 합니다.', false);
+        return;
+      }
+      try {
+        await apiCall('/api/admin/silica/max-supply', {
+          method: 'POST',
+          body: {
+            max_supply: newMax,
+            notice_ko: noticeKo,
+            notice_en: noticeEn,
+          },
+        });
+        silicaSupplyToast(newMax === 0 ? '최대 판매량 무제한으로 저장됨' : `최대 판매량 ${silicaSupplyFmt(newMax)} STO 로 저장됨`, true);
+        await silicaSupplyLoad();
+      } catch (e) {
+        const msg = e?.message || String(e);
+        silicaSupplyToast('저장 실패: ' + msg, false);
+      }
+    });
+
+    // 초기 로드 — AdminCore 가 준비되면 자동 호출.
+    (async () => {
+      for (let i = 0; i < 30 && !window.AdminCore?.api; i++) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+      silicaSupplyLoad().catch(() => {});
+    })();
+
+    // ============ Silica Price Mode ============
+    // 페이지 로드 시 현재 시세 불러오기
+    (async () => {
+      try {
+        for (let i = 0; i < 30 && !window.AdminCore?.api; i++) {
+          await new Promise(r => setTimeout(r, 100));
+        }
+        const r = await apiCall('/api/admin/silica/price', { method: 'GET' });
+        if (r) {
+          const priceEl = document.getElementById('silicaPriceUsdt');
+          const modeEl = document.getElementById('silicaPriceMode');
+          const helpEl = document.getElementById('silicaPriceModeHelp');
+          const saveBtn = document.getElementById('silicaPriceSaveBtn');
+          if (priceEl && r.price_usdt) priceEl.value = r.price_usdt;
+          if (modeEl && r.mode) modeEl.value = r.mode;
+          // (2026-05-12 v323) MECCA 연동 중이면 미니 패널에서는 변경 불가 —
+          //   상세 관리 페이지의 동기화 버튼을 통해서만 갱신되도록 가드.
+          //   사용자 보고: '나는 mecca로 시세 연동 했지만 일부 페이지에서
+          //   그것이 다르게 나오거나 비어져 나온다.'
+          if (r.mode === 'linked_mea') {
+            if (priceEl) {
+              priceEl.disabled = true;
+              priceEl.title = 'MECCA 연동 모드에서는 직접 수정 불가 — 상세 관리 페이지에서 동기화';
+            }
+            if (modeEl) {
+              modeEl.disabled = true;
+              modeEl.title = '모드 변경은 상세 관리 페이지에서만 가능합니다';
+            }
+            if (saveBtn) {
+              saveBtn.disabled = true;
+              saveBtn.style.opacity = '0.55';
+              saveBtn.style.cursor = 'not-allowed';
+            }
+            if (helpEl) {
+              helpEl.innerHTML = 'CoinLore <strong>MECCA(MEA)</strong> 시세 자동 연동 중. 변경은 '
+                              + '<a href="silica-price.html" style="color:var(--logo-violet);font-weight:700">상세 관리 →</a> 에서.';
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[silica.price] load failed', e?.message || e);
+      }
+    })();
+
+    // Save Silica price → POST /api/admin/silica/price
+    document.getElementById('silicaPriceSaveBtn')?.addEventListener('click', async () => {
+      const priceRaw = document.getElementById('silicaPriceUsdt')?.value?.trim() || '';
+      const mode = document.getElementById('silicaPriceMode')?.value || 'manual';
+      const toast = document.getElementById('toast');
+      const showToast = (msg, ok = true) => {
+        if (!toast) return;
+        toast.classList.remove('hidden', ok ? 'bad' : 'good');
+        toast.classList.add(ok ? 'good' : 'bad');
+        toast.textContent = msg;
+        setTimeout(() => toast.classList.add('hidden'), 3000);
+      };
+      const price = parseFloat(priceRaw);
+      if (!isFinite(price) || price <= 0) {
+        showToast('시세는 0보다 큰 숫자여야 합니다.', false);
+        return;
+      }
+      try {
+        const reason = window.prompt('변경 사유 (감사 로그용, 선택):', '') || '';
+        const r = await apiCall('/api/admin/silica/price', {
+          method: 'POST',
+          body: { price_usdt: price, mode, reason },
+        });
+        const pct = r?.change_pct;
+        const changeStr = pct !== null && pct !== undefined ? ` (${pct > 0 ? '+' : ''}${pct}%)` : '';
+        showToast(`시세 저장 완료: ${price} USDT${changeStr}`, true);
+        console.log('[silica.price] saved', r);
+      } catch (e) {
+        const msg = e?.message || String(e);
+        showToast('저장 실패: ' + msg, false);
+        console.error('[silica.price] save failed', e);
+      }
+    });
+  });
+</script>
+
+<!-- (2026-05-16 v400) Wind-down 4/5 단계 핸들러 (admin/staking.html v396
+     에서 이전). 1~3 단계는 운영자가 수동 절차 (공지/AMM/마감일 안내) 로
+     처리. backend state 검증 완화 — 4단계 실행 시 state=active 면 자동
+     winding_down 전환, 5단계는 deadline 검증 없음. -->
+<script>
+(function () {
+  const api   = window.AdminCore?.api;
+  const toast = window.AdminCore?.toast;
+  if (!api) return;
+
+  const els = {
+    refreshBtn:        document.getElementById('winddownRefreshBtn'),
+    stateBadge:        document.getElementById('winddownState'),
+    stakingDisabledAt: document.getElementById('winddownStakingDisabledAt'),
+    disableBtn:        document.getElementById('winddownDisableStakingBtn'),
+    disableHint:       document.getElementById('winddownStakingHint'),
+    closeBtn:          document.getElementById('winddownCloseBtn'),
+    // 4단계 모달
+    confirmModal:  document.getElementById('winddownConfirmModal'),
+    confirmInput:  document.getElementById('winddownConfirmInput'),
+    confirmError:  document.getElementById('winddownConfirmError'),
+    confirmCancel: document.getElementById('winddownConfirmCancel'),
+    confirmSubmit: document.getElementById('winddownConfirmSubmit'),
+    // 5단계 모달
+    closeModal:  document.getElementById('winddownCloseModal'),
+    closeInput:  document.getElementById('winddownCloseInput'),
+    closeError:  document.getElementById('winddownCloseError'),
+    closeCancel: document.getElementById('winddownCloseCancel'),
+    closeSubmit: document.getElementById('winddownCloseSubmit'),
+  };
+
+  if (!els.disableBtn || !els.closeBtn) return; // 페이지에 wind-down 카드 없으면 종료
+
+  const fmtDt = (s) => {
+    if (!s) return '-';
+    return String(s).replace('T', ' ').slice(0, 19);
+  };
+
+  const LOCK_DAYS = [14, 15, 16];
+  const today = new Date();
+  const todayDay = today.getDate();
+  const inLockWindow = LOCK_DAYS.includes(todayDay);
+
+  const renderState = (w) => {
+    const state = w?.state || 'active';
+
+    if (els.stateBadge) {
+      const map = {
+        'active':       { txt: '정상 운영 (active)',     bg: '#dcfce7', color: '#15803d' },
+        'winding_down': { txt: 'Wind-down 진행 중',       bg: '#fef3c7', color: '#92400e' },
+        'closed':       { txt: '영구 폐쇄 (closed)',      bg: '#fee2e2', color: '#991b1b' },
+      };
+      const s = map[state] || { txt: state, bg: '#f1f5f9', color: '#475569' };
+      els.stateBadge.textContent = s.txt;
+      els.stateBadge.style.background = s.bg;
+      els.stateBadge.style.color = s.color;
+    }
+    if (els.stakingDisabledAt) els.stakingDisabledAt.textContent = fmtDt(w?.staking_disabled_at);
+
+    // 4단계 활성/비활성
+    // (2026-05-18 v464) 운영자 보고: '이미 실행됨' 상태에서 재실행 불가.
+    //   v463 backend 가 re-sweep 모드 지원 (이미 disabled 상태에서도 새로
+    //   staked 한 사용자 강제 unstake). frontend 도 enabled 로 유지하고
+    //   라벨/hint 만 변경 — 운영자가 안전하게 재실행 가능.
+    const isClosed = state === 'closed';
+    const hasStakingDisabled = !!w?.staking_disabled_at;
+    let step4Disabled = false;
+    let step4Hint = '';
+    let step4ButtonLabel = '스테이킹 중단';
+    if (isClosed) {
+      step4Disabled = true;
+      step4Hint = '이미 종료된 상태.';
+    } else if (inLockWindow) {
+      step4Disabled = true;
+      step4Hint = `오늘은 ${todayDay}일 (스테이킹 락 윈도우) — 17일 이후 실행 가능.`;
+    } else if (hasStakingDisabled) {
+      // v464: re-sweep 가능 했지만 v470 운영자 결정: 'sweep propagation
+      //   버그가 v465 에서 고쳐졌으므로 1회만 실행 가능' → 다시 disabled.
+      //   재실행이 정말 필요한 경우 (예: DB 직접 stake row 삽입) 운영자가
+      //   DB 에서 staking_disabled_at = NULL 로 reset 후 다시 1회 실행.
+      step4Disabled = true;
+      step4Hint = `이미 실행됨 (${fmtDt(w.staking_disabled_at)}). 신규 스테이킹은 시스템에서 차단되므로 재실행 불필요.`;
+      step4ButtonLabel = '실행 완료';
+    }
+    if (els.disableBtn) {
+      els.disableBtn.disabled = step4Disabled;
+      els.disableBtn.textContent = step4ButtonLabel;
+    }
+    if (els.disableHint) {
+      els.disableHint.textContent = step4Disabled
+        ? step4Hint
+        : (hasStakingDisabled
+            ? step4Hint
+            : '버튼 클릭 후 모달에서 "스테이킹 중단" 을 입력하세요.');
+    }
+
+    // 5단계 활성/비활성
+    if (els.closeBtn) els.closeBtn.disabled = isClosed;
+  };
+
+  const loadState = async () => {
+    try {
+      const r = await api('/api/admin/silica/winddown', { method: 'GET' });
+      renderState(r?.winddown || {});
+    } catch (e) {
+      console.warn('[winddown load]', e);
+      toast?.(e?.message || '상태 로딩 실패', 'bad');
+    }
+  };
+
+  // 모달 헬퍼
+  const openModal = (modal, input, errEl) => {
+    if (input) input.value = '';
+    if (errEl) errEl.textContent = '';
+    modal?.classList.remove('hidden');
+    setTimeout(() => input?.focus(), 50);
+  };
+  const closeModalEl = (modal) => modal?.classList.add('hidden');
+
+  // --- 4단계 (스테이킹 중단) ---
+  els.disableBtn?.addEventListener('click', () => openModal(els.confirmModal, els.confirmInput, els.confirmError));
+  els.confirmCancel?.addEventListener('click', () => closeModalEl(els.confirmModal));
+  els.confirmModal?.addEventListener('click', (e) => { if (e.target === els.confirmModal) closeModalEl(els.confirmModal); });
+  els.confirmSubmit?.addEventListener('click', async () => {
+    const txt = (els.confirmInput?.value || '').trim();
+    if (txt !== '스테이킹 중단') {
+      if (els.confirmError) els.confirmError.textContent = '확인 문구가 일치하지 않습니다. 정확히 "스테이킹 중단" 을 입력하세요.';
+      return;
+    }
+    els.confirmSubmit.disabled = true;
+    const orig = els.confirmSubmit.textContent;
+    els.confirmSubmit.textContent = '처리 중…';
+    if (els.confirmError) els.confirmError.textContent = '';
+    try {
+      const r = await api('/api/admin/silica/winddown/disable-staking', {
+        method: 'POST',
+        body: { confirm_text: txt },
+      });
+      const cnt = Number(r?.unstake_count || 0);
+      const tot = Number(r?.total_unstaked || 0);
+      const isResweep = !!r?.is_re_sweep;
+      const samples = Array.isArray(r?.sample_addrs) ? r.sample_addrs : [];
+      // (v465) 처리된 wallet sample 을 toast 에 노출 — 운영자가 특정 wallet
+      //   포함 여부 즉시 확인 가능. cnt=0 일 때는 별도 안내 (re-sweep 인데
+      //   이미 모두 sweep 된 상태라는 의미).
+      let msg = isResweep
+        ? `Re-sweep 완료 — 신규 ${cnt}명 / ${tot.toLocaleString('ko-KR')} SilicaSTO 이동`
+        : `강제 언스테이킹 완료 — ${cnt}명 / ${tot.toLocaleString('ko-KR')} SilicaSTO 이동`;
+      if (cnt === 0 && isResweep) {
+        msg = 'Re-sweep 완료 — 이미 모든 스테이킹이 해제된 상태입니다. 사용자 화면에 잔여 표시가 보이면 브라우저 캐시 / 하드 리프레시(Ctrl+F5) 를 확인하세요.';
+      }
+      if (samples.length > 0) {
+        const sample = samples
+          .map((s) => `${s.address_short || '-'} (${Number(s.unstaked || 0).toLocaleString('ko-KR')})`)
+          .join(', ');
+        msg += `  처리 sample: ${sample}`;
+      }
+      toast?.(msg, 'good');
+      closeModalEl(els.confirmModal);
+      await loadState();
+    } catch (e) {
+      if (els.confirmError) els.confirmError.textContent = e?.message || String(e) || '실행 실패';
+    } finally {
+      els.confirmSubmit.disabled = false;
+      els.confirmSubmit.textContent = orig;
+    }
+  });
+
+  // --- 5단계 (영구 폐쇄) ---
+  els.closeBtn?.addEventListener('click', () => openModal(els.closeModal, els.closeInput, els.closeError));
+  els.closeCancel?.addEventListener('click', () => closeModalEl(els.closeModal));
+  els.closeModal?.addEventListener('click', (e) => { if (e.target === els.closeModal) closeModalEl(els.closeModal); });
+  els.closeSubmit?.addEventListener('click', async () => {
+    const txt = (els.closeInput?.value || '').trim();
+    if (txt !== '서비스 종료') {
+      if (els.closeError) els.closeError.textContent = '확인 문구가 일치하지 않습니다. 정확히 "서비스 종료" 를 입력하세요.';
+      return;
+    }
+    els.closeSubmit.disabled = true;
+    const orig = els.closeSubmit.textContent;
+    els.closeSubmit.textContent = '처리 중…';
+    if (els.closeError) els.closeError.textContent = '';
+    try {
+      const r = await api('/api/admin/silica/winddown/close', {
+        method: 'POST',
+        body: { confirm_text: txt },
+      });
+      toast?.(`서비스 영구 폐쇄 완료. 미회수 SilicaSTO: ${Number(r?.remaining_silica_sto_balance || 0).toLocaleString('ko-KR')}`, 'good');
+      closeModalEl(els.closeModal);
+      await loadState();
+    } catch (e) {
+      if (els.closeError) els.closeError.textContent = e?.message || String(e) || '실행 실패';
+    } finally {
+      els.closeSubmit.disabled = false;
+      els.closeSubmit.textContent = orig;
+    }
+  });
+
+  // 새로고침 버튼 + 초기 로드
+  els.refreshBtn?.addEventListener('click', loadState);
+  loadState();
+
+  // ===== (v402) A. 미회수 자금 미리보기 =====
+  const prev = {
+    refreshBtn: document.getElementById('winddownPreviewRefreshBtn'),
+    activeUsers: document.getElementById('winddownPrevActiveUsers'),
+    stoBalance: document.getElementById('winddownPrevStoBalance'),
+    stoStaked: document.getElementById('winddownPrevStoStaked'),
+    silicaBalance: document.getElementById('winddownPrevSilicaBalance'),
+    usdtBalance: document.getElementById('winddownPrevUsdtBalance'),
+    pendingInterest: document.getElementById('winddownPrevPendingInterest'),
+    pendingDividend: document.getElementById('winddownPrevPendingDividend'),
+    pendingReferral: document.getElementById('winddownPrevPendingReferral'),
+    fetchedAt: document.getElementById('winddownPrevFetchedAt'),
+  };
+  const fmtN = (v, d = 2) => Number(v || 0).toLocaleString('ko-KR', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const loadPreview = async () => {
+    if (!prev.activeUsers) return;
+    try {
+      const r = await api('/api/admin/silica/winddown/preview', { method: 'GET' });
+      prev.activeUsers.textContent = Number(r?.active_users || 0).toLocaleString('ko-KR') + ' 명';
+      prev.stoBalance.textContent = fmtN(r?.totals?.silica_sto_balance);
+      prev.stoStaked.textContent = fmtN(r?.totals?.silica_sto_staked);
+      prev.silicaBalance.textContent = fmtN(r?.totals?.silica_balance);
+      prev.usdtBalance.textContent = fmtN(r?.totals?.usdt_balance);
+      prev.pendingInterest.textContent = fmtN(r?.pending_rewards?.interest_usdt);
+      prev.pendingDividend.textContent = fmtN(r?.pending_rewards?.dividend_silica);
+      if (prev.pendingReferral) prev.pendingReferral.textContent = fmtN(r?.pending_rewards?.referral_bonus_usdt, 3);
+      prev.fetchedAt.textContent = r?.fetched_at || '-';
+    } catch (e) {
+      console.warn('[winddown preview]', e);
+      toast?.(e?.message || '미회수 자금 미리보기 로딩 실패', 'bad');
+    }
+  };
+  prev.refreshBtn?.addEventListener('click', loadPreview);
+  loadPreview();
+
+  // ===== (v405) 사용자별 미회수 자금 세부 모달 + CSV 다운로드 =====
+  const detail = {
+    detailBtn:     document.getElementById('winddownPrevDetailBtn'),
+    exportBtn:     document.getElementById('winddownPrevExportBtn'),
+    modal:         document.getElementById('winddownPrevDetailModal'),
+    closeBtn:      document.getElementById('winddownPrevDetailClose'),
+    searchInp:     document.getElementById('winddownPrevDetailSearch'),
+    searchClear:   document.getElementById('winddownPrevDetailSearchClear'),
+    tbody:         document.getElementById('winddownPrevDetailTbody'),
+    pageInfo:      document.getElementById('winddownPrevDetailPageInfo'),
+    prevBtn:       document.getElementById('winddownPrevDetailPrev'),
+    nextBtn:       document.getElementById('winddownPrevDetailNext'),
+  };
+  const DETAIL_PAGE_SIZE = 20;
+  const detailState = { offset: 0, total: 0, address: '' };
+  const fmtAddr = (a) => {
+    const s = String(a || '');
+    if (s.length <= 16) return s;
+    return s.slice(0, 6) + '…' + s.slice(-4);
+  };
+  const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',
+  }[c]));
+
+  const renderDetailPage = async () => {
+    if (!detail.tbody) return;
+    detail.tbody.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:24px 0;">로딩 중…</td></tr>';
+    const params = new URLSearchParams();
+    params.set('limit', String(DETAIL_PAGE_SIZE));
+    params.set('offset', String(detailState.offset));
+    if (detailState.address) params.set('address', detailState.address);
+    try {
+      const r = await api('/api/admin/silica/winddown/preview/users?' + params.toString(), { method: 'GET' });
+      const rows = Array.isArray(r?.rows) ? r.rows : [];
+      const pag = r?.pagination || {};
+      detailState.total = Number(pag.total || 0);
+      if (!rows.length) {
+        detail.tbody.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:24px 0;">조회 결과 없음</td></tr>';
+      } else {
+        detail.tbody.innerHTML = rows.map((row) => {
+          const addr = escHtml(row.address || '');
+          return `<tr>
+            <td title="${addr}" style="font-family:'Space Grotesk',monospace; font-size:11.5px;">${escHtml(fmtAddr(row.address))}</td>
+            <td class="right text-mono">${fmtN(row.silica_sto_balance)}</td>
+            <td class="right text-mono">${fmtN(row.silica_sto_staked)}</td>
+            <td class="right text-mono">${fmtN(row.silica_balance)}</td>
+            <td class="right text-mono"><strong>${fmtN(row.usdt_balance)}</strong></td>
+            <td class="right text-mono">${fmtN(row.pending_interest_usdt)}</td>
+            <td class="right text-mono">${fmtN(row.pending_dividend_silica)}</td>
+          </tr>`;
+        }).join('');
+      }
+      const curPage = Math.floor(detailState.offset / DETAIL_PAGE_SIZE) + 1;
+      const totalPage = Math.max(1, Math.ceil(detailState.total / DETAIL_PAGE_SIZE));
+      if (detail.pageInfo) detail.pageInfo.textContent = `${curPage} / ${totalPage} (전체 ${detailState.total}명)`;
+      if (detail.prevBtn) detail.prevBtn.disabled = (detailState.offset === 0);
+      if (detail.nextBtn) detail.nextBtn.disabled = !pag.has_more;
+    } catch (e) {
+      // (audit M7 fix · 2026-06-12) escHtml — API 에러 메시지가 HTML 을 포함해도
+      //   admin 페이지에서 실행되지 않도록 escape (admin JWT 보호 H5 와 연계).
+      detail.tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding:24px 0; color:#dc2626;">로딩 실패: ${escHtml(e?.message || e)}</td></tr>`;
+    }
+  };
+
+  detail.detailBtn?.addEventListener('click', () => {
+    if (!detail.modal) return;
+    detailState.offset = 0;
+    detailState.address = '';
+    if (detail.searchInp) detail.searchInp.value = '';
+    detail.modal.classList.remove('hidden');
+    renderDetailPage();
+  });
+  detail.closeBtn?.addEventListener('click', () => detail.modal?.classList.add('hidden'));
+  detail.modal?.addEventListener('click', (e) => {
+    if (e.target === detail.modal) detail.modal.classList.add('hidden');
+  });
+  let searchDebounce = null;
+  detail.searchInp?.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      detailState.address = (detail.searchInp?.value || '').trim();
+      detailState.offset = 0;
+      renderDetailPage();
+    }, 350);
+  });
+  detail.searchClear?.addEventListener('click', () => {
+    if (detail.searchInp) detail.searchInp.value = '';
+    detailState.address = '';
+    detailState.offset = 0;
+    renderDetailPage();
+  });
+  detail.prevBtn?.addEventListener('click', () => {
+    if (detailState.offset === 0) return;
+    detailState.offset = Math.max(0, detailState.offset - DETAIL_PAGE_SIZE);
+    renderDetailPage();
+  });
+  detail.nextBtn?.addEventListener('click', () => {
+    detailState.offset = detailState.offset + DETAIL_PAGE_SIZE;
+    renderDetailPage();
+  });
+
+  // CSV 다운로드 — admin token 으로 직접 fetch + blob 다운로드.
+  detail.exportBtn?.addEventListener('click', async () => {
+    detail.exportBtn.disabled = true;
+    const orig = detail.exportBtn.textContent;
+    detail.exportBtn.textContent = '다운로드 중…';
+    try {
+      const token = localStorage.getItem('rwa_admin_token_v1') || '';
+      const apiBase = (() => {
+        try {
+          const v = localStorage.getItem('rwa_api_base_v1');
+          if (v) return String(v).replace(/\/+$/, '');
+        } catch (_) {}
+        return '';
+      })();
+      const url = `${apiBase}/api/admin/silica/winddown/preview/export`;
+      // (2026-05-26 v860) X-Admin-Wallet 헤더 누락 fix — admin.core.js requestJson
+      //   우회 (직접 fetch) 라 화이트리스트 활성 시 403. v824/v835 와 동일 패턴.
+      const adminWallet = (() => {
+        try { return localStorage.getItem('rwa_admin_wallet_v1') || ''; }
+        catch (_) { return ''; }
+      })();
+      const headers = { 'Authorization': `Bearer ${token}` };
+      if (adminWallet) headers['X-Admin-Wallet'] = adminWallet;
+      const r = await fetch(url, { method: 'GET', headers });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const blob = await r.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      const ts = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const fname = `winddown_preview_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.csv`;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+      toast?.('CSV 다운로드 완료', 'good');
+    } catch (e) {
+      toast?.(e?.message || 'CSV 다운로드 실패', 'bad');
+    } finally {
+      detail.exportBtn.disabled = false;
+      detail.exportBtn.textContent = orig;
+    }
+  });
+
+  // ===== (v402) B. 폐쇄 후 안내 페이지 사전 작성 =====
+  const notice = {
+    titleKo: document.getElementById('closureNoticeTitleKo'),
+    titleEn: document.getElementById('closureNoticeTitleEn'),
+    bodyKo:  document.getElementById('closureNoticeBodyKo'),
+    bodyEn:  document.getElementById('closureNoticeBodyEn'),
+    saveBtn: document.getElementById('closureNoticeSaveBtn'),
+    hint:    document.getElementById('closureNoticeSaveHint'),
+  };
+  const loadNotice = async () => {
+    if (!notice.titleKo) return;
+    try {
+      const r = await api('/api/admin/silica/closure-notice', { method: 'GET' });
+      const n = r?.notice || {};
+      notice.titleKo.value = n.title_ko || '';
+      notice.titleEn.value = n.title_en || '';
+      notice.bodyKo.value  = n.body_ko  || '';
+      notice.bodyEn.value  = n.body_en  || '';
+    } catch (e) {
+      console.warn('[closure notice load]', e);
+    }
+  };
+  notice.saveBtn?.addEventListener('click', async () => {
+    notice.saveBtn.disabled = true;
+    const orig = notice.saveBtn.textContent;
+    notice.saveBtn.textContent = '저장 중…';
+    if (notice.hint) notice.hint.textContent = '';
+    try {
+      await api('/api/admin/silica/closure-notice', {
+        method: 'POST',
+        body: {
+          title_ko: notice.titleKo?.value || '',
+          title_en: notice.titleEn?.value || '',
+          body_ko:  notice.bodyKo?.value  || '',
+          body_en:  notice.bodyEn?.value  || '',
+        },
+      });
+      toast?.('폐쇄 후 안내 페이지 저장 완료', 'good');
+      if (notice.hint) notice.hint.textContent = '저장 완료';
+    } catch (e) {
+      toast?.(e?.message || '저장 실패', 'bad');
+      if (notice.hint) notice.hint.textContent = e?.message || '저장 실패';
+    } finally {
+      notice.saveBtn.disabled = false;
+      notice.saveBtn.textContent = orig;
+    }
+  });
+  loadNotice();
+})();
+</script>
+
+</body>
+</html>

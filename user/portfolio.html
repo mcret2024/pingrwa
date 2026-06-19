@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- (2026-05-22 v790) Cache-control — 모바일 즉시 반영. landing v754 동일. -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Portfolio · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  .wallet-page { max-width: 1200px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
+  .wallet-header { margin-bottom: 32px; }
+
+  /* (2026-05-19 v602) 운영자 디자인 원칙 — 사이트 전체에서 단색만 사용.
+     이 카드의 3-stop top bar (violet→cyan→pink), radial 보라 glow, total-value
+     텍스트의 흰→violet clip 그라데이션 모두 단색으로 교체. */
+  .wallet-summary {
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .wallet-summary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: #8E24AA;
+  }
+  .wallet-summary::after { content: none; }
+  /* (v616) total-label 11→14px, weight 600→800. */
+  .total-label { font-family: 'Space Grotesk', sans-serif; font-size: 14px; letter-spacing: 2.5px; color: var(--aurora-3); text-transform: uppercase; margin-bottom: 12px; font-weight: 800; }
+  .total-value {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(48px, 6vw, 80px);
+    letter-spacing: -3px;
+    line-height: 1;
+    color: #8E24AA;
+    margin-bottom: 8px;
+  }
+  .total-value small { font-size: 0.45em; font-weight: 700; }
+  .total-krw { font-family: 'Oswald', sans-serif; font-size: 18px; color: var(--steel); letter-spacing: 1px; }
+
+  /* (2026-05-19 v601) KYC 배너 CSS 룰 제거 — 헤더의 #kycHeaderCta 로 이동 (v599). */
+
+  .wallet-actions { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+
+  .tokens-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+  @media (max-width: 900px) { .tokens-grid { grid-template-columns: 1fr; } }
+
+  .token-card {
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .token-card.usdt { border-color: rgba(38, 161, 123, 0.3); }
+  .token-card.sto { border-color: rgba(139, 92, 246, 0.3); }
+  .token-card.silica { border-color: rgba(6, 182, 212, 0.3); }
+
+  .token-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  /* (v602) 그라데이션 → 단색. */
+  .token-card.usdt::before { background: #26A17B; }
+  .token-card.sto::before { background: #8E24AA; }
+  .token-card.silica::before { background: #06B6D4; }
+
+  .token-head { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .token-logo {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--platinum);
+    overflow: hidden;
+  }
+  /* (2026-05-11) Token logos are now <img>s populated from
+     /api/public/config (silica_logo_urls) so admin can replace them
+     via the admin/assets.html '토큰 로고 관리' card. The gradient
+     background acts as a frame around the image. */
+  .token-logo img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    display: block;
+  }
+  /* (v602) 토큰 로고 배경 — 단색. */
+  .token-card.usdt .token-logo { background: #26A17B; }
+  .token-card.sto .token-logo { background: #8E24AA; }
+  .token-card.silica .token-logo { background: #06B6D4; }
+
+  .token-meta { flex: 1; }
+  .token-card-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; line-height: 1; }
+  /* (v616) token-ticker 11→13px, weight 700. */
+  .token-ticker { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; color: var(--steel); margin-top: 4px; }
+
+  /* (2026-05-08) Reduced ~10pt across the clamp range so large balances
+     (e.g. 1,000,000.00 USDT or 9-digit STO holdings) don't overflow the
+     card width on 1024–1366px viewports. Earlier 32–44px was breaking
+     the card grid once the user crossed 7 visible digits. */
+  .token-balance {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(22px, 2.6vw, 34px);
+    letter-spacing: -1.2px;
+    line-height: 1.05;
+    margin-bottom: 6px;
+    overflow-wrap: anywhere;
+    white-space: nowrap;
+  }
+  /* (2026-06-07 v880) 약식 표기 (1.00M / 999K) 시 정확한 값을 작은 부제로 노출.
+     값 < 10,000 (단순 표기로 충분) → display:none. JS 가 is-visible 토글. */
+  .token-balance-exact {
+    display: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--steel);
+    margin-top: -2px;
+    margin-bottom: 6px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .token-balance-exact.is-visible { display: block; }
+  /* (2026-05-11 v235) 소수점 부분은 작게. fmtBalHtml() 헬퍼가
+     ".07" 같은 소수점 + 자릿수를 <small>로 감싸 출력함.
+     주 시선이 정수 자리수에 맞춰지도록 ~58% 크기로 축소. */
+  .token-balance small {
+    font-size: 0.58em;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    opacity: 0.75;
+    margin-left: 1px;
+  }
+  .token-card.usdt .token-balance { color: #26A17B; }
+  /* (v602) 잔액 텍스트 — 단색. */
+  .token-card.sto .token-balance { color: #8E24AA; }
+  .token-card.silica .token-balance { color: #06B6D4; }
+  /* (2026-05-11 v238) STO/Silica는 그라데이션 텍스트라 <small>도 같이
+     -webkit-text-fill-color: transparent 가 상속되어 .00 같은 작은 자릿수가
+     투명해져 안 보임. <small> 만 단색으로 복원. */
+  .token-card.sto .token-balance small {
+    -webkit-text-fill-color: initial;
+    color: var(--aurora-1);
+    background: none;
+  }
+  .token-card.silica .token-balance small {
+    -webkit-text-fill-color: initial;
+    color: var(--aurora-3);
+    background: none;
+  }
+
+  /* (v616) token-conv 12→14px, weight 600, color 진함. */
+  .token-conv { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: var(--ice); margin-bottom: 24px; }
+
+  /* (2026-05-17 v439) 관리자 승인 대기 자산 표기 — USDT / SilicaSTO 카드 안에
+     amount-button 위에 위치 (token-conv 와 token-actions 사이).
+     display:none 기본, JS 가 값 > 0 일 때만 표시.
+     (2026-05-21 v732) 운영자 요청 — 입금 대기 (amber) / 출금 대기 (blue) 의
+     컬러 차이가 카드별로 일관성 없어 보임. 모든 pending 행을 동일 blue 톤으로
+     통일. 입금/출금 구분은 아이콘 (⏳ / ⬆) 으로만 표시. */
+  .token-pending {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin: 0 0 14px;
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: #1e40af;
+    line-height: 1.4;
+  }
+  .token-pending.is-visible { display: flex; }
+  .token-pending .pending-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .token-pending .pending-amount {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: #1e3a8a;
+  }
+  .token-pending .pending-label { color: #1e40af; }
+
+  /* (v719/v732) 출금 대기 token-pending-withdraw 도 base 와 동일 색상.
+     클래스는 호환성 위해 유지하되 색상 override 제거. */
+  .token-pending.token-pending-withdraw {
+    background: rgba(37, 99, 235, 0.08);
+    border-color: rgba(37, 99, 235, 0.25);
+    color: #1e40af;
+  }
+  .token-pending.token-pending-withdraw .pending-label { color: #1e40af; }
+  .token-pending.token-pending-withdraw .pending-amount { color: #1e3a8a; }
+
+  .token-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  /* (2026-05-11 v239) SilicaSTO 카드는 Deposit + Staking + Withdraw 3개
+     버튼이라 3열 그리드 사용. */
+  .token-actions.token-actions-3 { grid-template-columns: repeat(3, 1fr); }
+  /* (v616) token-action 12→14px, weight 600→700, padding 10→12. */
+  .token-action {
+    padding: 12px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--platinum);
+    text-decoration: none;
+    text-align: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .token-action:hover { border-color: var(--aurora-3); background: rgba(6, 182, 212, 0.05); }
+
+  /* (v616) 운영자: 'portfolio Network/Mint/Staked/Idle/Current Price/
+     Cumulative Payout 행 폰트가 작다.' 11→15px, weight 600, color 진함. */
+  .token-info {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ice);
+  }
+  .token-info-row { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 4px 0; }
+  .token-info-row span:first-child { color: var(--steel); font-weight: 600; }
+  .token-info-row span:last-child { color: var(--platinum); font-weight: 700; }
+
+  /* Address card */
+  .address-card { padding: 24px; }
+  /* (v616) address-row 13→15px, weight 600. */
+  .address-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ice);
+    margin-top: 12px;
+  }
+  .address-row .copy { background: transparent; border: none; color: var(--aurora-3); cursor: pointer; padding: 4px 8px; }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v790) portfolio.html MOBILE RAIL UNIFICATION
+     landing v756 패턴 동일 — 16px rail + typography fit + 안전망.
+     운영자 보고: '모바일 최적화 되지 않았다.'
+     기존: .wallet-page padding 32px + .wallet-summary padding 40px +
+            .token-card padding 32px → 모바일에서 콘텐츠 영역 매우 좁음.
+     Revert: 본 v790 블록 전체 삭제하면 desktop 룰만 적용.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="portfolio"] { --mobile-rail: 16px; }
+
+    /* 1. 페이지 컨테이너 — 32px → 16px (콘텐츠 +32px 확장) */
+    .wallet-page {
+      padding: 16px var(--mobile-rail) !important;
+      max-width: 100% !important;
+    }
+    .wallet-header { margin-bottom: 16px !important; }
+
+    /* 2. Wallet Summary 카드 (Total Portfolio Value) — padding 40 → 18 */
+    .wallet-summary {
+      padding: 22px var(--mobile-rail) !important;
+      margin-bottom: 16px !important;
+      border-radius: 14px;
+    }
+    .total-label { font-size: 11px !important; letter-spacing: 1.5px !important; margin-bottom: 8px; }
+    .total-value {
+      font-size: clamp(32px, 11vw, 48px) !important;
+      letter-spacing: -1.5px !important;
+      word-break: break-word;
+    }
+    .total-value small { font-size: 0.45em !important; }
+    .total-krw { font-size: 13px !important; letter-spacing: 0.5px; }
+
+    /* Wallet actions (Deposit / Withdraw 버튼) */
+    .wallet-actions {
+      gap: 8px !important;
+      margin-top: 18px !important;
+      flex-wrap: wrap;
+    }
+    .wallet-actions .btn {
+      flex: 1 1 auto;
+      font-size: 13px !important;
+      padding: 10px 14px !important;
+      letter-spacing: 0.5px !important;
+    }
+
+    /* 3. Token cards grid — 900px 이하 1-col 이미 적용, gap 축소 */
+    .tokens-grid {
+      gap: 12px !important;
+      margin-bottom: 18px !important;
+    }
+    .token-card {
+      padding: 18px var(--mobile-rail) !important;
+    }
+    .token-card-name { font-size: 22px !important; letter-spacing: 0.5px; }
+    .token-head { gap: 12px !important; margin-bottom: 14px !important; }
+    .token-logo { width: 36px !important; height: 36px !important; font-size: 14px; }
+    .token-balance {
+      font-size: clamp(24px, 8vw, 32px) !important;
+      letter-spacing: -1px !important;
+      word-break: break-word;
+    }
+    .token-balance small { font-size: 0.45em; }
+
+    /* 4. Wallet address row */
+    .address-row {
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12px !important;
+    }
+    .address-row code {
+      word-break: break-all !important;
+      overflow-wrap: anywhere !important;
+      font-size: 11px !important;
+    }
+    .address-row .copy { padding: 4px 10px !important; font-size: 13px; }
+
+    /* 5. 일반 card padding 통일 */
+    body[data-page="portfolio"] .card { padding: 14px var(--mobile-rail) !important; }
+
+    /* 6. Heading 압축 */
+    body[data-page="portfolio"] .heading-lg,
+    body[data-page="portfolio"] h1 { font-size: 22px !important; letter-spacing: 0.3px; }
+    body[data-page="portfolio"] .heading-md,
+    body[data-page="portfolio"] h2 { font-size: 18px !important; }
+    body[data-page="portfolio"] .heading-sm,
+    body[data-page="portfolio"] h3 { font-size: 15px !important; }
+    body[data-page="portfolio"] .eyebrow { font-size: 10px !important; letter-spacing: 1.5px !important; }
+
+    /* 7. 모든 input — iOS 자동 줌 방지 */
+    body[data-page="portfolio"] input,
+    body[data-page="portfolio"] select,
+    body[data-page="portfolio"] textarea {
+      font-size: 16px !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    /* 8. 안전망 (다른 페이지와 동일 패턴) */
+    html,
+    body[data-page="portfolio"] {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+    body[data-page="portfolio"] > main {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+    }
+    body[data-page="portfolio"] *,
+    body[data-page="portfolio"] *::before,
+    body[data-page="portfolio"] *::after { box-sizing: border-box; }
+    body[data-page="portfolio"] img,
+    body[data-page="portfolio"] video { max-width: 100% !important; height: auto; }
+
+    /* 9. 긴 텍스트 (긴 base58 주소, 큰 숫자) 안전 wrap */
+    body[data-page="portfolio"] code,
+    body[data-page="portfolio"] .text-mono {
+      word-break: break-all !important;
+      overflow-wrap: anywhere !important;
+    }
+  }
+</style>
+</head>
+<body data-page="portfolio">
+<div class="wallet-page">
+  <!--
+    (2026-05-08) Page header (eyebrow + "My Wallet" h1) removed per
+    operator request. The Total Summary card below already provides
+    sufficient page identity; the eyebrow's "SOLANA DEVNET" string also
+    leaked the deployment network on the customer-facing page.
+  -->
+
+  <!-- Total Summary -->
+  <!-- (2026-05-19 v596) 운영자 요청 — KYC 배너를 TOTAL VALUE 카드 안으로 이동.
+       원래 카드 바깥에 별도 블록이었음. 카드 내부로 통합하여 정보 일체화 + 부가
+       문구/아이콘은 그대로 두되 ℹ → 작은 아이콘으로 시각 정리. -->
+  <div class="wallet-summary">
+    <div class="total-label">TOTAL VALUE</div>
+    <div class="total-value" id="walletTotalUsdt">0.000 USDT</div>
+    <div class="total-krw" id="walletTotalKrw">≈ ₩0 KRW</div>
+    <div class="wallet-actions">
+      <a href="deposit.html" class="btn btn-primary">+ Deposit</a>
+      <a href="withdraw.html" class="btn btn-secondary">− Withdraw</a>
+      <!--
+      Silica 토큰 거래 (Swap / Trade) 비활성 — 2026-05-04.
+      향후 활성화 시 아래 두 줄의 주석을 해제하면 복원됩니다.
+      -->
+      <!--
+      <a href="swap.html" class="btn btn-secondary">⇄ Swap</a>
+      <a href="trade.html" class="btn btn-ghost">Trade</a>
+      -->
+    </div>
+
+    <!-- (2026-05-19 v601) KYC 버튼 헤더로 이전 완료 (v599 의 #kycHeaderCta).
+         카드 내 별도 배너 제거. -->
+  </div>
+
+  <!-- 3 Tokens -->
+  <div class="tokens-grid">
+    <!-- USDT -->
+    <div class="token-card usdt">
+      <div class="token-head">
+        <div class="token-logo"><img src="assets/images/token-usdt.svg" alt="USDT" data-token-logo="usdt"></div>
+        <div class="token-meta">
+          <div class="token-card-name">USDT</div>
+        </div>
+      </div>
+      <div class="token-balance" id="walletUsdt">0.00</div>
+      <div class="token-balance-exact" id="walletUsdtExact" data-no-i18n="1" translate="no">0.00 USDT</div>
+      <div class="token-conv" id="walletUsdtKrw">≈ ₩0 KRW</div>
+      <!--
+        (2026-05-17 v439) 관리자 승인 대기 USDT 입금 표기. JS (silica-data-bind)
+        가 me.pendingDepositUsdt 값이 0 보다 클 때만 .is-visible 클래스 추가.
+      -->
+      <div class="token-pending" id="walletUsdtPendingRow" data-no-i18n="1" translate="no">
+        <span class="pending-icon" aria-hidden="true">⏳</span>
+        <span>
+          <span class="pending-label" id="walletUsdtPendingLabel">관리자 승인 대기 입금</span>
+          <strong class="pending-amount"><span id="walletUsdtPending">0.00</span> USDT</strong>
+        </span>
+      </div>
+      <!-- (2026-05-21 v719) 출금 대기 표기 — 잔액에서 차감되었지만 사용자가
+           "내가 N USDT 출금 요청해두었다" 는 사실을 확인 가능. -->
+      <div class="token-pending token-pending-withdraw" id="walletUsdtPendingWithdrawRow" data-no-i18n="1" translate="no">
+        <span class="pending-icon" aria-hidden="true">⬆</span>
+        <span>
+          <span class="pending-label" id="walletUsdtPendingWithdrawLabel">출금 대기 (관리자 처리 중)</span>
+          <strong class="pending-amount"><span id="walletUsdtPendingWithdraw">0.00</span> USDT</strong>
+        </span>
+      </div>
+      <div class="token-actions">
+        <a href="deposit.html" class="token-action">Deposit</a>
+        <a href="withdraw.html" class="token-action">Withdraw</a>
+      </div>
+      <div class="token-info">
+        <div class="token-info-row"><span>Network</span><span>Solana</span></div>
+        <!-- (2026-05-20 v675) 운영자 요청 — Mint 주소 제거, 누적이자 표시.
+             값은 silica-data-bind.js 에서 cumulInterestUsdt 로 채움. -->
+        <div class="token-info-row"><span>누적이자</span><span id="walletUsdtCumulInterest" data-no-i18n="1" translate="no">0 USDT</span></div>
+      </div>
+    </div>
+
+    <!-- SilicaSTO -->
+    <div class="token-card sto">
+      <div class="token-head">
+        <div class="token-logo"><img src="assets/images/token-silicasto.svg" alt="SilicaSTO" data-token-logo="silicasto"></div>
+        <div class="token-meta">
+          <div class="token-card-name">SilicaSTO</div>
+        </div>
+      </div>
+      <div class="token-balance" id="walletSto">0.00</div>
+      <div class="token-balance-exact" id="walletStoExact" data-no-i18n="1" translate="no">0.00 SilicaSTO</div>
+      <div class="token-conv" id="walletStoUsdt">≈ 0 USDT (1:1 Peg)</div>
+      <!--
+        (2026-05-17 v439) 관리자 승인 대기 SilicaSTO 표기.
+        - Deposit pending : SilicaSTO 직접 입금 status='대기'
+        - Funding pending : awaiting_admin contract 의 amount_usdt (1:1 peg)
+        둘 중 하나라도 > 0 이면 표시. JS 가 합산해 노출.
+      -->
+      <div class="token-pending" id="walletStoPendingRow" data-no-i18n="1" translate="no">
+        <span class="pending-icon" aria-hidden="true">⏳</span>
+        <span>
+          <span class="pending-label" id="walletStoPendingLabel">관리자 승인 대기</span>
+          <strong class="pending-amount"><span id="walletStoPending">0.00</span> SilicaSTO</strong>
+        </span>
+      </div>
+      <!-- (2026-05-21 v719) SilicaSTO 출금 대기 표기. -->
+      <div class="token-pending token-pending-withdraw" id="walletStoPendingWithdrawRow" data-no-i18n="1" translate="no">
+        <span class="pending-icon" aria-hidden="true">⬆</span>
+        <span>
+          <span class="pending-label" id="walletStoPendingWithdrawLabel">출금 대기 (관리자 처리 중)</span>
+          <strong class="pending-amount"><span id="walletStoPendingWithdraw">0.00</span> SilicaSTO</strong>
+        </span>
+      </div>
+      <!-- (2026-05-11 v239) Operator: 'SilicaSTO 입금 버튼이 누락 되었다.'
+           Added Deposit alongside existing Staking + Withdraw. Switched
+           to .token-actions-3 layout so all three buttons share the row. -->
+      <div class="token-actions token-actions-3">
+        <a href="deposit.html" class="token-action">Deposit</a>
+        <a href="staking.html" class="token-action">Staking</a>
+        <a href="withdraw.html" class="token-action">Withdraw</a>
+      </div>
+      <div class="token-info">
+        <div class="token-info-row"><span>Staked</span><span style="color: var(--success);" id="walletStoStaked">0.00</span></div>
+        <div class="token-info-row"><span>Idle</span><span id="walletStoIdle">0.00</span></div>
+        <div class="token-info-row"><span>Network</span><span>Solana</span></div>
+      </div>
+    </div>
+
+    <!-- Silica -->
+    <div class="token-card silica">
+      <div class="token-head">
+        <div class="token-logo"><img src="assets/images/token-silica.svg" alt="Silica" data-token-logo="silica"></div>
+        <div class="token-meta">
+          <div class="token-card-name">Silica</div>
+        </div>
+      </div>
+      <div class="token-balance" id="walletSilica">0.00</div>
+      <div class="token-balance-exact" id="walletSilicaExact" data-no-i18n="1" translate="no">0.00 Silica</div>
+      <div class="token-conv" id="walletSilicaUsdt">≈ 0 USDT (Price 0.05)</div>
+      <!-- (2026-05-21 v731) Silica 입금 대기 표기 — 관리자 승인 대기. -->
+      <div class="token-pending" id="walletSilicaPendingRow" data-no-i18n="1" translate="no">
+        <span class="pending-icon" aria-hidden="true">⏳</span>
+        <span>
+          <span class="pending-label" id="walletSilicaPendingLabel">관리자 승인 대기 입금</span>
+          <strong class="pending-amount"><span id="walletSilicaPending">0.00</span> Silica</strong>
+        </span>
+      </div>
+      <!-- (2026-05-21 v719) Silica 출금 대기 표기. -->
+      <div class="token-pending token-pending-withdraw" id="walletSilicaPendingWithdrawRow" data-no-i18n="1" translate="no">
+        <span class="pending-icon" aria-hidden="true">⬆</span>
+        <span>
+          <span class="pending-label" id="walletSilicaPendingWithdrawLabel">출금 대기 (관리자 처리 중)</span>
+          <strong class="pending-amount"><span id="walletSilicaPendingWithdraw">0.00</span> Silica</strong>
+        </span>
+      </div>
+      <!-- (2026-05-11 v239) Operator: 'Silica 입출금 버튼이 누락 되었다.'
+           Deposit + Withdraw 활성화. -->
+      <div class="token-actions">
+        <a href="deposit.html" class="token-action">Deposit</a>
+        <a href="withdraw.html" class="token-action">Withdraw</a>
+      </div>
+      <!--
+      Silica 토큰 거래 (Swap / Trade) 비활성 — 2026-05-04.
+      향후 활성화 시 아래 .token-actions 블록의 주석을 해제하면 복원됩니다.
+      -->
+      <!--
+      <div class="token-actions">
+        <a href="swap.html" class="token-action">Swap</a>
+        <a href="trade.html" class="token-action">Trade</a>
+      </div>
+      -->
+      <div class="token-info">
+        <div class="token-info-row"><span>Current Price</span><span class="text-cyan" id="walletSilicaPrice">0.05 USDT</span></div>
+        <div class="token-info-row"><span>Cumulative Payout</span><span id="walletSilicaCumul">0.00</span></div>
+        <div class="token-info-row"><span>Network</span><span>Solana</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- (2026-05-06) Receiving Wallet Address 카드 제거됨.
+       유저 입금은 deposit.html 의 흐름(연결된 지갑에서 트랜잭션 서명) 으로만 처리되며,
+       지갑 주소를 외부에 노출해 수동 송금하도록 유도하지 않는 정책. -->
+</div>
+
+<footer class="footer">
+  <div class="footer-bottom">
+    <div>© 2026 SILICA CHAIN HOLDINGS</div>
+    <div>Wallet · Solana Devnet</div>
+  </div>
+</footer>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

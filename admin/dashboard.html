@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>관리자 대시보드 · SilicaChain</title>
+  <link rel="shortcut icon" href="img/favicon.png">
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <style>
+    .admin-shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 32px;
+      position: relative;
+      z-index: 1;
+    }
+    .dash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .dash-greeting {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 5vw, 56px);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .dash-greeting em {
+      font-family: 'Unbounded', sans-serif;
+      font-style: normal;
+      font-weight: 900;
+      font-size: 0.7em;
+      letter-spacing: -2px;
+      background: var(--logo-violet);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .dash-sub {
+      color: var(--steel);
+      margin-top: 8px;
+      font-size: 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: 1px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+    .kpi-card {
+      padding: 20px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 40%; height: 2px;
+      background: var(--logo-violet);
+    }
+    .kpi-card.cyan::before { --accent-color: var(--aurora-3); }
+    .kpi-card.pink::before { --accent-color: var(--aurora-2); }
+    .kpi-card.green::before { --accent-color: var(--green); }
+    .kpi-card.amber::before { --accent-color: var(--amber); }
+    /* (2026-05-08) Increased label size from 11px → 14px and reduced letter-
+       spacing so titles read as proper card headings rather than as tiny
+       Space Grotesk eyebrows. The "// " prefix decoration was also dropped
+       per the operator's request. */
+    .kpi-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+    /* (2026-05-08) Reduced from 32px → 22px so wide numbers like
+       "1,000,000,000 STO" / "999,949,400 STO" / "1 USDT = 1,488 KRW"
+       fit on a single line inside the 4-column KPI grid (~290px cards).
+       Also relaxed letter-spacing so digits aren't crowded at the
+       smaller size. clamp() lets the value scale a little on wider
+       monitors without blowing past the card width on 1280-1366px. */
+    .kpi-value {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 800;
+      font-size: clamp(20px, 1.6vw, 26px);
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 4px;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    .kpi-value small {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 500;
+      font-size: 0.55em;
+      color: var(--steel);
+      letter-spacing: 1px;
+    }
+    @media (max-width: 1100px) {
+      .kpi-value { font-size: clamp(18px, 2.2vw, 22px); }
+    }
+    .kpi-trend {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-top: 6px;
+    }
+    .kpi-trend.up { color: var(--green); }
+    .kpi-trend.down { color: var(--red); }
+
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1000px) { .dash-grid { grid-template-columns: 1fr; } }
+
+    .dash-card {
+      padding: 24px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+    }
+    .dash-card-aurora {
+      background: var(--panel);
+      border-color: var(--border-strong);
+      position: relative;
+      overflow: hidden;
+    }
+    .dash-card-aurora::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: var(--logo-violet);
+    }
+    .dash-section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+    .dash-section-sub {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      color: var(--steel);
+      letter-spacing: 1px;
+    }
+    .dash-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .upcoming-list { display: flex; flex-direction: column; gap: 12px; }
+    .upcoming {
+      padding: 16px;
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+    }
+    .upcoming-date {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--aurora-3);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .upcoming-title { font-weight: 600; margin-bottom: 4px; color: var(--text); }
+    .upcoming-amount {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--green);
+    }
+
+    .table-wrap { overflow-x: auto; }
+    .right { text-align: right; }
+    .hr {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    /* Dashboard guard styles preserved */
+    html[data-admin-dashboard-guard="1"],
+    html[data-admin-dashboard-guard="1"] body { overflow: auto !important; }
+    html[data-admin-dashboard-guard="1"] .tx-overlay,
+    html[data-admin-dashboard-guard="1"] .tx-overlay-backdrop,
+    html[data-admin-dashboard-guard="1"] .confirm-overlay,
+    html[data-admin-dashboard-guard="1"] .confirm-overlay-backdrop,
+    html[data-admin-dashboard-guard="1"] .upload-overlay,
+    html[data-admin-dashboard-guard="1"] .tp-overlay,
+    html[data-admin-dashboard-guard="1"] .adm-modal-overlay,
+    html[data-admin-dashboard-guard="1"] .ap-overlay,
+    html[data-admin-dashboard-guard="1"] .modal,
+    html[data-admin-dashboard-guard="1"] .modal-backdrop,
+    html[data-admin-dashboard-guard="1"] .otp-modal,
+    html[data-admin-dashboard-guard="1"] .otp-backdrop,
+    html[data-admin-dashboard-guard="1"] .reason-overlay,
+    html[data-admin-dashboard-guard="1"] .reason-overlay-backdrop,
+    html[data-admin-dashboard-guard="1"] .trade-confirm-overlay,
+    html[data-admin-dashboard-guard="1"] .contract-layer,
+    html[data-admin-dashboard-guard="1"] dialog[open] {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
+  <script>
+  (function(){
+    if (!/\/admin\/dashboard\.html(?:$|\?)/.test(location.pathname + location.search)) return;
+    const ROOT = document.documentElement;
+    ROOT.setAttribute('data-admin-dashboard-guard', '1');
+    const BLOCKED_DIALOG_QUEUE = [];
+    const DASHBOARD_BLOCK_SELECTORS = ['.tx-overlay','.tx-overlay-backdrop','.confirm-overlay','.confirm-overlay-backdrop','.upload-overlay','.tp-overlay','.adm-modal-overlay','.ap-overlay','.modal','.modal-backdrop','.otp-modal','.otp-backdrop','.reason-overlay','.reason-overlay-backdrop','.trade-confirm-overlay','.contract-layer','dialog[open]','[data-admin-transient-ui="open"]'].join(', ');
+    const DASHBOARD_BLOCK_NAME_RE = /(overlay|backdrop|modal|dialog|scrim|mask)/i;
+    function queueBlockedDialogMessage(text){const msg=String(text||'').trim();if(!msg)return;BLOCKED_DIALOG_QUEUE.push(msg);renderBlockedDialogMessage();}
+    function renderBlockedDialogMessage(){const toast=document.getElementById('toast');if(!toast||!BLOCKED_DIALOG_QUEUE.length)return;const text=BLOCKED_DIALOG_QUEUE.shift();toast.classList.remove('hidden');toast.classList.remove('good');toast.classList.add('bad');toast.textContent=text;clearTimeout(renderBlockedDialogMessage._t);renderBlockedDialogMessage._t=setTimeout(()=>toast.classList.add('hidden'),3200);}
+    function isDashboardGuardException(el){if(!el||!(el instanceof Element))return true;if(el.id==='toast'||el.id==='adminRecoveryNotice'||el.id==='adminBootError')return true;return false;}
+    function isDashboardBlockingLayer(el){if(!el||!(el instanceof HTMLElement)||isDashboardGuardException(el))return false;if(el.matches?.(DASHBOARD_BLOCK_SELECTORS))return true;const rawName=`${el.id||''} ${typeof el.className==='string'?el.className:''}`.trim();if(!rawName||!DASHBOARD_BLOCK_NAME_RE.test(rawName))return false;let style;try{style=window.getComputedStyle(el);}catch(_){return false;}if(!style||style.display==='none'||style.visibility==='hidden'||style.pointerEvents==='none')return false;if(!/(fixed|absolute|sticky)/.test(style.position||''))return false;const z=Number(style.zIndex||0);if(!Number.isFinite(z)||z<900)return false;const rect=el.getBoundingClientRect();const vw=Math.max(window.innerWidth||0,ROOT.clientWidth||0);const vh=Math.max(window.innerHeight||0,ROOT.clientHeight||0);return rect.width>=vw*0.6&&rect.height>=vh*0.6;}
+    function neutralizeDashboardLayer(el,reason){if(!el||!(el instanceof HTMLElement)||isDashboardGuardException(el))return false;try{if(typeof el.close==='function'&&el.hasAttribute('open'))el.close();}catch(_){}el.classList.add('hidden');el.classList.remove('show');el.setAttribute('aria-hidden','true');el.removeAttribute('open');el.removeAttribute('inert');if(el.style){el.style.display='none';el.style.opacity='0';el.style.visibility='hidden';el.style.pointerEvents='none';}return true;}
+    function collectDashboardCandidates(root){const out=[];if(root&&root.nodeType===1){const el=root;if(el.matches?.(DASHBOARD_BLOCK_SELECTORS))out.push(el);el.querySelectorAll?.(DASHBOARD_BLOCK_SELECTORS).forEach((node)=>out.push(node));if(isDashboardBlockingLayer(el))out.push(el);el.querySelectorAll?.('*').forEach((node)=>{if(isDashboardBlockingLayer(node))out.push(node);});}else{document.querySelectorAll(DASHBOARD_BLOCK_SELECTORS).forEach((node)=>out.push(node));document.querySelectorAll('body *').forEach((node)=>{if(isDashboardBlockingLayer(node))out.push(node);});}return Array.from(new Set(out));}
+    function forceCloseDashboardTransientUi(reason=''){try{ROOT.style.overflow='';if(document.body)document.body.style.overflow='';}catch(_){}const candidates=collectDashboardCandidates(document.body||document);candidates.forEach((el)=>neutralizeDashboardLayer(el,reason||'dashboard-guard'));return candidates.length;}
+    function blockNativeDialog(kind,fallbackValue){return function(message){const text=String(message??'').trim()||'관리자 대시보드에서 허용되지 않는 브라우저 팝업이 차단되었습니다.';queueBlockedDialogMessage(text);forceCloseDashboardTransientUi('blocked-native-'+kind);return fallbackValue;};}
+    window.__ADMIN_DASHBOARD_FORCE_CLOSE_UI__=forceCloseDashboardTransientUi;
+    window.alert=blockNativeDialog('alert',undefined);
+    window.confirm=blockNativeDialog('confirm',false);
+    window.prompt=blockNativeDialog('prompt',null);
+    const nativeAddEventListener=window.addEventListener.bind(window);
+    window.addEventListener=function(type,listener,options){if(type==='beforeunload')return;return nativeAddEventListener(type,listener,options);};
+    try{Object.defineProperty(window,'onbeforeunload',{configurable:true,get(){return null;},set(){return null;}});}catch(_){}
+    forceCloseDashboardTransientUi('dashboard-head-sync');
+    nativeAddEventListener('DOMContentLoaded',()=>{forceCloseDashboardTransientUi('dashboard-dom-ready');renderBlockedDialogMessage();},{once:true});
+    nativeAddEventListener('pageshow',()=>forceCloseDashboardTransientUi('dashboard-pageshow'));
+    nativeAddEventListener('load',()=>{forceCloseDashboardTransientUi('dashboard-load');let ticks=0;const iv=window.setInterval(()=>{forceCloseDashboardTransientUi('dashboard-interval');ticks+=1;if(ticks>=40)window.clearInterval(iv);},250);},{once:true});
+  })();
+  </script>
+</head>
+<body data-page="dashboard">
+
+<div id="toast" class="pill hidden"></div>
+
+<div id="adminHeaderMount"></div>
+
+<div class="admin-shell">
+
+  <!-- Page Header -->
+  <div class="dash-header">
+    <div>
+      <h1 class="dash-greeting">대시보드 <em>OVERVIEW.</em></h1>
+    </div>
+    <div class="flex gap-md">
+      <button id="dashRefreshBtn" class="btn small" type="button">⟳ 새로고침</button>
+      <a class="btn small" href="dividend.html">배당 실행 →</a>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-grid">
+    <!-- Silica 단일 자산 정책: 총 자산 / 모집중 / 매각 완료 카운트 카드는 제거됨. -->
+
+    <!-- ── STO 분배 모델 v1 KPI (사전 발행 + Claim 장부 분배) ── -->
+    <div class="kpi-card cyan">
+      <div class="kpi-label">STO 사전 발행</div>
+      <div class="kpi-value" id="kpiStoMinted">-</div>
+    </div>
+    <div class="kpi-card pink">
+      <div class="kpi-label">누적 분배 (장부)</div>
+      <div class="kpi-value" id="kpiStoDistributed">-</div>
+    </div>
+    <div class="kpi-card">
+      <!--
+        (2026-05-05) "on-chain backing" 표기 수정 — 본 값은 Solana RPC 조회가 아니라
+        DB 장부에서 사전 발행 - 누적 분배 로 산출한 미분배 STO 잔량.
+        Silica 의 "장부 only" 분배 모델에선 Reserve 지갑의 실제 on-chain 잔량은
+        항상 사전 발행분(1B) 이며 변하지 않으므로 그 값을 별도로 띄우지 않는다.
+      -->
+      <div class="kpi-label">미분배 STO 잔량 (장부)</div>
+      <div class="kpi-value" id="kpiStoReserve">-</div>
+      <div class="kpi-trend">사전 발행 − 누적 분배</div>
+    </div>
+
+    <!--
+      (제거됨 2026-05-05) RECON 다중자산 잔재 KPI 카드 2개:
+      - "총 발행 SilicaSTO / 투자 누적"      (id=kpiBuying)  → counts["구매진행"]
+      - "운영 / 분배중 / 스테이킹·보유"      (id=kpiActive)  → counts["분배중"]+counts["운영중"]
+      자산 갯수(개)를 표시하던 카드라 단일 고정 자산(SILICA-79907) 프로젝트에서는
+      항상 0/1 만 출력 — 정보값 없음. kpiActive 는 "누적 분배 (장부)" 카드
+      (kpiStoDistributed) 와 라벨의 "분배" 키워드가 겹쳐 혼동을 유발해 함께 정리.
+    -->
+
+    <div class="kpi-card">
+      <div class="kpi-label">실패 / 취소</div>
+      <div class="kpi-value" id="kpiFailed">-</div>
+      <div class="kpi-trend">반려·환불</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">오픈 주문</div>
+      <div class="kpi-value" id="kpiOpenOrders">-</div>
+      <div class="kpi-trend">거래소 미체결</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">24H 거래대금</div>
+      <div class="kpi-value" id="kpiVol24h">-</div>
+      <div class="kpi-trend">SILICA / USDT</div>
+    </div>
+
+    <!-- (2026-05-16 v411) 운영자: '플랫폼 수수료 카드를 누르면 accounting.html
+         로 이동.' kpi-card 를 a 링크로 감쌈. 클릭 영역 = 카드 전체. -->
+    <a href="accounting.html" class="kpi-card" style="text-decoration:none; color:inherit; cursor:pointer; transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div class="kpi-label">플랫폼 수수료</div>
+      <div class="kpi-value" id="kpiPlatformFee">-</div>
+      <div class="kpi-trend">누적 수수료 · 회계 통계 ↗</div>
+    </a>
+    <div class="kpi-card">
+      <div class="kpi-label">총 스테이킹</div>
+      <div class="kpi-value" id="kpiStaked">-</div>
+      <div class="kpi-trend">SilicaSTO</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">다음 이자 지급일</div>
+      <div class="kpi-value" id="kpiPayday">-</div>
+      <div class="kpi-trend">매월 15일</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">환율 (USDT/KRW)</div>
+      <div class="kpi-value" id="kpiFx">-</div>
+      <!-- (2026-05-08) Source label is now hydrated from /api/admin/fx/live by
+           dashboard.js — earlier hardcoded '한국은행 API' was inaccurate; the
+           actual default provider is fx_worker_provider (e.g. coingecko). -->
+      <div class="kpi-trend" id="kpiFxSource">-</div>
+    </div>
+    <!-- (2026-05-18 v522) 누적 순 출금 카드 — 출금 합 - 입금 합 (token).
+         출금 후 다시 입금되는 경우 차감되어 순수 외부 유출만 표기. -->
+    <div class="kpi-card">
+      <div class="kpi-label">누적 순 출금 (Net)</div>
+      <div class="kpi-value" id="kpiNetWithdrawSto" style="font-size:18px">- STO</div>
+      <div class="kpi-trend" id="kpiNetWithdrawSilica">- Silica</div>
+    </div>
+
+    <!-- (2026-05-19 v588) KYC 보류중 카운터. > 0 이면 amber 강조 + users.html 로 클릭. -->
+    <a href="users.html" class="kpi-card amber" id="kpiKycPendingCard" style="text-decoration:none; color:inherit; cursor:pointer; transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div class="kpi-label">KYC 보류중</div>
+      <div class="kpi-value" id="kpiKycPending">-</div>
+      <div class="kpi-trend" id="kpiKycPendingSub">검토 대기 + 거절</div>
+    </a>
+  </div>
+
+  <!-- Alerts -->
+  <div id="dashAlertsBox" class="alert alert-warning hidden mb-xl">
+    <div class="alert-icon">⚠</div>
+    <div class="alert-content">
+      <div class="alert-title">주의/점검 필요</div>
+      <div class="alert-message" id="dashAlertsList">-</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <!-- Left: Asset + Trading -->
+    <div class="flex-col gap-lg">
+      <!-- Single Asset Status -->
+      <div class="dash-card dash-card-aurora">
+        <div class="dash-panel-head">
+          <div>
+            <h2 class="dash-section-title">단일 자산 현황</h2>
+          </div>
+          <a class="btn small" href="assets.html">자산 편집</a>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <!-- (2026-05-16 v406) 운영자: '상태 부분은 필요하지 않다. 제거.'
+                   단일 자산 (SILICA-79907) 운영이라 active/공개 chip 의미
+                   적음. 컬럼 자체 제거 — dashboard.js 의 row HTML 도 동기. -->
+              <!-- (2026-05-16 v410) 운영자: '최대 발행량은 총수량으로 표기.
+                   STO 사전 발행수량과 동일. 목표는 관리자가 설정한 판매가능
+                   수량.' v409 의 'target_usdt / max_sto_supply' 표시를
+                   '총수량 (사전 발행) / 판매 목표 (운영자 설정)' 으로 의미
+                   명확화. 진행률은 판매됨 / 판매 목표 기준. -->
+              <tr>
+                <th>자산</th>
+                <th class="right">총수량 (STO)</th>
+                <th class="right">판매 목표 (STO)</th>
+                <th class="right">판매됨</th>
+                <th class="right">진행률</th>
+              </tr>
+            </thead>
+            <tbody id="dashAssetTbody">
+              <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">자산 데이터 로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Trading Summary -->
+      <div class="dash-card">
+        <div class="dash-panel-head">
+          <div>
+            <h2 class="dash-section-title">거래 / 주문 요약</h2>
+          </div>
+          <a class="btn small" href="../user/trade.html" target="_blank" rel="noopener">유저 마켓 ↗</a>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>자산</th>
+                <th class="right">Best Bid</th>
+                <th class="right">Best Ask</th>
+                <th class="right">Spread</th>
+                <th class="right">주문수 (B/A)</th>
+                <th class="right">잔량 (B/A)</th>
+              </tr>
+            </thead>
+            <tbody id="dashBookTbody">
+              <tr><td colspan="6" class="text-center text-muted" style="padding: 24px;">호가 데이터 로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Trades -->
+      <div class="dash-card">
+        <div class="dash-panel-head">
+          <div>
+            <h2 class="dash-section-title">최근 체결</h2>
+          </div>
+          <a class="btn small" href="../user/trade.html" target="_blank" rel="noopener">차트 ↗</a>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>시간</th>
+                <th>자산</th>
+                <th class="right">가격</th>
+                <th class="right">수량</th>
+                <th class="right">거래대금</th>
+              </tr>
+            </thead>
+            <tbody id="dashTradesTbody">
+              <tr><td colspan="5" class="text-center text-muted" style="padding: 24px;">체결 데이터 로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Upcoming + Status -->
+    <div class="flex-col gap-lg">
+      <!-- Upcoming Schedule -->
+      <div class="dash-card dash-card-aurora">
+        <div class="dash-panel-head">
+          <h2 class="dash-section-title">예정된 작업</h2>
+        </div>
+        <div class="upcoming-list">
+          <div class="upcoming">
+            <div class="upcoming-date">▲ 매월 15일</div>
+            <div class="upcoming-title">고정이자 자동 지급 (USDT)</div>
+            <div class="upcoming-amount" id="upcomingInterestAmt">- USDT 예정</div>
+          </div>
+          <div class="upcoming">
+            <div class="upcoming-date">▲ 4~5월 (배당 시즌)</div>
+            <div class="upcoming-title">2025년 연 배당 (Silica)</div>
+            <div class="upcoming-amount" id="upcomingDividend">결산 후 실행</div>
+          </div>
+          <!--
+            (제거됨 2026-05-05) "▲ Public Sale / 2026.05.15 마감 / D-? · 진행 중" 카드 —
+            Silica 의 Public Sale 은 마감일이 없는 상시(영구) 판매 모델인데,
+            하드코딩된 고정 날짜와 미연결 #upcomingSaleEnd placeholder 를 그대로 두면
+            잘못된 마감 정보를 노출하게 됨. 카드 자체 제거.
+          -->
+        </div>
+      </div>
+
+      <!-- (2026-05-18 v519) 매각 / 정산 요약 카드 제거 — 매각 흐름 폐기 정책
+           (wind-down 모델만 사용). JS 호환을 위해 dashSalesTbody DOM 만
+           hidden 으로 유지 (옛 바인딩 null 참조 방지). -->
+      <div style="display:none">
+        <tbody id="dashSalesTbody"></tbody>
+      </div>
+
+      <!-- Staking Summary -->
+      <div class="dash-card">
+        <div class="dash-panel-head">
+          <h2 class="dash-section-title">스테이킹 / 이자</h2>
+          <a class="btn small" href="staking.html">스테이킹 설정 →</a>
+        </div>
+        <div class="table-wrap">
+          <table class="table" style="font-size: 13px;">
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th class="right">값</th>
+              </tr>
+            </thead>
+            <tbody id="dashStakingTbody">
+              <tr><td colspan="2" class="text-center text-muted" style="padding: 16px;">로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const token = String(Date.now());
+  window.__ADMIN_ASSET_TOKEN = token;
+
+  const showBootError = (message) => {
+    window.__ADMIN_DASHBOARD_FORCE_CLOSE_UI__?.('dashboard-boot-error');
+    const root = document.querySelector('.admin-shell') || document.body;
+    if (!root) return;
+    let box = document.getElementById('adminBootError');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'adminBootError';
+      box.className = 'card';
+      box.style.maxWidth = '1400px';
+      box.style.margin = '16px auto';
+      box.innerHTML = '<div class="pad" style="padding:20px"><div style="font-weight:900;color:var(--red);margin-bottom:6px">관리자 스크립트 로드 실패</div><div class="muted" id="adminBootErrorMsg"></div><div class="help" style="margin-top:8px">브라우저 캐시와 최신 파일이 맞지 않을 때 발생할 수 있습니다.</div><div style="margin-top:12px"><button type="button" class="btn primary" id="adminBootErrorReload">다시 불러오기</button></div></div>';
+      root.insertBefore(box, root.firstChild);
+      box.querySelector('#adminBootErrorReload')?.addEventListener('click', () => location.reload());
+    }
+    const msg = box.querySelector('#adminBootErrorMsg');
+    if (msg) msg.textContent = message || '관리자 대시보드 스크립트를 불러오지 못했습니다.';
+  };
+
+  const load = (src, retries = 2) => new Promise((resolve, reject) => {
+    const baseSrc = `${src}?v=${encodeURIComponent(token)}`;
+    const tryOnce = (attempt) => {
+      const s = document.createElement('script');
+      s.src = attempt === 0 ? baseSrc : baseSrc + '&r=' + Date.now();
+      s.async = false;
+      s.onload = resolve;
+      s.onerror = () => {
+        try { s.remove(); } catch {}
+        if (attempt < retries) {
+          const delay = 500 * (attempt + 1);
+          console.warn('[admin-load] retry', attempt + 1, 'of', retries, 'after', delay, 'ms —', src);
+          setTimeout(() => tryOnce(attempt + 1), delay);
+        } else {
+          reject(new Error(src + ' load failed (' + (retries + 1) + ' attempts)'));
+        }
+      };
+      document.body.appendChild(s);
+    };
+    tryOnce(0);
+  });
+
+  window.__ADMIN_DASHBOARD_FORCE_CLOSE_UI__?.('dashboard-boot-start');
+
+  load('js/admin.i18n.js')
+    .then(() => load('js/admin.core.js'))
+    .then(() => load('js/admin.header.js'))
+    .then(() => load('js/dashboard.js?v=20260526v850-image-swap'))
+    .then(() => {
+      window.__ADMIN_DASHBOARD_FORCE_CLOSE_UI__?.('dashboard-boot-after-scripts');
+      window.AdminCore?.clearAdminTransientUi?.('dashboard-boot-inline');
+      return window.AdminCore?.safeLoadAdminHeader?.();
+    })
+    .catch((e) => {
+      window.__ADMIN_DASHBOARD_FORCE_CLOSE_UI__?.('dashboard-boot-catch');
+      console.error('[admin.dashboard] boot failed', e);
+      showBootError(e?.message || 'script load failed');
+    });
+})();
+</script>
+
+</body>
+</html>

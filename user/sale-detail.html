@@ -1,0 +1,288 @@
+<!-- public/sale-detail.html -->
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sale Detail · SilicaChain</title>
+  <link rel="shortcut icon" href="assets/images/favicon.png">
+  <link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+  <script>
+    (function () {
+      try {
+        var key = 'rwa_lang_user_v1';
+        var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+        var lang = /^(ko|en)$/.test(raw) ? raw : 'ko';
+        var de = document.documentElement;
+        de.lang = lang === 'zh' ? 'zh-CN' : lang;
+        de.setAttribute('data-rwa-lang', lang);
+        de.setAttribute('data-rwa-i18n-ready', lang === 'ko' ? '1' : '0');
+        // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+        de.classList.add("rwa-booting-early");
+        window.__RWA_I18N_BOOT_LANG__ = lang;
+      } catch (_) {}
+    })();
+  </script>
+  <style id="rwaI18nBootStyle">
+    html[data-rwa-i18n-ready="0"] body { visibility: hidden; }
+    html[data-rwa-i18n-ready="1"] body { visibility: visible; }
+  </style>
+  <script>
+    (function () {
+      var released = false;
+      function release() {
+        if (released) return;
+        released = true;
+        try {
+          document.documentElement.setAttribute('data-rwa-i18n-ready', '1');
+          document.documentElement.removeAttribute('data-rwa-i18n-pending');
+        } catch (_) {}
+      }
+      window.__RWA_I18N_BOOT_RELEASE__ = release;
+      window.addEventListener('load', function () { setTimeout(release, 0); }, { once: true });
+      setTimeout(release, 4500);
+    })();
+  </script>
+</head>
+<body data-page="sale-detail">
+
+<div id="siteHeaderMount"></div>
+
+<div
+  id="toast"
+  class="pill hidden"
+  aria-live="polite"
+  style="position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:999; max-width:min(520px, calc(100% - 28px));"
+></div>
+
+<!-- (2026-05-15 v393) 매각 상세 페이지 hidden + 비활성 안내. -->
+<main>
+  <section class="section" style="padding:60px 16px">
+    <div class="container">
+      <div class="card"><div class="pad" style="text-align:center">
+        <h1 style="margin:0 0 12px">Feature Unavailable</h1>
+        <div class="muted" style="line-height:1.6">
+          Sale features are disabled on this deployment. They may be enabled in the future when asset sale or other real estate operations are required.
+        </div>
+      </div></div>
+    </div>
+  </section>
+</main>
+
+<main hidden>
+  <section class="section">
+    <div class="container">
+      <div class="two-col">
+
+        <!-- LEFT -->
+        <div class="card profit-card">
+          <div class="pad">
+            <div class="row" style="align-items:flex-start">
+              <div>
+                <div class="tagrow" style="flex-wrap:wrap">
+                  <span id="saleStatus" class="badge bad">Sale</span>
+                  <span id="saleMarket" class="chip">-</span>
+                  <span id="saleCurrency" class="badge neutral">-</span>
+                </div>
+
+                <h1 id="saleTitle" style="margin-top:10px">-</h1>
+
+                <div class="muted" style="line-height:1.5">
+                  Liquidated assets are available for exchange. After depositing tokens, you will receive USDT based on the exchange rate per token.
+                  (Tokens are permanently burned upon deposit.)
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end">
+                <img
+                  id="saleTokenImage"
+                  class="token-thumb"
+                  alt="Token image"
+                  src=""
+                />
+                <a class="btn small" href="sales.html">List</a>
+              </div>
+            </div>
+
+            <div style="margin-top:14px">
+              <img
+                id="saleImage"
+                src=""
+                alt="Sale asset image"
+                loading="lazy"
+                style="width:100%; border-radius:16px; border:1px solid var(--border); background:var(--surface2)"
+              >
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="split">
+              <div class="notice">
+                <strong>Initial Investment</strong><br>
+                <span id="saleBuyPrice">-</span>
+              </div>
+              <div class="notice">
+                <strong>Sale Amount</strong><br>
+                <span id="saleSoldPrice">-</span>
+              </div>
+            </div>
+
+            <div class="split" style="margin-top:12px">
+              <div class="notice">
+                <strong>Expenses</strong><br>
+                <span id="saleExpenses">-</span>
+              </div>
+              <div class="notice">
+                <strong>Platform User Allocation Total (USDT)</strong><br>
+                <span id="saleNetUsdt">-</span><br>
+                <span class="small-note">Project Net Inflow: <span id="saleNetInflowLocal">-</span></span>
+              </div>
+            </div>
+
+            <div class="callout" style="margin-top:12px">
+              <div class="icon">↑</div>
+              <div class="text">
+                <div class="t">Exchange Rate per Token</div>
+                <div class="d">
+                  <span class="muted">1 TOKEN = </span>
+                  <strong id="saleRedeemPriceUsdt">-</strong>
+                  <span class="muted"> · FX (reference): </span>
+                  <span id="saleFxLine">-</span>
+                </div>
+                <div class="small-note" id="saleRedeemPriceLocal">-</div>
+                <div class="small-note" id="saleFxHint">-</div>
+                <div class="small-note" style="margin-top:6px">
+                  Platform User Allocation Total: <span id="saleVaultTotal">-</span>
+                  · Token Supply: <span id="saleSupply">-</span>
+                  <span id="saleSupplyUnit">TOKEN</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="small-note" style="margin-top:10px">
+              * User settlement is calculated based on the total Platform User Allocation (USDT), including amounts already paid out.
+              The exchange rate per token is calculated as Platform User Allocation Total ÷ Total Issued Tokens, and tokens are permanently burned upon deposit.
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="card">
+          <div class="pad">
+            <h2 style="margin:0 0 10px">Token Exchange</h2>
+
+            <div class="notice">
+              <strong>My Holdings</strong><br>
+              <span id="saleMyBalance">-</span>
+            </div>
+
+            <div class="field" style="margin-top:12px">
+              <label for="saleRedeemAmount">
+                Token Deposit Amount (<span id="saleCurCodeIn">TOKEN</span>)
+              </label>
+              <input
+                id="saleRedeemAmount"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="off"
+                placeholder="e.g., 10"
+              />
+              <div class="help">
+                Only whole numbers may be entered for token deposit. Tokens are permanently burned upon deposit, and USDT equal to the deposited amount × exchange rate per token will be paid out.
+              </div>
+            </div>
+
+            <div class="split">
+              <button id="saleMaxBtn" class="btn" type="button">Max</button>
+              <button id="saleRedeemBtn" class="btn primary" type="button">Exchange to USDT (Burn Tokens)</button>
+            </div>
+
+            <div class="notice" style="margin-top:12px">
+              <strong>Estimated Proceeds</strong><br>
+              <span id="saleReceive">-</span><br>
+              <span class="small-note">
+                Remaining Exchangeable: <span id="saleVault">-</span>
+                · Sale Execution Date: <span id="saleWindow">-</span>
+              </span>
+            </div>
+
+            <div class="hr"></div>
+
+            <h2 style="margin:0 0 10px">Accountant Official Documents</h2>
+            <div style="overflow:auto">
+              <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th class="right">Upload</th>
+                    <th class="right">View</th>
+                  </tr>
+                </thead>
+                <tbody id="saleDocsList">
+                  <tr>
+                    <td colspan="3" class="center muted">No documents registered.</td>
+                  </tr>
+                </tbody>
+              </table>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <h2 style="margin:0 0 10px">Proceeds History</h2>
+            <div style="overflow:auto">
+              <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th class="right">Deposit (Burned)</th>
+                    <th class="right">Local Amount (Ref.)</th>
+                    <th class="right">Received (USDT)</th>
+                  </tr>
+                </thead>
+                <tbody id="saleHistory">
+                  <tr>
+                    <td colspan="4" class="center muted">No history.</td>
+                  </tr>
+                </tbody>
+              </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="links">
+      <a class="pill-link" href="landing.html">About</a>
+      <a class="pill-link" href="assets.html">Assets</a>
+      <a class="pill-link" href="markets.html">Markets</a>
+      <a class="pill-link" href="staking.html">Staking</a>
+      <a class="pill-link" href="claim.html">Claim</a>
+      <!-- (v393) Sale link hidden — feature disabled. -->
+      <a class="pill-link" href="sales.html" hidden>Sale</a>
+      <a class="pill-link" href="admin.html">Admin</a>
+    </div>
+    <div style="margin-top:10px" class="small-note">
+      Investment products carry the risk of principal loss, and prices and returns may fluctuate.
+      The information shown on this page is for guidance only.
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+</body>
+</html>

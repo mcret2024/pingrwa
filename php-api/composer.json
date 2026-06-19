@@ -1,0 +1,30 @@
+{
+    "name": "rwa/platform-api",
+    "description": "Recon RWA Platform PHP API",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "firebase/php-jwt": "^6.10",
+        "spomky-labs/otphp": "^11.3",
+        "paragonie/sodium_compat": "^1.21",
+        "endroid/qr-code": "^5.0",
+        "dompdf/dompdf": "^3.1"
+    },
+    "config": {
+        "audit": {
+            "block-insecure": false
+        }
+    },
+    "autoload": {
+        "files": [
+            "lib/config.php",
+            "lib/db.php",
+            "lib/helpers.php",
+            "lib/jwt_helper.php",
+            "lib/auth.php",
+            "lib/solana.php",
+            "lib/fx.php",
+            "lib/pdf.php"
+        ]
+    }
+}

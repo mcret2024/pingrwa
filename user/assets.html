@@ -1,0 +1,1889 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- (2026-05-22 v788) Cache-control — 모바일 브라우저가 이전 HTML 장기 캐시
+     하여 modal/CSS fix 가 즉시 반영 안 되는 문제 차단. landing v754 동일. -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Mine Investment · SilicaChain</title>
+<link rel="shortcut icon" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<!-- i18n boot -->
+<script>
+  (function () {
+    try {
+      var key = 'rwa_lang_user_v1';
+      var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+      var lang = /^(ko|en)$/.test(raw) ? raw : 'ko';
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute('data-rwa-lang', lang);
+      de.setAttribute('data-rwa-i18n-ready', '1');
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+
+<style>
+  body[data-page="assets"] { background: var(--void); color: var(--text); min-height: 100vh; }
+
+  .invest-page { max-width: 1400px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
+
+  .page-header { text-align: center; margin-bottom: 40px; padding: 40px 0; }
+  .eyebrow-tag {
+    display: inline-block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 4px;
+    color: var(--aurora-3);
+    text-transform: uppercase;
+    margin-bottom: 16px; font-weight: 600;
+    padding: 6px 14px;
+    background: var(--glass);
+    border: 1px solid var(--border-strong);
+    border-radius: 100px;
+  }
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 7vw, 88px);
+    letter-spacing: 1px; text-transform: uppercase;
+    line-height: 1; margin-bottom: 16px;
+    /* (v605) gradient text → 단색. */
+    color: var(--logo-violet);
+  }
+  .page-subtitle {
+    font-size: 17px; color: var(--ice); font-weight: 500;
+    max-width: 720px; margin: 0 auto; line-height: 1.7;
+  }
+
+  /* Sale Phases */
+  .phase-tabs {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--border); border: 1px solid var(--border);
+    border-radius: var(--r-md); overflow: hidden;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 700px) { .phase-tabs { grid-template-columns: 1fr; } }
+  .phase-tab { padding: 24px; background: var(--glass); cursor: default; text-align: left; }
+  .phase-tab.complete { opacity: 0.5; }
+  .phase-tab.active {
+    background: rgba(139, 92, 246, 0.08);
+    border-bottom: 3px solid var(--aurora-1);
+  }
+  .phase-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 2px; color: var(--steel);
+    text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+  }
+  .phase-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 4px; color: var(--text);
+  }
+  .phase-price {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800; font-size: 18px; color: var(--aurora-3); margin-top: 4px;
+  }
+  .phase-status { display: inline-block; margin-top: 8px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; border-radius: 100px;
+    border: 1px solid;
+  }
+  .badge-cyan { background: rgba(6, 182, 212, 0.12); color: var(--aurora-3); border-color: rgba(6, 182, 212, 0.3); }
+  .badge-success { background: rgba(16, 185, 129, 0.12); color: var(--green); border-color: rgba(16, 185, 129, 0.3); }
+  .badge-default { background: var(--glass); color: var(--steel); border-color: var(--border); }
+
+  /* Progress Hero */
+  .progress-hero {
+    padding: 32px;
+    background: var(--panel);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: var(--r-md);
+    margin-bottom: 32px;
+    position: relative; overflow: hidden;
+  }
+  .progress-hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--logo-violet);
+  }
+  .progress-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 16px;
+  }
+  .progress-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 3px; color: var(--aurora-3);
+    text-transform: uppercase; font-weight: 600; margin-bottom: 8px;
+  }
+  .progress-amounts {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800; font-size: 28px; letter-spacing: -1px;
+  }
+  .progress-amounts .target { color: var(--steel); font-size: 0.65em; }
+  .progress-time { text-align: right; }
+  .progress-time .label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 1px; color: var(--steel);
+  }
+  .progress-time .val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800; font-size: 28px; color: var(--aurora-3);
+  }
+  .progress-bar {
+    height: 12px; background: var(--glass-2);
+    border-radius: 100px; overflow: hidden; margin: 16px 0 8px;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: var(--logo-violet);
+    box-shadow: 0 0 20px var(--aurora-1);
+    transition: width 0.5s ease-out;
+  }
+  .progress-meta {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--steel);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Asset Quick Info */
+  .asset-info-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: var(--r-md); overflow: hidden; margin-bottom: 32px;
+  }
+  @media (max-width: 800px) { .asset-info-strip { grid-template-columns: repeat(2, 1fr); } }
+  .info-cell { padding: 24px; text-align: center; border-right: 1px solid var(--border); }
+  .info-cell:last-child { border-right: none; }
+  @media (max-width: 800px) {
+    .info-cell:nth-child(2) { border-right: none; }
+    .info-cell:nth-child(1), .info-cell:nth-child(2) { border-bottom: 1px solid var(--border); }
+  }
+  .info-cell-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 3px; color: var(--steel);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  /* (v605) gradient text → 단색 violet. */
+  .info-cell-val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800; font-size: 28px; line-height: 1;
+    color: var(--logo-violet);
+  }
+  .info-cell-val small { font-size: 0.45em; color: var(--steel); }
+  .info-cell-unit {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px; letter-spacing: 1px; color: var(--ice); margin-top: 4px;
+  }
+
+  /* Investment Form Layout */
+  .invest-grid {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; margin-bottom: 32px;
+  }
+  @media (max-width: 1000px) { .invest-grid { grid-template-columns: 1fr; } }
+
+  .invest-card {
+    padding: 32px;
+    background: var(--panel);
+    border: 1px solid var(--border); border-radius: var(--r-md);
+  }
+  .invest-card.aurora { border-color: rgba(139, 92, 246, 0.3); position: relative; overflow: hidden; }
+  .invest-card.aurora::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--logo-violet);
+  }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 8px; color: var(--text);
+  }
+  .card-sub { font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--steel); margin-bottom: 24px; }
+
+  .field { margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--aurora-3); margin-bottom: 8px;
+  }
+  .field-help { display: block; margin-top: 6px; font-size: 12px; color: var(--steel-dim); }
+  .field-help .text-cyan { color: var(--aurora-3); }
+  .input-suffix {
+    display: flex; background: var(--glass-2);
+    border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden;
+  }
+  .input-suffix input {
+    flex: 1; background: transparent; border: none;
+    padding: 14px 16px; color: var(--text);
+    font-family: 'Inter', sans-serif; font-size: 16px;
+    font-feature-settings: 'tnum' 1;
+  }
+  .input-suffix input:focus { outline: none; }
+  .input-suffix .suffix {
+    padding: 14px 16px; border-left: 1px solid var(--border);
+    color: var(--aurora-3); font-family: 'Oswald', sans-serif;
+    font-weight: 600; letter-spacing: 1px; font-size: 12px;
+    text-transform: uppercase; display: flex; align-items: center;
+  }
+
+  .calc-output {
+    padding: 20px; background: var(--glass-2);
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    margin: 20px 0;
+  }
+  .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .calc-row.big {
+    padding-top: 12px; border-top: 1px solid var(--border);
+    margin-top: 8px; font-size: 16px; font-weight: 700;
+  }
+
+  /* (v626) 운영자: 'Apply for Investment 카드 세로폭 줄여서 스크롤 없이 한
+     화면에. 콘텐츠 세로 간격을 줄이면 개선.' #investCard 스코프 컴팩트 룰. */
+  #investCard .field { margin-bottom: 10px; }
+  #investCard .field-label { margin-bottom: 4px; font-size: 11px; }
+  #investCard .field-help { margin-top: 3px; font-size: 11px; }
+  #investCard .input-suffix input { padding: 10px 14px; font-size: 15px; }
+  #investCard .input-suffix .suffix { padding: 10px 14px; font-size: 11px; }
+  #investCard .calc-output { padding: 12px 14px; margin: 12px 0; }
+  #investCard .calc-row { padding: 4px 0; font-size: 13px; }
+  #investCard .calc-row.big { padding-top: 8px; margin-top: 4px; font-size: 15px; }
+  #investCard #calcLegalFootnote { margin-top: 6px; padding-top: 6px; font-size: 10.5px; }
+  #investCard .invest-max-btn { padding: 3px 10px !important; font-size: 10px !important; }
+
+  /* (v626) Referral Code or Address — 접고 펼침 토글, 기본 접힘. */
+  .ref-label-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 4px;
+  }
+  .ref-label-row .field-label { margin-bottom: 0; }
+  #fundRefToggleBtn {
+    border: 1px solid var(--border-strong);
+    background: var(--glass);
+    cursor: pointer;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--aurora-3);
+    display: inline-flex; align-items: center; gap: 4px;
+    transition: background 0.15s;
+  }
+  #fundRefToggleBtn:hover { background: rgba(124, 58, 237, 0.08); }
+  #fundRefToggleBtn .chev { transition: transform 0.2s; display: inline-block; }
+  #fundRefToggleBtn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  #fundRefBody { display: none; margin-top: 8px; }
+  #fundRefBody.is-open { display: block; }
+  .calc-row .text-mono { font-family: 'Space Grotesk', monospace; font-feature-settings: 'tnum' 1; }
+  .text-cyan { color: var(--aurora-3); }
+  .text-success { color: var(--green); }
+  .text-muted { color: var(--steel); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 24px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase;
+    border: none; cursor: pointer;
+    border-radius: var(--r-sm); transition: all var(--t);
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--logo-violet);
+    color: var(--platinum);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6); }
+  .btn-block { width: 100%; }
+  .btn-lg { padding: 16px 32px; font-size: 14px; }
+
+  .alert {
+    padding: 16px 20px; border-radius: var(--r-md);
+    border: 1px solid; display: flex; gap: 12px;
+    align-items: flex-start; margin-bottom: 16px;
+  }
+  .alert-info { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.3); color: var(--blue); }
+  .alert-icon { font-size: 18px; line-height: 1; flex-shrink: 0; }
+  .alert-content { flex: 1; }
+  .alert-title { font-weight: 700; margin-bottom: 4px; color: var(--text); }
+  .alert-message { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+  .side-card {
+    padding: 24px; background: var(--glass);
+    border: 1px solid var(--border); border-radius: var(--r-md);
+    margin-bottom: 16px;
+  }
+  .side-card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 12px; color: var(--text);
+  }
+  .scenario-row {
+    display: flex; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .scenario-row:last-child { border-bottom: none; }
+  .scenario-label-main { font-weight: 600; color: var(--text); }
+  .scenario-label-sub { font-size: 11px; color: var(--steel); }
+  .scenario-val {
+    font-family: 'Space Grotesk', monospace;
+    font-feature-settings: 'tnum' 1;
+    font-size: 18px; font-weight: 700;
+  }
+
+  .benefits-list { list-style: none; padding: 0; font-size: 13px; }
+  .benefits-list li {
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    color: var(--steel);
+  }
+  .benefits-list li:last-child { border-bottom: none; }
+
+  .min-invest-card {
+    padding: 24px;
+    background: var(--panel);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: var(--r-md); text-align: center;
+    position: relative; overflow: hidden;
+  }
+  /* (v605) gradient → 단색. */
+  .min-invest-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--logo-violet);
+  }
+  .min-invest-val {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900; font-size: 36px; letter-spacing: -1px;
+    color: var(--logo-violet);
+  }
+
+  /* MAX 버튼 hover */
+  .invest-max-btn:hover {
+    background: var(--aurora-3) !important;
+    color: #FFFFFF !important;
+    border-color: var(--aurora-3) !important;
+  }
+  .invest-max-btn:active {
+    transform: translateY(-50%) scale(0.96);
+  }
+
+  /* (이전의 영구 노출 coachmark / 별도 Create-Contract 강조 attention-flash 모두 제거됨 2026-05-04 v2.
+      현재는 Participate 버튼 자체가 계약서 모달을 띄우고 서명과 동시에 투자가 실행된다.) */
+
+  /* ===== 3D Quartz Crystal (CSS pure 3D, no JS dependency) ===== */
+  .mineral-3d-card {
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.08) 0%, var(--glass) 70%);
+    border-color: rgba(6, 182, 212, 0.25);
+    overflow: hidden;
+    position: relative;
+  }
+  .crystal-stage {
+    width: 200px;
+    height: 280px;
+    margin: 0 auto;
+    position: relative;
+    perspective: 900px;
+    perspective-origin: 50% 40%;
+  }
+  /* 결정 뒤편 광원 (글로우) */
+  .crystal-glow {
+    position: absolute;
+    inset: 50% 0 0 0;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    width: 180px; height: 180px;
+    margin-top: -90px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, rgba(6, 182, 212, 0) 65%);
+    filter: blur(8px);
+    z-index: 0;
+    animation: crystal-glow-pulse 4s ease-in-out infinite;
+  }
+  @keyframes crystal-glow-pulse {
+    0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
+    50%      { opacity: 1.0; transform: translate(-50%, -50%) scale(1.08); }
+  }
+  .crystal-3d {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(-12deg);
+    animation: crystal-rotate 18s linear infinite;
+    z-index: 1;
+  }
+  @keyframes crystal-rotate {
+    from { transform: rotateX(-12deg) rotateY(0deg); }
+    to   { transform: rotateX(-12deg) rotateY(360deg); }
+  }
+  .crystal-face {
+    position: absolute;
+    left: 50%; top: 50%;
+    backface-visibility: visible;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.18);
+  }
+
+  /* ── 육각 프리즘 측면 6개 (직사각형) ── */
+  .crystal-side {
+    width: 56px; height: 140px;
+    margin-left: -28px;
+    margin-top: -70px;
+    background: linear-gradient(180deg,
+      rgba(186, 230, 253, 0.55) 0%,
+      rgba(34, 211, 238, 0.55) 50%,
+      rgba(8, 145, 178, 0.55) 100%);
+  }
+  .crystal-side-1 { transform: rotateY(  0deg) translateZ(48.5px); }
+  .crystal-side-2 { transform: rotateY( 60deg) translateZ(48.5px); }
+  .crystal-side-3 { transform: rotateY(120deg) translateZ(48.5px); }
+  .crystal-side-4 { transform: rotateY(180deg) translateZ(48.5px); }
+  .crystal-side-5 { transform: rotateY(240deg) translateZ(48.5px); }
+  .crystal-side-6 { transform: rotateY(300deg) translateZ(48.5px); }
+
+  /* ── 상단 피라미드 6개 삼각면 ── */
+  .crystal-top {
+    width: 56px; height: 56px;
+    margin-left: -28px;
+    margin-top: -126px;
+    transform-origin: 50% 100%;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    background: linear-gradient(180deg,
+      rgba(207, 250, 254, 0.85) 0%,
+      rgba(125, 211, 252, 0.7) 100%);
+  }
+  .crystal-top-1 { transform: rotateY(  0deg) rotateX( 30deg) translateZ(48.5px); }
+  .crystal-top-2 { transform: rotateY( 60deg) rotateX( 30deg) translateZ(48.5px); }
+  .crystal-top-3 { transform: rotateY(120deg) rotateX( 30deg) translateZ(48.5px); }
+  .crystal-top-4 { transform: rotateY(180deg) rotateX( 30deg) translateZ(48.5px); }
+  .crystal-top-5 { transform: rotateY(240deg) rotateX( 30deg) translateZ(48.5px); }
+  .crystal-top-6 { transform: rotateY(300deg) rotateX( 30deg) translateZ(48.5px); }
+
+  /* ── 하단 피라미드 6개 삼각면 (역방향) ── */
+  .crystal-bot {
+    width: 56px; height: 56px;
+    margin-left: -28px;
+    margin-top: 70px;
+    transform-origin: 50% 0%;
+    clip-path: polygon(50% 100%, 100% 0%, 0% 0%);
+    background: linear-gradient(0deg,
+      rgba(8, 47, 73, 0.7) 0%,
+      rgba(8, 145, 178, 0.55) 100%);
+  }
+  .crystal-bot-1 { transform: rotateY(  0deg) rotateX(-30deg) translateZ(48.5px); }
+  .crystal-bot-2 { transform: rotateY( 60deg) rotateX(-30deg) translateZ(48.5px); }
+  .crystal-bot-3 { transform: rotateY(120deg) rotateX(-30deg) translateZ(48.5px); }
+  .crystal-bot-4 { transform: rotateY(180deg) rotateX(-30deg) translateZ(48.5px); }
+  .crystal-bot-5 { transform: rotateY(240deg) rotateX(-30deg) translateZ(48.5px); }
+  .crystal-bot-6 { transform: rotateY(300deg) rotateX(-30deg) translateZ(48.5px); }
+
+  /* 모션 민감 사용자 배려 — prefers-reduced-motion 시 회전 멈춤 */
+  @media (prefers-reduced-motion: reduce) {
+    .crystal-3d { animation: none; }
+    .crystal-glow { animation: none; }
+  }
+
+  /* (제거됨 2026-05-04 v2) #fundContractBtn attention-flash —
+     새 플로우에서는 Participate 버튼 자체가 계약서 모달을 띄우므로 강조 대상이 없다. */
+
+  /* ===== Investment success modal (sign+invest atomic flow, 2026-05-04 v2) ===== */
+  /* (2026-06-07 v887) viewport 보다 큰 화면 잘림 fix — overflow-y:auto +
+     flex-start 정렬. 카드가 viewport 보다 작으면 위쪽 padding 으로 시각 중앙
+     비슷한 위치, 크면 스크롤. */
+  .invest-success-layer {
+    position: fixed; inset: 0; z-index: 5200;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: max(24px, 4vh) 16px;
+    overflow-y: auto;
+  }
+  .invest-success-layer.hidden { display: none; }
+  .invest-success-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+  }
+  @keyframes investSuccessIn {
+    0% { transform: translateY(20px) scale(0.94); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  @keyframes investSuccessIcon {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.18); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .invest-success-panel {
+    position: relative;
+    width: min(440px, calc(100vw - 32px));
+    background: var(--panel, #fff);
+    border: 1.5px solid var(--border-strong, #d1d5db);
+    border-radius: 20px;
+    padding: 32px 28px 24px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    animation: investSuccessIn 0.32s cubic-bezier(.2,.8,.25,1.05);
+  }
+  /* (v605) gradient → 단색 logo-green. */
+  .invest-success-icon {
+    width: 72px; height: 72px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: var(--logo-green);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 0 0 var(--logo-green-dark);
+    animation: investSuccessIcon 0.5s cubic-bezier(.2,.8,.25,1.4) 0.05s both;
+  }
+  .invest-success-title {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--text, #111);
+    letter-spacing: -0.01em;
+  }
+  .invest-success-sub {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--muted, #6b7280);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .invest-success-amount-block {
+    background: var(--glass-2, rgba(0,0,0,0.03));
+    border: 1px solid var(--line, rgba(0,0,0,0.08));
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .invest-success-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+  }
+  .invest-success-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted, #6b7280);
+    font-weight: 600;
+  }
+  .invest-success-value {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text, #111);
+  }
+  .invest-success-krw {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--muted, #6b7280);
+    text-align: right;
+    margin-top: 6px;
+  }
+  .invest-success-meta {
+    background: var(--glass-2, rgba(0,0,0,0.03));
+    border: 1px solid var(--line, rgba(0,0,0,0.08));
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+  }
+  .invest-success-mono {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    color: var(--text, #111);
+    word-break: break-all;
+    text-align: right;
+  }
+  .invest-success-note {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: var(--muted, #6b7280);
+    line-height: 1.55;
+    padding: 10px 12px;
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(34, 197, 94, 0.18);
+    border-radius: 8px;
+    margin-bottom: 18px;
+    text-align: left;
+  }
+  .invest-success-note:empty { display: none; }
+  .invest-success-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .invest-success-foot .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ===== Contract modal styles (from funding.html merge 2026-05-04) ===== */
+  @keyframes imgShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .img-skeleton {
+    display:flex; align-items:center; justify-content:center;
+    color:#9ca3af; font-size:12px;
+  }
+  .img-skeleton::after { content:'Loading image...'; }
+  .contract-layer{ position:fixed; inset:0; z-index:4000; display:flex; align-items:center; justify-content:center; padding:12px; overflow:hidden; }
+  .contract-layer.hidden{ display:none; }
+  .contract-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.42); backdrop-filter:blur(6px); }
+  /* (v627) 운영자 보고: '서명하기 버튼이 하단에서 짤려서 안보인다.'
+     원인: silica-user.css 의 body { zoom: 1.30 } 이 모달 height 100dvh 까지
+     1.30배 visually 확대 → 짧은 노트북 viewport (720-800px) 에서 modal panel
+     이 실제 화면보다 길어져 하단 footer 가 viewport 밖으로 밀려남.
+     fix: height 를 76dvh 로 축소 (1.30 × 76 ≈ 99% visual → physical viewport
+     안에 안전하게 fit). width 는 그대로 유지 (zoom 영향은 height 가 더 critical).
+     + footer 는 sticky-bottom 처리 (아래 .contract-foot 룰). */
+  .contract-panel{
+    position:relative;
+    width:min(1120px, calc(100vw - 24px));
+    height:min(700px, 76dvh);
+    max-height:76dvh;
+    margin:0 auto; background:var(--panel);
+    border:1.5px solid var(--border-strong); border-radius:24px; overflow:hidden;
+    box-shadow:0 24px 90px rgba(0,0,0,.15); display:flex; flex-direction:column;
+  }
+  .contract-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; border-bottom:1px solid rgba(0,0,0,.08); background:var(--abyss); flex:0 0 auto; }
+  .contract-title{ margin:0; font-size:22px; font-weight:950; color:var(--text); }
+  .contract-sub{ margin-top:4px; font-size:12px; color:var(--muted); }
+  .contract-grid{ display:grid; grid-template-columns:minmax(0, 1.18fr) minmax(320px, .82fr); gap:18px; padding:18px; min-height:0; overflow-y:auto; overflow-x:hidden; flex:1 1 auto; -webkit-overflow-scrolling:touch; align-items:start; }
+  .contract-box{ border:1px solid rgba(0,0,0,.08); border-radius:18px; background:var(--abyss); overflow:hidden; }
+  .contract-box-head{ padding:14px 16px; border-bottom:1px solid rgba(0,0,0,.06); font-weight:800; color:var(--text); background:#f3f4f6; }
+  .contract-meta{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 16px 0; }
+  .contract-meta .notice{ margin:0; }
+  .contract-doc{ max-height:100%; overflow:auto; padding:18px; line-height:1.7; color:#374151; font-size:14px; word-break:break-word; -webkit-overflow-scrolling:touch; }
+  .contract-doc h2, .contract-doc h3{ color:var(--text); margin-top:0; }
+  .contract-doc ul, .contract-doc ol{ margin:8px 0 0 18px; padding:0; }
+  .contract-doc li{ margin:4px 0; }
+  .contract-history-list{ padding:0 18px 8px; overflow:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; gap:12px; min-height:0; flex:1 1 auto; }
+  .contract-history-card{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:16px 18px; border:1px solid rgba(0,0,0,.08); border-radius:18px; background:var(--panel); box-shadow:0 10px 28px rgba(15,23,42,.05); }
+  /* (v605) gradient → 단색 amber 톤. */
+  .contract-history-card.needs-action{ border-color:#FCD34D; background:#FFFBEB; box-shadow:0 0 0 1px #FDE68A; }
+  .contract-history-main{ min-width:0; flex:1 1 auto; }
+  .contract-history-title{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:15px; font-weight:900; color:var(--text); }
+  .contract-history-meta{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .contract-history-desc{ margin-top:10px; color:var(--muted); font-size:13px; line-height:1.6; word-break:break-word; }
+  .contract-history-actions{ flex:0 0 auto; display:flex; align-items:center; }
+  .contract-side{ display:flex; flex-direction:column; gap:12px; min-height:0; }
+  .contract-sign-wrap{ padding:16px; }
+  .contract-sign-wrap .field{ margin-bottom:12px; }
+  .contract-checks{ display:flex; flex-direction:column; gap:8px; margin-top:10px; font-size:13px; color:var(--text); }
+  .contract-checks label{ display:flex; align-items:flex-start; gap:8px; cursor:pointer; }
+  .signature-shell{ margin-top:10px; border:1.5px solid var(--border-strong); border-radius:16px; background:var(--panel); padding:10px; }
+  #contractSignatureCanvas{ width:100%; height:220px; display:block; border-radius:12px; background:var(--panel); touch-action:none; cursor:crosshair; }
+  .contract-sig-actions{ display:flex; justify-content:flex-end; margin-top:10px; }
+  .contract-signed-preview{ padding:16px; }
+  .contract-signed-image{ display:block; width:100%; min-height:180px; max-height:240px; object-fit:contain; border-radius:14px; border:1px solid rgba(0,0,0,.08); background:var(--panel); padding:8px; }
+  /* (v627) 운영자 보고: '계약서 팝업 사이즈 문제로 인해 서명하기 버튼이 하단
+     에서 짤려서 안보인다.' 데스크톱에서도 .contract-foot 가 viewport 아래로
+     밀려나는 케이스 (예: 짧은 노트북 viewport / 페이지 zoom). 모바일은 이미
+     v621 에서 sticky 처리. 데스크톱도 동일하게 sticky-bottom 강제 → 카드가
+     아무리 길어도 footer 는 항상 viewport 안. */
+  .contract-foot{
+    display:flex; justify-content:flex-end; gap:10px;
+    padding:14px 18px; border-top:1px solid rgba(0,0,0,.08);
+    background:var(--abyss); flex:0 0 auto;
+    position:sticky; bottom:0; z-index:5;
+    box-shadow:0 -4px 12px rgba(15,23,42,.08);
+  }
+  .contract-status-strong{ color:var(--text); font-size:15px; font-weight:900; }
+  .contract-inline-help{ margin-top:6px; font-size:12px; color:var(--muted); line-height:1.5; }
+  .contract-mini-summary{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  @media (max-width: 980px){
+    .contract-layer{ padding:0; }
+    .contract-panel{ width:100vw; height:100dvh; max-height:100dvh; border-radius:0; border:none; }
+    /* (v775) 운영자 보고: '상단 문서 제목 영역 세로 폭 너무 차지. CLOSE 가독성
+       문제. 하단 버튼 세로폭 너무 큼.' 줄간격 압축 + CLOSE nowrap + footer slim. */
+    .contract-head{ padding:10px 14px !important; }
+    .contract-title{ font-size:16px !important; line-height:1.15 !important; }
+    .contract-sub{ font-size:11px !important; line-height:1.3 !important; margin-top:2px !important; }
+    /* CLOSE 버튼이 'C L O S E' 세로 깨짐 문제 — white-space nowrap 강제 */
+    .contract-head .btn,
+    .contract-head > button {
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      padding: 6px 14px !important;
+      font-size: 12px !important;
+      letter-spacing: 0.5px !important;
+      min-width: auto !important;
+      line-height: 1 !important;
+      height: auto !important;
+    }
+    .contract-grid{ display:block; padding:12px; overflow-y:auto; overflow-x:hidden; }
+    .contract-box{ margin-bottom:12px; }
+    .contract-meta{ grid-template-columns:1fr; }
+    .contract-doc{ overflow:visible; max-height:none; padding:16px; }
+    .contract-history-list{ padding:0 12px 8px; gap:10px; }
+    .contract-history-card{ padding:14px; flex-direction:column; }
+    .contract-history-actions{ width:100%; justify-content:flex-end; }
+    .contract-side{ display:block; }
+    .contract-side > * + *{ margin-top:12px; }
+    #contractSignatureCanvas{ height:180px; }
+    /* (v621) 운영자 + 테스터 보고: 모바일에서 서명 후 'Complete Signature'
+       버튼이 안 보이고, 'User Signature Information' 패널이 빈 상태로
+       동시 노출. 원인: 아래 .contract-signed-preview{display:block!important}
+       이 .hidden{display:none!important} 을 덮어써서 signMode=true 상태인데도
+       signed-preview 가 함께 보임. → :not(.hidden) 으로 분리. 추가로
+       footer 를 sticky-bottom 처리해 키보드/스크롤에 관계없이 항상 노출. */
+    .contract-foot{
+      padding:8px 12px !important; gap:6px !important;
+      position:sticky; bottom:0; z-index:5;
+      box-shadow:0 -6px 16px rgba(15,23,42,.10);
+    }
+    /* (v775) footer 버튼 세로폭 너무 큼 — 'COMPLETE SIGNATURE' 가 3줄로 깨짐.
+       padding/line-height 축소 + white-space nowrap 시도 (긴 경우 wrap 허용) */
+    .contract-foot .btn{
+      flex:1 1 0 !important;
+      padding: 8px 10px !important;
+      font-size: 12px !important;
+      line-height: 1.15 !important;
+      min-height: auto !important;
+      letter-spacing: 0.5px !important;
+      height: auto !important;
+    }
+    .contract-signed-preview:not(.hidden){ display:block !important; }
+    .contract-signed-image{ min-height:140px; max-height:180px; }
+  }
+
+  /* (2026-05-22 v788→v791) Investment Submitted 팝업 — 자연 흐름 footer.
+     v788 의 viewport-fixed footer 가 panel content 후 큰 빈공간 생성.
+     v791: 가장 단순한 접근 — layer 스크롤 + footer 는 panel 끝에 자연 배치.
+     1) .invest-success-layer overflow-y: auto (콘텐츠 길면 layer 스크롤)
+     2) .invest-success-panel 자연 콘텐츠 크기 (max-height 없음)
+     3) .invest-success-foot 는 panel 의 normal child — fixed/sticky 안 함
+     4) panel content 후 buttons → 그 후 panel 끝 → 빈공간 없음.
+     사용자는 콘텐츠 길면 layer 안에서 스크롤 → 끝에 buttons → close 가능. */
+  @media (max-width: 600px) {
+    .invest-success-layer {
+      padding: 12px !important;
+      align-items: flex-start !important;
+      padding-top: 12px !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    .invest-success-panel {
+      width: 100% !important;
+      max-width: 100% !important;
+      max-height: none !important;
+      height: auto !important;
+      overflow: visible !important;
+      padding: 20px 18px 18px !important;     /* bottom 18 — buttons 직전 */
+      border-radius: 16px !important;
+      display: block !important;
+      position: relative !important;
+    }
+    .invest-success-icon { width: 52px !important; height: 52px !important; margin-bottom: 12px !important; }
+    .invest-success-title { font-size: 18px !important; margin-bottom: 6px !important; }
+    .invest-success-sub { font-size: 12px !important; margin-bottom: 14px !important; line-height: 1.45 !important; }
+    .invest-success-amount-block { padding: 12px 14px !important; margin-bottom: 10px !important; }
+    .invest-success-value {
+      font-size: 16px !important;
+      word-break: break-word;
+      max-width: 60%;
+      text-align: right;
+    }
+    .invest-success-label { font-size: 10px !important; letter-spacing: 1px !important; }
+    .invest-success-meta { padding: 10px 12px !important; margin-bottom: 12px !important; }
+    .invest-success-mono { font-size: 11px !important; word-break: break-all; }
+    .invest-success-note { padding: 8px 10px !important; font-size: 11px !important; margin-bottom: 14px !important; }
+
+    /* (v791) Footer — panel 의 자연 끝 자식. fixed/sticky 제거 → 빈공간 0 */
+    .invest-success-foot {
+      position: static !important;        /* fixed/sticky 모두 해제 */
+      bottom: auto !important;
+      left: auto !important;
+      right: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border-top: none !important;
+      box-shadow: none !important;
+      display: flex !important;
+      gap: 6px !important;
+      flex-direction: row !important;
+      width: 100% !important;
+    }
+    .invest-success-foot .btn {
+      flex: 1 1 0 !important;
+      padding: 12px 14px !important;
+      font-size: 13px !important;
+      letter-spacing: 0.5px !important;
+    }
+  }
+  /* (v627) max-height:760 도 body zoom 1.30 고려해 더 보수적인 사이즈로. */
+  @media (max-height: 760px){
+    .contract-panel{ height:72dvh; max-height:72dvh; }
+    .contract-head{ padding:10px 14px; }
+    .contract-grid{ padding:10px; gap:10px; }
+    #contractSignatureCanvas{ height:150px; }
+    .contract-foot{ padding:10px 14px; }
+  }
+  /* (v627) 매우 짧은 viewport 추가 대응 — body zoom 1.30 환경에서 580px ↓
+     실제 viewport 에서도 modal 이 화면 안에 fit. */
+  @media (max-height: 600px){
+    .contract-panel{ height:70dvh; max-height:70dvh; }
+    #contractSignatureCanvas{ height:120px; }
+  }
+
+  /* (2026-05-18 v565) KYC 상태 배너 — invest-grid 위. core.js 가 상태별로
+     아이콘/타이틀/CTA 갱신. 승인/bypass 시 display:none. */
+  /* (v605) gradient → 단색. */
+  .kyc-status-banner {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    background: #F5F3FF;
+    border: 1px solid #C4B5FD;
+    border-radius: var(--r-md, 12px);
+  }
+  .kyc-banner-icon {
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--logo-violet);
+    color: #fff; font-size: 18px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .kyc-banner-body { flex: 1; min-width: 0; }
+  .kyc-banner-title {
+    font-family: 'Oswald', 'Inter', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+    color: var(--platinum, #f8fafc);
+    margin-bottom: 2px;
+  }
+  .kyc-banner-sub {
+    font-size: 12px; line-height: 1.5; color: var(--steel, #94a3b8);
+  }
+  /* (v605) gradient → 단색 violet. */
+  .kyc-banner-cta {
+    display: inline-flex; align-items: center;
+    padding: 10px 18px;
+    background: var(--logo-violet);
+    color: #fff; text-decoration: none;
+    border-radius: var(--r-sm, 8px);
+    font-family: 'Oswald', 'Inter', sans-serif;
+    font-weight: 700; font-size: 13px; letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .kyc-banner-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124,58,237,0.35); }
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v759) MOBILE RAIL UNIFICATION — landing.html v756 와 동일
+     원칙 적용. 모든 섹션의 좌측 콘텐츠 시작점을 16px rail 에 정렬.
+     Revert: 본 v759 블록 전체 삭제하면 직전 상태 복귀 (KYC 배너 룰만 유지).
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    /* ─── Mobile rail variable (landing 과 동일 16px) ────────────── */
+    body[data-page="funding"] { --mobile-rail: 16px; }
+
+    /* ─── KYC banner (기존 유지) ──────────────────────────────────── */
+    .kyc-status-banner { flex-direction: column; align-items: stretch; text-align: center; }
+    .kyc-banner-icon { margin: 0 auto; }
+
+    /* ─── 전체 페이지 컨테이너 — rail 정렬 ───────────────────────── */
+    .invest-page { padding: 16px var(--mobile-rail) !important; }
+
+    /* ─── 모든 카드/박스 내부 padding 통일 ───────────────────────── */
+    .invest-card,
+    .invest-card.aurora { padding: 20px var(--mobile-rail) !important; }
+    .info-cell { padding: 14px var(--mobile-rail) !important; }
+
+    /* ─── Asset info strip — 4-cell → 2x2 grid 이미 적용됨 ──────── */
+    .asset-info-strip { margin-bottom: 24px !important; }
+    .info-cell-val { font-size: 22px !important; letter-spacing: -0.5px; }
+    .info-cell-label { font-size: 10px !important; letter-spacing: 1.5px !important; margin-bottom: 4px; }
+    .info-cell-unit { font-size: 10px !important; }
+
+    /* ─── Invest grid — 단일 컬럼 (1000px 미만 이미 적용) ──────── */
+    .invest-grid { gap: 16px !important; margin-bottom: 24px !important; }
+
+    /* ─── Card title 압축 ───────────────────────────────────────── */
+    .card-title { font-size: 22px !important; letter-spacing: 0.5px; }
+
+    /* (v773) 'Estimated Yield (When Staked)' 의 (When Staked) 부분 줄바꿈 */
+    .side-card-title-sub { display: block !important; margin-top: 2px; }
+
+    /* ─── 인라인 스타일 큰 padding 강제 축소 (id 기반) ───────────── */
+    #saleSupplyCard {
+      padding: 16px var(--mobile-rail) !important;
+      margin-bottom: 14px !important;
+    }
+    #saleSupplyCard #saleSupplyLabel { font-size: 12px !important; letter-spacing: 1px !important; }
+    #saleSupplyCard #saleSupplyPct { font-size: 20px !important; }
+    #saleSupplyCard #saleSupplySold,
+    #saleSupplyCard #saleSupplyMax { font-size: 12px !important; }
+    #saleSupplyCard #saleSupplyNotice { padding: 10px 12px !important; font-size: 13px !important; }
+
+    #saleSuspendedBanner { padding: 14px var(--mobile-rail) !important; margin-bottom: 14px !important; }
+    #saleSuspendedTitle { font-size: 14px !important; }
+    #saleSuspendedBody { font-size: 12px !important; }
+
+    /* ─── 'Apply for Investment' 헤더 + Deposit 버튼 ─────────────── */
+    #investCard > div:first-child { gap: 8px !important; margin-bottom: 12px !important; }
+    #investCard > div:first-child a.btn {
+      padding: 5px 11px !important;
+      font-size: 11px !important;
+      letter-spacing: 0.5px !important;
+    }
+
+    /* (v774→v777) 운영자 보고: 'MAX 버튼 위치가 잘못된 곳에 있다.'
+       v774 의 문제: .input-suffix 가 position:relative 라서 MAX 의 position:
+       absolute 가 .field 가 아닌 .input-suffix 에 anchor → MAX 가 input 위
+       (top right) 에 떠 있음 (label 옆이 아님).
+       해결 (v777): .input-suffix 를 position: static 으로 만들어 MAX 의 anchor
+       가 .field 로 resolve 되도록. label 과 같은 vertical line 에 정렬. */
+    #investCard .field { position: relative !important; }
+    /* v777 핵심 — input-suffix position 무력화 → MAX 가 .field 기준으로 위치 */
+    #investCard .input-suffix { position: static !important; }
+    #investCard #fundMaxBtn {
+      /* 이제 .field 기준 absolute. label 우측 정렬. */
+      position: absolute !important;
+      top: 0 !important;
+      right: 0 !important;
+      bottom: auto !important;
+      left: auto !important;
+      transform: none !important;
+      padding: 4px 12px !important;
+      font-size: 12px !important;
+      letter-spacing: 1px !important;
+      font-weight: 700 !important;
+      min-width: 52px;
+      height: 28px;
+      line-height: 1 !important;
+      text-align: center;
+      z-index: 2;
+    }
+    /* label — MAX 가 우측 65px 차지하니 그만큼 padding-right */
+    #investCard .field-label {
+      padding-right: 65px;
+      display: block;
+      box-sizing: border-box;
+    }
+    /* 인라인 'padding-right: 130px' override → MAX 없으니 표준 padding */
+    #investCard #fundAmount {
+      padding-right: 14px !important;
+      padding-left: 14px !important;
+      font-size: 18px !important;
+      font-feature-settings: 'tnum' 1;
+    }
+
+    /* ─── Phase tabs — 단일 컬럼 (이미 700px 미만 적용) ─────────── */
+    .phase-tabs { gap: 8px !important; }
+
+    /* ─── Form 내부 입력 / 버튼 — 모바일 fit ─────────────────────── */
+    .invest-card input,
+    .invest-card select,
+    .invest-card textarea {
+      font-size: 16px !important;   /* iOS Safari 줌 방지 (16px 이상) */
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+    .invest-card label,
+    .invest-card .field-label {
+      font-size: 12px !important;
+      letter-spacing: 0.5px !important;
+    }
+
+    /* ─── 안전망 — viewport overflow 방지 ───────────────────────── */
+    body[data-page="funding"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="funding"] > main { max-width: 100vw !important; overflow-x: clip; }
+    body[data-page="funding"] *, body[data-page="funding"] *::before, body[data-page="funding"] *::after {
+      box-sizing: border-box;
+    }
+    body[data-page="funding"] img, body[data-page="funding"] video {
+      max-width: 100% !important; height: auto;
+    }
+  }
+</style>
+</head>
+<body data-page="funding">
+
+<!-- site-header.html will be auto-mounted by core.js -->
+
+<main>
+<div class="invest-page">
+
+  <!--
+    Section order swapped 2026-05-04:
+    Investment form (.invest-grid) is shown FIRST so visitors land
+    directly on the action UI; the page header + asset info strip move
+    below it for context after the primary CTA.
+
+    (2026-05-19 v599) 운영자 요청 — KYC 배너를 헤더 (lang-toggle 좌측) 로 이동.
+    이 페이지의 #kycStatusBanner 블록 제거. 헤더의 #kycHeaderCta 가 전 페이지
+    공통으로 KYC 상태에 따라 노출 / 숨김.
+  -->
+
+  <!-- Investment Form + Side Info -->
+  <div class="invest-grid">
+
+    <!--
+      (2026-05-07/08) Sale supply indicator — visible whenever admin has
+      configured a max (silica_max_sto_supply > 0). Shows a progress bar
+      with "X / Y STO sold · Z%" so the user understands how much SilicaSTO
+      is still available before the global cap. Hidden when no cap is set.
+      silica-data-bind.js fills it from /api/public/config.
+
+      grid-column: 1 / -1 makes the banner span the full width of the
+      .invest-grid (2-column 1.4fr/1fr) instead of consuming just the left
+      cell — the v130 placement broke the layout because the 1.4fr column
+      kept growing tall and the right card (Apply for Investment) got
+      pushed to the side with empty space below.
+    -->
+    <!-- (v623) 운영자: 'Total Sale Supply 카드내 텍스트 크기와 두께 증가.'
+         saleSupplyNotice / Label / Pct / Sold / Max 모두 폰트 ↑ + weight ↑. -->
+    <div id="saleSupplyCard" style="display:none; grid-column: 1 / -1; margin-bottom:18px; padding:20px 24px; background: rgba(139, 92, 246, 0.06); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px;">
+      <!--
+        (2026-05-16 v423) Admin-configurable notice text shown directly above
+        the Total Sale Supply label. KO/EN selected by silica-data-bind.js
+        based on current language (i18n.getLang). Empty content → hidden via
+        display:none. Rendered via textContent → XSS safe; white-space: pre-wrap
+        preserves newlines from the admin textarea.
+      -->
+      <div id="saleSupplyNotice" data-no-i18n="1" translate="no"
+           style="display:none; margin-bottom:14px; padding:12px 16px;
+                  background: rgba(255, 255, 255, 0.55);
+                  border-left: 4px solid #7c3aed;
+                  border-radius: 8px;
+                  font-family: 'Space Grotesk', sans-serif;
+                  font-size: 16px; font-weight: 700; line-height: 1.5;
+                  color: #4c1d95;
+                  white-space: pre-wrap; word-break: break-word;"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#6b21a8;" id="saleSupplyLabel">◆ Total Sale Supply</div>
+        <div style="font-family:'Unbounded',sans-serif; font-size:24px; color:#7c3aed; font-weight:900; letter-spacing:-0.5px;" id="saleSupplyPct" data-no-i18n="1" translate="no">—</div>
+      </div>
+      <div style="height:10px; background: rgba(139, 92, 246, 0.12); border-radius: 100px; overflow:hidden; margin-bottom:10px;">
+        <div id="saleSupplyBar" style="height:100%; width:0%; background: var(--logo-violet); transition: width 0.5s ease-out;"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; color:var(--platinum);">
+        <span id="saleSupplySold" data-no-i18n="1" translate="no">—</span>
+        <span id="saleSupplyMax" data-no-i18n="1" translate="no">—</span>
+      </div>
+    </div>
+
+    <!--
+      (2026-05-07/08) Sale suspended banner — visible only when admin has set
+      a max sale supply AND it has been reached. Same grid-column: 1 / -1
+      treatment so it spans the full row instead of stealing the left cell.
+    -->
+    <div id="saleSuspendedBanner" style="display:none; grid-column: 1 / -1; margin-bottom:18px; padding:18px 22px; background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.30); border-radius: 12px;">
+      <div style="display:flex; gap:14px; align-items:flex-start;">
+        <div style="font-size:24px; line-height:1;">⚠</div>
+        <div>
+          <div style="font-family:'Unbounded',sans-serif; font-weight:700; font-size:16px; color:#dc2626; margin-bottom:6px;" id="saleSuspendedTitle">Sale Temporarily Suspended</div>
+          <div style="font-size:13px; color:#7f1d1d; line-height:1.55;" id="saleSuspendedBody">The maximum SilicaSTO sale quantity has been reached. New investment applications are temporarily paused. Please check back later — the cap may be raised by the administrator.</div>
+          <div style="font-size:12px; color:#991b1b; margin-top:8px;" id="saleSuspendedStats" data-no-i18n="1" translate="no"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="invest-card aurora" id="investCard">
+      <!--
+        (2026-05-07) 카드 타이틀 줄에 'Deposit USDT' 단축 버튼 배치 — 사용자가
+        잔액 부족 시 "Insufficient USDT balance" 통지가 뜨기 전에도 쉽게 입금
+        페이지로 이동할 수 있게 한다. flexbox 로 좌측 타이틀 / 우측 버튼 정렬.
+      -->
+      <!-- (v626) margin-bottom 14→8. -->
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <div class="card-title" style="margin:0;">Apply for Investment</div>
+        <a href="deposit.html" class="btn btn-secondary btn-sm" style="white-space:nowrap; text-decoration:none; padding:6px 14px; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">
+          + Deposit USDT
+        </a>
+      </div>
+
+      <!--
+        (2026-05-08) Single Investment Amount field — earlier the page showed
+        two stacked rows ("USDT Value" editable + "Investment Amount (USDT)"
+        readonly mirror). They displayed the same number so users found it
+        redundant. Merged into one labeled "Investment Amount (USDT)" with
+        the KRW reference line shown directly below as field-help. The legacy
+        #krwEquivalent hidden mirror is kept for backward compatibility with
+        any script that still reads that ID; silica-data-bind.js's setVal()
+        skips null elements so removing it would also be safe.
+      -->
+      <div class="field">
+        <label class="field-label" for="fundAmount">Investment Amount (USDT)</label>
+        <div class="input-suffix" style="position: relative;">
+          <input id="fundAmount" type="text" inputmode="numeric" pattern="[0-9]*" value="" placeholder="0" autocomplete="off" style="padding-right: 130px;">
+          <button id="fundMaxBtn" type="button" class="invest-max-btn" style="position:absolute; right:64px; top:50%; transform:translateY(-50%); padding: 4px 12px; font-family: 'Oswald', sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; color: var(--aurora-3); background: var(--glass); border:1px solid var(--aurora-3); border-radius: 6px; cursor:pointer; transition: all 0.15s;">MAX</button>
+          <span class="suffix">USDT</span>
+        </div>
+        <div class="field-help">
+          Available: <span class="text-cyan" id="availableUsdt">0 USDT</span>
+          <span id="fundMyBalanceRow" style="display:none">
+            (<strong id="fundMyBalanceDisplay">-</strong> USDT)
+          </span>
+        </div>
+        <div class="field-help" id="krwLockNote" style="color: var(--steel); margin-top:6px;">
+          <!-- silica-data-bind.js 가 KRW 환산 참고치를 채움 -->
+        </div>
+        <!-- Hidden mirror — keeps any older script that reads #krwEquivalent
+             (analytics, tests, etc.) from breaking. Not visible to users. -->
+        <input id="krwEquivalent" type="hidden" value="0">
+      </div>
+
+      <div class="field">
+        <label class="field-label">SilicaSTO to Receive</label>
+        <div class="input-suffix">
+          <input id="receivedSto" type="text" value="0" readonly>
+          <span class="suffix">SILICASTO</span>
+        </div>
+        <div class="field-help" id="phaseHelp">@ — USDT Phase (per admin configuration)</div>
+      </div>
+
+      <!-- Calc Summary — 정책 단순화 (2026-05-06): USDT 단일 단위.
+           (2026-05-08) Reference FX (1 USDT) 행 제거 — 사장님: 원화 표기
+           불필요. silica-data-bind.js 가 #calcFx / #calcKrwLabel 을 set 해도
+           숨겨진 hidden span 으로 흘러가서 render 되지 않으므로 코드 수정
+           불필요. -->
+      <div class="calc-output">
+        <div class="calc-row"><span class="text-muted">Investment Amount</span><span class="text-mono" id="calcKrw">0 USDT</span></div>
+        <span id="calcKrwLabel" hidden></span><span id="calcFx" hidden>0</span>
+        <div class="calc-row"><span class="text-muted">SilicaSTO Issued</span><span class="text-mono" id="calcSto">0 STO</span></div>
+        <div class="calc-row big"><span>Total</span><span class="text-mono text-cyan" id="calcTotal">0 USDT</span></div>
+        <div id="calcLegalFootnote" style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--border); font-size:11px; color: var(--steel-dim); line-height:1.5;">
+          <!-- silica-data-bind.js 가 lang 에 맞춰 채움 -->
+        </div>
+      </div>
+
+      <!--
+        Electronic Contract block — 새 플로우(2026-05-04 v2):
+        Participate(Invest) 버튼 클릭 시 자동으로 계약서 생성 + 서명 모달이 열리고,
+        서명과 동시에 투자가 실행되어 환율 차익 공격을 막는다.
+        따라서 별도 "Create Electronic Contract" 버튼 / 상태 표시 블록은 노출하지 않는다.
+        funding.js 가 #fundContractBtn 등을 참조하므로 호환용으로 hidden 으로 유지.
+      -->
+      <div class="field" style="display:none" data-i18n-skip="1">
+        <div id="fundContractStatusLabel">Not Created</div>
+        <div id="fundContractStatusDesc"></div>
+        <div id="fundContractMiniSummary"></div>
+        <button id="fundContractBtn" type="button">Create Electronic Contract</button>
+        <button id="fundContractViewBtn" type="button" class="hidden">View Contract</button>
+        <button id="fundContractResetBtn" type="button" class="hidden">Recreate</button>
+      </div>
+
+      <!-- OTP code field (funding.js shows when needed) -->
+      <div id="fundOtpField" class="field" style="margin-top:12px; display:none">
+        <label class="field-label" for="fundOtpCode">OTP Code</label>
+        <input id="fundOtpCode" class="input" placeholder="Enter 6-digit OTP" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+      </div>
+
+      <!-- Referral code field -->
+      <!-- (2026-05-16 v418) 운영자: '추천인 코드와 아울러 주소 둘중 하나 모두
+           입력 가능. Apply 버튼 배경 컬러가 흰색이라 사이트 배경과 겹쳐서
+           안 보이는 문제.' label/placeholder 양쪽 안내 + 버튼 outline 스타일.
+           (2026-05-19 v626) 운영자: '라벨 우측에 접고 펼침 토글 추가, 기본 접힘.'
+           input + Apply 를 fundRefBody 로 래핑 → 기본 display:none → 토글 클릭
+           시 .is-open 추가. -->
+      <div id="fundRefField" class="field" style="margin-top:10px">
+        <div class="ref-label-row">
+          <label class="field-label" for="fundRefCode">Referral Code or Address</label>
+          <button id="fundRefToggleBtn" type="button" aria-expanded="false" aria-controls="fundRefBody"
+                  aria-label="Toggle referral input">
+            <span class="chev" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div id="fundRefBody">
+          <div style="display:flex; gap:10px; align-items:stretch">
+            <input id="fundRefCode" class="input" placeholder="Enter referral code or wallet address" style="flex:1">
+            <button id="fundRefApplyBtn" class="btn" type="button"
+                    style="white-space:nowrap; background:#7C3AED; color:#fff; border:2px solid #7C3AED; padding:0 18px; font-weight:700;">Apply</button>
+          </div>
+          <div id="fundRefState" class="field-help"></div>
+        </div>
+      </div>
+
+      <!-- Final Participate button. (v626) margin-top 16→10. -->
+      <div style="margin-top: 10px;">
+        <button id="fundBtn" class="btn btn-primary btn-block btn-lg">Participate (Invest)</button>
+      </div>
+
+      <!--
+        (2026-05-07) My Pending Investments — 사용자가 신청했지만 관리자가
+        아직 승인하지 않은 investment_contracts.status='awaiting_admin' 행을
+        나열. 승인되면 status 가 바뀌어 다음 fetch 에서 자동으로 사라진다.
+      -->
+      <div id="pendingInvestCard" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:10px; background:#fafbfc; display:none;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;">
+          <div style="font-weight:700; font-size:14px;" id="pendingInvestTitle">My Pending Investments</div>
+          <button id="pendingInvestRefreshBtn" class="btn small" type="button" style="font-size:11px; padding:4px 10px;">↻ Refresh</button>
+        </div>
+        <div class="text-muted" style="font-size:11.5px; margin-bottom:10px;" id="pendingInvestHint">
+          These contracts are awaiting administrator approval. They will disappear from this list once approved.
+        </div>
+        <div id="pendingInvestList"></div>
+      </div>
+
+      <!-- Insufficient balance notice -->
+      <div id="fundBalanceShortage" class="notice" style="display:none; margin-top:12px; background:#fef3c7; border-left:4px solid #d97706; padding:12px 14px; border-radius:8px;">
+        <strong style="color:#92400e">💰 Insufficient USDT balance</strong><br>
+        <span style="font-size:12.5px; color:#78350f">
+          You must deposit USDT first to participate.<br>
+          Current balance: <strong id="fundMyBalance">-</strong> USDT
+        </span>
+        <div style="margin-top:10px">
+          <a href="deposit.html" class="btn btn-primary" style="display:inline-block; font-size:13px; padding:8px 20px; text-decoration:none;">Go to USDT Deposit →</a>
+        </div>
+      </div>
+
+      <!-- Hidden DOM that pages/funding.js requires (asset selector, status chips, image, fxLine, etc.) -->
+      <div style="display:none">
+        <select id="fundAssetSelect"></select>
+        <div id="fundPhaseNote"><div id="fundPhaseTitle"></div><div id="fundPhaseDesc"></div><div id="fundPhaseAction"></div></div>
+        <div id="fundStatus"></div>
+        <span id="fundMarket"></span>
+        <span id="fundCountry"></span>
+        <span id="fundCurrency"></span>
+        <h2 id="fundAssetName"></h2>
+        <div id="fundAssetImageSkeleton"></div>
+        <img id="fundAssetImage" src="" alt="">
+        <span id="fundPct"></span>
+        <div id="fundProgress"></div>
+        <span id="fundRaised"></span>
+        <span id="fundTarget"></span>
+        <strong id="fundMin"></strong>
+        <strong id="fundFxLine"></strong>
+        <span id="fundFxHint"></span>
+        <a id="fundDetailBtn" href="#"></a>
+        <div id="fundDocsSection"><span id="fundDocsCount"></span><div id="fundDocsBtnArea"></div></div>
+        <span id="fundLocalCode"></span>
+        <strong id="fundLocalPreview"></strong>
+        <span id="fundLocalHint"></span>
+        <div id="myFundingList"></div>
+        <span id="myFundingTotalUsdt"></span>
+        <span id="myFundingLocalCode"></span>
+        <span id="myFundingTotalLocal"></span>
+      </div>
+    </div>
+
+    <!-- Side info -->
+    <div>
+      <!--
+        Yield Scenario (dynamic per input).
+        (2026-05-18 v472) 운영자 요청: '투자에만 참여해서는 이자/배당 지급
+        안 되므로 스테이킹 했을 때 예상되는 이자 라고 표기'. 카드 부제로
+        "Estimated returns when SilicaSTO is staked" 명시.
+      -->
+      <div class="side-card">
+        <!-- (2026-05-22 v773) 운영자 요청: 모바일에서 '(When Staked)' 줄바꿈 표시.
+             span 으로 분리 + 모바일 .side-card-title-sub { display: block }.
+             RwaI18n 의 TreeWalker 가 text node 단위로 번역하므로 span 분리해도
+             각 부분이 독립적으로 'Estimated Yield' / '(When Staked)' 로 매치
+             되어 번역됨 (i18n.js 에 별도 키 추가). -->
+        <div class="side-card-title"><span>Estimated Yield</span> <span class="side-card-title-sub">(When Staked)</span></div>
+        <div id="scenarioBase" style="display:none"></div>
+
+        <div class="scenario-row">
+          <div>
+            <div class="scenario-label-main">Estimated Monthly Interest</div>
+            <div class="scenario-label-sub" id="scenarioMonthlyLabel" style="display:none"></div>
+          </div>
+          <div class="scenario-val text-success" id="scenarioMonthly">+0 USDT</div>
+        </div>
+        <div class="scenario-row">
+          <div>
+            <div class="scenario-label-main">Estimated Annual Interest</div>
+          </div>
+          <div class="scenario-val text-success" id="scenarioAnnual">+0 USDT</div>
+        </div>
+        <div class="scenario-row">
+          <div>
+            <div class="scenario-label-main">Annual Dividend (Variable)</div>
+          </div>
+          <div class="scenario-val text-cyan">— Silica</div>
+        </div>
+      </div>
+
+      <!-- (2026-05-19 v589) Investor Benefits 카드 — 운영자 요청으로 통째로
+           제거. Estimated Yield 카드가 같은 정보를 수치로 전달. -->
+
+      <!-- 3D Mineral Card — 육각 quartz 결정 (SiO₂) 회전 애니메이션 -->
+      <div class="side-card mineral-3d-card">
+        <div class="side-card-title">Silica Mineral · SiO₂</div>
+        <div class="crystal-stage" aria-hidden="true">
+          <div class="crystal-glow"></div>
+          <div class="crystal-3d">
+            <!-- 6개 측면 (육각 프리즘) -->
+            <div class="crystal-face crystal-side crystal-side-1"></div>
+            <div class="crystal-face crystal-side crystal-side-2"></div>
+            <div class="crystal-face crystal-side crystal-side-3"></div>
+            <div class="crystal-face crystal-side crystal-side-4"></div>
+            <div class="crystal-face crystal-side crystal-side-5"></div>
+            <div class="crystal-face crystal-side crystal-side-6"></div>
+            <!-- 상단 6개 삼각면 (피라미드 끝) -->
+            <div class="crystal-face crystal-top crystal-top-1"></div>
+            <div class="crystal-face crystal-top crystal-top-2"></div>
+            <div class="crystal-face crystal-top crystal-top-3"></div>
+            <div class="crystal-face crystal-top crystal-top-4"></div>
+            <div class="crystal-face crystal-top crystal-top-5"></div>
+            <div class="crystal-face crystal-top crystal-top-6"></div>
+            <!-- 하단 6개 삼각면 -->
+            <div class="crystal-face crystal-bot crystal-bot-1"></div>
+            <div class="crystal-face crystal-bot crystal-bot-2"></div>
+            <div class="crystal-face crystal-bot crystal-bot-3"></div>
+            <div class="crystal-face crystal-bot crystal-bot-4"></div>
+            <div class="crystal-face crystal-bot crystal-bot-5"></div>
+            <div class="crystal-face crystal-bot crystal-bot-6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Header (moved below the form 2026-05-04) -->
+  <div class="page-header" style="margin-top: 60px;">
+    <div class="eyebrow-tag">◆ INVESTMENT CERTIFICATE TOKEN SALE</div>
+    <h1 class="page-title">Mining License #79907<br>STO Investment</h1>
+  </div>
+
+  <!-- Asset Info Strip -->
+  <div class="asset-info-strip">
+    <div class="info-cell">
+      <div class="info-cell-label">PURITY</div>
+      <div class="info-cell-val">97.04<small>%</small></div>
+      <div class="info-cell-unit">SiO₂</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">RESERVES</div>
+      <div class="info-cell-val">30.68<small>M</small></div>
+      <div class="info-cell-unit">METRIC TONS</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">AREA</div>
+      <div class="info-cell-val">271</div>
+      <div class="info-cell-unit">HECTARES</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">RECOVERY</div>
+      <div class="info-cell-val">70<small>%</small></div>
+      <div class="info-cell-unit">RECOVERY RATE</div>
+    </div>
+  </div>
+
+  <!--
+  ===== Public Sale Progress (DISABLED 2026-05-04) =====
+  모집액이 작게 노출되어 부정적 인상을 줄 수 있어 표시 자체를 숨김.
+  향후 표현 방식이 결정되면 아래 블록의 주석을 해제하면 복원됩니다.
+  연결된 DOM ID (raisedAmount / targetAmount / saleStatus / progressFill /
+  progressPct / participantCount) 도 함께 살아납니다.
+  -->
+  <!--
+  <div class="progress-hero">
+    <div class="progress-head">
+      <div>
+        <div class="progress-label">◆ PUBLIC SALE PROGRESS</div>
+        <div class="progress-amounts">
+          <span id="raisedAmount">$0</span><span class="target"> / <span id="targetAmount">$0</span></span>
+        </div>
+      </div>
+      <div class="progress-time">
+        <div class="label">Status</div>
+        <div class="val" id="saleStatus">Open</div>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-meta">
+      <span id="progressPct">0% Raised</span>
+      <span id="participantCount">0 Participants</span>
+    </div>
+  </div>
+  -->
+
+</div>
+</main>
+
+<!-- (2026-05-16 v414) 운영자: '현재 접수 가능한 잔여 금액이 없습니다 코멘트가
+     너무 단순. 지갑 USDT 부족 안내 + 예치 바로가기 버튼이 있는 팝업 배너.
+     KO/EN 양어.' funding.js 의 maxAmount<=0 처리에서 balance=0 이면 본 모달.
+     reservable=0 또는 stoRemaining=0 케이스는 기존 토스트 유지. -->
+<div id="insufficientBalanceModal" class="hidden" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(15,23,42,0.55);">
+  <div style="background:#fff; border-radius:16px; max-width:480px; width:100%; padding:28px; box-shadow:0 24px 60px rgba(15,23,42,0.30); text-align:center;">
+    <div style="width:64px; height:64px; border-radius:50%; background:rgba(245,158,11,0.10); display:inline-flex; align-items:center; justify-content:center; font-size:32px; margin-bottom:14px;">💰</div>
+
+    <!-- KO 본문 -->
+    <div data-lang-ko>
+      <div style="font-weight:900; font-size:20px; color:#0F172A; margin-bottom:10px;">USDT 잔액 부족</div>
+      <div style="font-size:14px; color:#475569; line-height:1.7; margin-bottom:20px;">
+        지갑에 예치된 USDT 가 부족합니다.<br>
+        USDT 를 예치 후 다시 시도해 주세요.
+      </div>
+    </div>
+
+    <!-- EN 본문 -->
+    <div data-lang-en hidden>
+      <div style="font-weight:900; font-size:20px; color:#0F172A; margin-bottom:10px;">Insufficient USDT Balance</div>
+      <div style="font-size:14px; color:#475569; line-height:1.7; margin-bottom:20px;">
+        Your wallet does not have enough USDT deposited.<br>
+        Please deposit USDT and try again.
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+      <a href="deposit.html" class="btn btn-primary" style="min-width:140px;">
+        <span data-lang-ko>예치 바로가기 →</span>
+        <span data-lang-en hidden>Deposit USDT →</span>
+      </a>
+      <button id="insufficientBalanceClose" type="button" class="btn btn-secondary" style="min-width:100px;">
+        <span data-lang-ko>닫기</span>
+        <span data-lang-en hidden>Close</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- insufficientBalanceModal 표시 + 언어 분기 -->
+<script>
+(function () {
+  const modal    = document.getElementById('insufficientBalanceModal');
+  const closeBtn = document.getElementById('insufficientBalanceClose');
+  if (!modal) return;
+
+  const applyLang = () => {
+    const lang = (() => {
+      try { return String(localStorage.getItem('rwa_lang_user_v1') || 'en').toLowerCase(); }
+      catch (_) { return 'en'; }
+    })();
+    const isKo = (lang === 'ko');
+    modal.querySelectorAll('[data-lang-ko]').forEach((el) => { el.hidden = !isKo; });
+    modal.querySelectorAll('[data-lang-en]').forEach((el) => { el.hidden = isKo; });
+  };
+
+  // 외부에서 호출하는 헬퍼 — funding.js 가 사용.
+  window.showInsufficientBalancePopup = () => {
+    applyLang();
+    modal.classList.remove('hidden');
+  };
+  const close = () => modal.classList.add('hidden');
+  closeBtn?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+})();
+</script>
+
+<div id="siteFooterMount"></div>
+
+<!-- ===== Contract review/sign modal (merged from funding.html) ===== -->
+<div id="contractModal" class="contract-layer hidden" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1" inert>
+  <div class="contract-backdrop"></div>
+  <div class="contract-panel">
+    <div class="contract-head">
+      <div>
+        <h2 id="contractModalTitle" class="contract-title">Electronic Contract</h2>
+        <div id="contractModalSub" class="contract-sub">Investment subscription electronic contract review and handwritten signature</div>
+      </div>
+      <button id="contractModalXBtn" class="btn" type="button">Close</button>
+    </div>
+    <div class="contract-grid">
+      <div class="contract-box">
+        <div class="contract-box-head">Contract Details</div>
+        <div class="contract-meta">
+          <div class="notice"><strong>Asset</strong><br><span id="contractMetaAsset">-</span></div>
+          <div class="notice"><strong>Subscription Amount</strong><br><span id="contractMetaAmount">-</span></div>
+          <div class="notice"><strong>Settlement Currency</strong><br><span id="contractMetaCurrency">-</span></div>
+          <div class="notice"><strong>Contract Number</strong><br><span id="contractMetaNo">-</span></div>
+        </div>
+        <div id="contractDocBody" class="contract-doc" data-no-i18n="1" translate="no"></div>
+      </div>
+      <div class="contract-side">
+        <div class="contract-box">
+          <div class="contract-box-head">Signature Information</div>
+          <div id="contractSignWrap" class="contract-sign-wrap">
+            <div class="field">
+              <label for="contractSignerName">Signer Name</label>
+              <input id="contractSignerName" class="input" placeholder="Enter your real name">
+            </div>
+            <div class="contract-checks">
+              <label>
+                <input id="contractAgreeElectronic" type="checkbox">
+                <span>I agree to the viewing and storage of the investment subscription contract in electronic document form.</span>
+              </label>
+              <label>
+                <input id="contractAgreeSignature" type="checkbox">
+                <span>I confirm that the handwritten electronic signature below represents my expression of intent regarding this contract.</span>
+              </label>
+            </div>
+            <div style="margin-top:12px; font-size:13px; font-weight:800;">Handwritten Electronic Signature</div>
+            <div class="signature-shell">
+              <canvas id="contractSignatureCanvas"></canvas>
+              <div class="contract-sig-actions">
+                <button id="contractClearSignBtn" class="btn small" type="button">Clear Signature</button>
+              </div>
+            </div>
+            <div class="small-note" style="margin-top:10px">
+              * Sign directly with mouse or touch.
+            </div>
+          </div>
+          <div id="contractSignedViewBox" class="contract-signed-preview hidden">
+            <div class="notice" style="margin:0">
+              <strong>User Signature Information</strong><br>
+              <span id="contractSignedName">-</span><br>
+              <span id="contractSignedAt">-</span>
+            </div>
+            <div style="margin-top:12px">
+              <img id="contractSignedImage" class="contract-signed-image" alt="User Signature">
+            </div>
+            <div class="small-note" style="margin-top:10px">
+              The contract will be finalized once the administrator completes the final handwritten signature on the asset detail page.
+            </div>
+          </div>
+        </div>
+        <div class="notice">
+          <strong>Processing Order</strong><br>
+          1) Review contract details<br>
+          2) Complete handwritten electronic signature<br>
+          <span id="contractOtpStep" style="display:none">3) OTP re-verification at funding participation<br></span>
+          4) Awaiting administrator's handwritten signature
+        </div>
+      </div>
+    </div>
+    <div class="contract-foot">
+      <button id="contractSignSaveBtn" class="btn primary" type="button">Complete Signature</button>
+      <button id="contractCloseBtn" class="btn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Contract history modal ===== -->
+<div id="contractHistoryModal" class="contract-layer hidden" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1" style="z-index:4600" inert>
+  <div class="contract-backdrop"></div>
+  <div class="contract-panel" style="width:min(860px, calc(100vw - 24px)); height:min(760px, calc(100dvh - 24px));">
+    <div class="contract-head">
+      <div>
+        <h2 class="contract-title">Contract Submission &amp; Execution History</h2>
+        <div class="contract-sub">View all contracts submitted or executed for this product.</div>
+      </div>
+      <button id="contractHistoryCloseBtn" class="btn" type="button">Close</button>
+    </div>
+    <div id="contractHistoryHint" style="padding:0 18px 10px; color:var(--muted); font-size:13px; line-height:1.55;">
+      Select a contract to view its details.
+    </div>
+    <div id="contractHistoryList" class="contract-history-list">
+      <div class="muted">No contract history.</div>
+    </div>
+    <div class="contract-foot">
+      <button id="contractHistoryCloseBtn2" class="btn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Investment success popup (signing+invest atomic flow) ===== -->
+<div id="investSuccessModal" class="invest-success-layer hidden" aria-hidden="true" role="dialog" aria-modal="true" inert>
+  <div class="invest-success-backdrop"></div>
+  <div class="invest-success-panel">
+    <div class="invest-success-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"></path>
+      </svg>
+    </div>
+    <h2 class="invest-success-title">Investment Submitted</h2>
+    <div class="invest-success-sub">
+      Your contract has been signed and your investment has been submitted in a single transaction.
+    </div>
+
+    <div class="invest-success-amount-block">
+      <div class="invest-success-row">
+        <span class="invest-success-label">Amount</span>
+        <span id="investSuccessAmount" class="invest-success-value">- USDT</span>
+      </div>
+      <!--
+        (2026-05-08) #investSuccessKrw kept in DOM but hidden — 사장님:
+        원화 환산 라인 제거. funding.js's showInvestmentSuccess() still
+        references the ID so we keep the element to avoid null-checks
+        proliferating, but display:none ensures it never takes layout.
+      -->
+      <div id="investSuccessKrw" class="invest-success-krw" style="display:none"></div>
+      <!--
+        (2026-05-07) STO 수량 표시 추가 — 1 SilicaSTO = 1 USDT 페그라
+        Amount 와 동일 값. 사용자가 받게 될 토큰 수량을 명확히 노출.
+      -->
+      <div class="invest-success-row" style="margin-top:8px">
+        <span class="invest-success-label">Tokens</span>
+        <span id="investSuccessTokens" class="invest-success-value">- SilicaSTO</span>
+      </div>
+    </div>
+
+    <div class="invest-success-meta">
+      <div class="invest-success-row">
+        <span class="invest-success-label">Contract No.</span>
+        <span id="investSuccessContract" class="invest-success-mono">-</span>
+      </div>
+    </div>
+
+    <div id="investSuccessNote" class="invest-success-note"></div>
+
+    <div class="invest-success-foot">
+      <button id="investSuccessGoBtn" class="btn primary" type="button">View Portfolio</button>
+      <button id="investSuccessCloseBtn" class="btn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Document view modal ===== -->
+<div id="fundDocModal" class="contract-layer hidden" aria-hidden="true" style="z-index:5000">
+  <div class="contract-backdrop"></div>
+  <div class="contract-panel" style="width:min(900px, calc(100vw - 24px)); height:min(800px, calc(100dvh - 24px))">
+    <div class="contract-head">
+      <div>
+        <h2 id="fundDocModalTitle" class="contract-title">Supporting Documents</h2>
+        <div id="fundDocModalSub" class="contract-sub"></div>
+      </div>
+      <button id="fundDocModalClose" class="btn" type="button">Close</button>
+    </div>
+    <div id="fundDocModalContent" style="flex:1 1 auto; overflow:auto; -webkit-overflow-scrolling:touch; min-height:0; display:flex; align-items:center; justify-content:center;">
+      <div class="muted">Loading document...</div>
+    </div>
+    <div class="contract-foot">
+      <a id="fundDocModalNewTab" class="btn small" href="#" target="_blank" rel="noopener">Open in new tab</a>
+      <button id="fundDocModalCloseBtn" class="btn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+
+<script>
+/*
+  (2026-05-08) Synchronous SilicaSTO mirror — bind immediately so the
+    "SilicaSTO to Receive" field reflects the user's typing without
+    waiting for the heavier silica-data-bind.js / funding.js handlers,
+    both of which only attach their input listeners AFTER several
+    /api/* awaits. Earlier reproductions:
+      - Field stayed at 0 if the user typed during page load
+      - Lagged by hundreds of ms on slow connections
+      - Showed stale value when one async chain raced the other
+    Since Silica enforces 1 USDT = 1 SilicaSTO peg, we can compute the
+    STO count locally without any API call. This script also keeps the
+    Calc Summary in sync (calcSto / calcTotal / calcKrw) for the same
+    reason. Runs at parse time — both inputs already exist in the DOM
+    above this <script> tag, so we don't need DOMContentLoaded.
+*/
+(function () {
+  const input = document.getElementById('fundAmount');
+  const stoOut = document.getElementById('receivedSto');
+  if (!input || !stoOut) return;
+  if (input.dataset.stoSyncBound === '1') return;
+  input.dataset.stoSyncBound = '1';
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+  const sync = () => {
+    const raw = String(input.value || '').replace(/[^0-9]/g, '');
+    const amt = raw ? parseInt(raw, 10) : 0;
+    const sto = Number.isFinite(amt) && amt > 0 ? Math.floor(amt) : 0; // 1:1 peg
+
+    stoOut.value = fmt(sto);
+    const calcSto = $('calcSto');
+    const calcKrw = $('calcKrw');
+    const calcTotal = $('calcTotal');
+    const krwEquivalent = $('krwEquivalent');
+    if (calcSto)  calcSto.textContent  = `${fmt(sto)} STO`;
+    if (calcKrw)  calcKrw.textContent  = `${fmt(amt)} USDT`;
+    if (calcTotal) calcTotal.textContent = `${fmt(amt)} USDT`;
+    if (krwEquivalent) krwEquivalent.value = String(fmt(amt));
+  };
+
+  // Run on every input mutation channel so paste/drop/IME composition all hit.
+  ['input', 'change', 'keyup', 'paste', 'blur'].forEach((ev) => {
+    input.addEventListener(ev, () => {
+      // setTimeout(0) lets the browser settle the value after paste/composition
+      // before we read it.
+      setTimeout(sync, 0);
+    });
+  });
+
+  // Catch any value already present (URL ?amount=N prefill) so the STO
+  // field doesn't show 0 on first paint.
+  sync();
+
+  // Some scripts set input.value programmatically — those don't fire input
+  // events, so a light interval check keeps the mirror in sync without
+  // burning CPU. 250 ms feels instant and is cheap.
+  let lastSeen = input.value;
+  setInterval(() => {
+    if (input.value !== lastSeen) {
+      lastSeen = input.value;
+      sync();
+    }
+  }, 250);
+})();
+</script>
+
+<script>
+/*
+  (2026-05-07) My Pending Investments — assets.html 의 fundBtn 아래에 사용자
+  본인의 awaiting_admin 상태 계약을 나열. 관리자가 서명/승인하면 status 가
+  바뀌므로 다음 fetch 부터 자동으로 사라진다.
+
+  데이터: GET /api/contracts/my?status=awaiting_admin   (인증 필요)
+  렌더 시점:
+    - DOMContentLoaded 직후 + RwaCore.api 준비 완료 후 1회
+    - "↻ Refresh" 버튼 클릭 시
+*/
+(function () {
+  const card = document.getElementById('pendingInvestCard');
+  const list = document.getElementById('pendingInvestList');
+  const titleEl = document.getElementById('pendingInvestTitle');
+  const hintEl  = document.getElementById('pendingInvestHint');
+  const refreshBtn = document.getElementById('pendingInvestRefreshBtn');
+  if (!card || !list) return;
+
+  // lang 결정 — silica-data-bind.js 와 동일한 chain.
+  // (2026-05-08) JA/ZH locale 들이 'ko' 로 누출되지 않도록 raw 값 그대로 반환.
+  function getLang() {
+    try {
+      const v = window.RwaI18n?.getLang?.() || window.RwaI18n?.lang?.()
+        || document.documentElement.getAttribute('data-rwa-lang')
+        || window.__RWA_I18N_BOOT_LANG__
+        || (localStorage.getItem('rwa_lang_user_v1') || 'en');
+      const raw = String(v || 'en').toLowerCase();
+      if (raw === 'en' || raw === 'ko' || raw === 'ja' || raw === 'zh') return raw;
+      return 'en';
+    } catch (_) { return 'en'; }
+  }
+  // tx(en, ko, ja, zh) — JA/ZH fallback to EN when no explicit translation
+  // is supplied. Note: the parameter order in this file is (en, ko) for legacy
+  // reasons; callers should follow that.
+  const tx = (en, ko, ja, zh) => {
+    const lang = getLang();
+    if (lang === 'ko') return ko;
+    if (lang === 'ja') return ja ?? en;
+    if (lang === 'zh') return zh ?? en;
+    return en;
+  };
+
+  function escapeHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function fmtNum(n, d = 2) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return '-';
+    return v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function applyLangLabels() {
+    if (titleEl) titleEl.textContent = tx('My Pending Investments', '관리자 승인 대기 중인 투자');
+    if (hintEl)  hintEl.textContent  = tx(
+      'These contracts are awaiting administrator approval. They will disappear from this list once approved.',
+      '관리자 승인을 기다리는 계약입니다. 승인되면 이 목록에서 자동으로 사라집니다.'
+    );
+    if (refreshBtn) refreshBtn.textContent = tx('↻ Refresh', '↻ 새로고침');
+  }
+
+  async function loadPending() {
+    if (typeof window.RwaCore?.api !== 'function') {
+      // RwaCore 준비 안 됨 — 잠시 후 재시도
+      setTimeout(loadPending, 300);
+      return;
+    }
+    try {
+      const r = await window.RwaCore.api('/api/contracts/my?status=awaiting_admin', { method: 'GET' });
+      const rows = Array.isArray(r?.rows) ? r.rows
+                 : Array.isArray(r?.contracts) ? r.contracts
+                 : [];
+      if (!rows.length) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = '';
+      list.innerHTML = rows.map((c) => {
+        const amt = Number(c.amount_usdt || 0);
+        const amtStr = fmtNum(amt, 2);
+        const date = String(c.created_at || c.signed_at || '').slice(0, 16).replace('T', ' ');
+        // (2026-05-16 v433) 운영자: '영어 페이지에서 한국어가 표기되는 문제'.
+        //   backend 가 asset_name_en / asset_name_ko 둘 다 반환 → lang 분기.
+        //   ja/zh 컬럼이 assets 테이블에 없으므로 en 으로 폴백.
+        const _lang = getLang();
+        const _localizedName =
+            _lang === 'ko' ? (c.asset_name_ko || c.asset_name || c.asset_id || '-')
+          : _lang === 'ja' ? (c.asset_name_en || c.asset_name_ko || c.asset_name || c.asset_id || '-')
+          : _lang === 'zh' ? (c.asset_name_en || c.asset_name_ko || c.asset_name || c.asset_id || '-')
+                           : (c.asset_name_en || c.asset_name_ko || c.asset_name || c.asset_id || '-');
+        const assetName = escapeHtml(_localizedName);
+        const contractNo = escapeHtml(c.contract_no || '-');
+        const tokensLabel = tx('SilicaSTO', 'SilicaSTO');
+        const statusBadge = tx('Awaiting Approval', '승인 대기');
+        return `
+          <div class="pending-invest-row" style="padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:8px; background:#ffffff;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+              <div style="min-width:0; flex:1 1 220px;">
+                <div style="font-weight:700; font-size:13.5px;">${assetName}</div>
+                <div style="font-size:11px; color:#64748b; font-family:'Space Grotesk', monospace; margin-top:2px;">${contractNo}</div>
+                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${escapeHtml(date)}</div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <div style="font-weight:800; font-size:14px;">${amtStr} USDT</div>
+                <div style="font-size:11px; color:#64748b;">→ ${amtStr} ${tokensLabel}</div>
+                <span style="display:inline-block; margin-top:4px; padding:3px 8px; border-radius:6px; font-size:10.5px; font-weight:600; background:#fef3c7; color:#92400e;">
+                  ${statusBadge}
+                </span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      // 401 (인증 필요) 등 — 카드 숨김
+      console.warn('[pending-invest] load failed', e?.message || e);
+      card.style.display = 'none';
+    }
+  }
+
+  refreshBtn?.addEventListener('click', loadPending);
+  applyLangLabels();
+  // 초기 로드
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadPending, { once: true });
+  } else {
+    loadPending();
+  }
+})();
+</script>
+
+<!-- (v626) Referral 입력 영역 접고 펼침 토글 — 기본 접힘. -->
+<script>
+(function () {
+  function bindRefToggle() {
+    const btn = document.getElementById('fundRefToggleBtn');
+    const body = document.getElementById('fundRefBody');
+    if (!btn || !body || btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', function () {
+      const open = body.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        const input = document.getElementById('fundRefCode');
+        if (input) try { input.focus(); } catch (_) {}
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindRefToggle, { once: true });
+  } else {
+    bindRefToggle();
+  }
+})();
+</script>
+
+</body>
+</html>

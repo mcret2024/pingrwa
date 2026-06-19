@@ -1,0 +1,3104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trade · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+</script>
+<style>
+  .trade-page { max-width: 1500px; margin: 0 auto; padding: 24px 32px; position: relative; z-index: 1; }
+  .trade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+  .pair-info { display: flex; align-items: center; gap: 16px; }
+  /* (v614) 운영자: 'SilicaSTO/USDT 좌측 자산 로고가 고정 로고로 표시.'
+     하드코딩된 'S'/'$' 글리프 → admin-configured 토큰 로고 (data-token-logo)
+     사용. silica-data-bind.js 가 /api/public/config.silica_logo_urls 로
+     실제 src 를 주입. */
+  .pair-icon { display: flex; align-items: center; }
+  .pair-icon img.pair-icon-img {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid var(--void);
+    object-fit: contain;
+    padding: 4px;
+  }
+  .pair-icon img.pair-icon-img:first-child { margin-right: -10px; z-index: 2; position: relative; }
+  .pair-name { font-family: 'Bebas Neue'; font-size: 28px; letter-spacing: 1px; }
+  .pair-stats { display: flex; gap: 32px; font-family: 'Space Grotesk', monospace; }
+  .pair-stat-label { font-size: 10px; letter-spacing: 2px; color: var(--steel); text-transform: uppercase; }
+  .pair-stat-val { font-size: 16px; font-weight: 700; margin-top: 4px; }
+
+  /* (v614) 운영자: 'Order Book 가로폭 20% 감소.' 두 번째 컬럼 320 → 256px.
+     (v619) 운영자: 'Order Book 10% 더, 주문창 29% 줄여줘.'
+     Order Book: 256 → 230px (-10% 추가). 주문창(Order Form): 320 → 227px (-29%).
+     (v632) 운영자: '주문카드 가로폭 10% 증가.' 227 → 250px (+10.1%).
+     (v637) 운영자: '주문칸 10% 더 크게.' 250 → 275px (+10%). */
+  .trade-grid {
+    display: grid;
+    grid-template-columns: 1fr 230px 275px;
+    gap: 16px;
+  }
+  @media (max-width: 1100px) { .trade-grid { grid-template-columns: 1fr; } }
+
+  /* Chart */
+  .chart-card { padding: 20px; min-height: 480px; }
+  /* (2026-05-11 v245) Vertical resize support — operator: '차트를 세로
+     좁히고 늘리는 것이 되어야한다'. The chart-area is wrapped in a
+     resizable parent so the user can drag the bottom edge to change
+     the chart height. The native CSS resize handle is shown in the
+     bottom-right corner. min/max constrain the range. */
+  .chart-area-resizer {
+    resize: vertical;
+    overflow: hidden;
+    min-height: 220px;
+    max-height: 800px;
+    height: 360px;
+    border-radius: var(--r-sm);
+    position: relative;
+  }
+  /* (v605) 격자 배경 제거 — 단색. */
+  .chart-area {
+    height: 100%;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: var(--r-sm);
+    position: relative;
+    overflow: hidden;
+    cursor: ns-resize;
+  }
+  /* (2026-05-11 v245) Zoom hint badge — small caption in the top-left
+     of the chart so users know wheel-zoom + dblclick reset are
+     available. Lives outside the chart frame so it doesn't overlap
+     candles. */
+  .chart-zoom-hint {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    z-index: 4;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    color: #64748B;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    pointer-events: none;
+    letter-spacing: 0.3px;
+  }
+  .chart-zoom-hint strong { color: #7C3AED; font-weight: 700; margin-right: 4px; }
+  /*
+    (2026-05-08) chart-candles: leave a 56px right gutter so the
+    y-axis price labels have room. 9 candles × 8px + gaps cluster on
+    the LEFT (flex-start default) so they never enter the gutter.
+  */
+  /* (2026-05-11 v242) Grid-based candle layout so each day gets its
+     own column slot — candle stays centered in its slot, x-axis label
+     gets the matching slot so labels align with the bars. Earlier
+     flex-start + max-width clustered candles on the left while labels
+     stretched edge-to-edge → operator's '전날과 오늘 차트에 끊어짐'
+     visual. --day-count is set inline by JS based on days.length. */
+  .chart-candles {
+    position: absolute;
+    inset: 20px 56px 20px 20px;
+    display: grid;
+    grid-template-columns: repeat(var(--day-count, 1), 1fr);
+    /* (2026-05-11 v244) Keep candles above the trajectory polyline
+       (.chart-trail z-index:1) so the wick + body stay crisp. */
+    z-index: 2;
+  }
+  /* (2026-05-11 v262) Grid cell wrapper — gives each candle a relative
+     parent so the candle inside can use position:absolute + bottom:X%
+     for height-based vertical positioning. Previously the candle was
+     a direct grid item using margin-bottom:X%, but CSS resolves
+     margin percentages against the containing block's INLINE size
+     (width), not block size (height). With a non-square chart-area
+     (e.g. 644×320 inner) the candles drifted vertically as the
+     visible y-range widened (operator's wheel-zoom view showed a
+     1.50-close body landing on the 1.00 peg line). Absolute children
+     resolve top/bottom percentages against the parent's HEIGHT, so
+     switching to `.candle-col > .candle{position:absolute; bottom:X%}`
+     makes the y-axis math consistent with the y-tick rendering below. */
+  .candle-col {
+    position: relative;
+    height: 100%;
+    min-width: 0;
+  }
+  /*
+    (2026-05-08) Bugfix — was 'var(--success)' / 'var(--danger)' which
+    silica-user.css doesn't define (the variables are --green / --red).
+    Result: every candle was rendered with NO background → invisible
+    bars while trades, volume, and recent-trades list all displayed
+    correctly. Operator: '차트가 그려지지 않아.'
+  */
+  /*
+    (2026-05-08 v3) Proper Japanese OHLC candles. Each .candle is now
+    a transparent container sized to the day's full low-high range.
+      - ::before draws the wick (thin centered vertical line)
+        spanning the full container = the day's low → high.
+      - .candle-body draws the body (full bar width) at the day's
+        open → close range, positioned within the container.
+    Operator: '시세가 올라갔다가 내려가면 올라간 자리에서 내려간 자리
+    까지는 막대실선이 남아야하는데 현재 그렇지가 않다.'
+  */
+  .candle {
+    /* (2026-05-11 v262) Absolute-positioned inside .candle-col so the
+       `bottom:X%` + `height:Y%` inline styles resolve to the parent
+       (column)'s HEIGHT — i.e. the chart's vertical range — rather
+       than the column's width via the old margin-bottom approach. */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--candle-max-width, 8px);
+    background: transparent;
+  }
+  /* (2026-05-11 v242) Wick line — bumped 1.5px → 2.5px so the low/high
+     extension below the body is visible when the body is much shorter
+     than the day's range. Operator: '시작점이 더 높게 시작 된 것으로
+     보인다' — the open was actually within the wick range, but the
+     thin 1.5px line was barely visible against the page background. */
+  .candle::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2.5px;
+    transform: translateX(-50%);
+    background: var(--green, #059669);
+  }
+  .candle.red::before { background: var(--red, #DC2626); }
+  .candle-body {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: var(--green, #059669);
+    border-radius: 1px;
+    min-height: 3px;
+  }
+  .candle.red .candle-body { background: var(--red, #DC2626); }
+
+  /* (2026-05-11 v244) Per-candle price label — small badge near each
+     candle's close so users can read prices at a glance when candles
+     are small (sparse / single-trade days). Hover-friendly. */
+  .candle-price-tag {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: var(--green, #059669);
+    pointer-events: none;
+  }
+  .candle.red .candle-price-tag {
+    color: var(--red, #DC2626);
+  }
+  /* Tag placement: above the wick for up-days, below for down-days,
+     so the label never collides with the candle body. */
+  .candle .candle-price-tag.above {
+    bottom: calc(100% + 4px);
+  }
+  .candle .candle-price-tag.below {
+    top: calc(100% + 4px);
+  }
+
+  /* (2026-05-11 v244) Trajectory line — thin SVG polyline connecting
+     candle closes so the price flow is visible even when individual
+     candles are tiny dots in a wide chart area. */
+  .chart-trail {
+    position: absolute;
+    inset: 20px 56px 20px 20px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .chart-trail polyline {
+    fill: none;
+    stroke: rgba(124, 58, 237, 0.45);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+
+  /*
+    (2026-05-08) Y-axis price labels + horizontal guide lines. Lives
+    in the same chart-area as the candles, occupies the right 56px
+    gutter for labels and stretches lines all the way across so they
+    align with candle heights. Updated on every render based on the
+    visible price range. The peg (1.00 USDT) gets a dashed purple
+    line so traders see relative positioning instantly.
+  */
+  .chart-y-axis {
+    position: absolute;
+    inset: 20px 0 20px 0;
+    pointer-events: none;
+  }
+  .chart-y-tick {
+    position: absolute;
+    right: 6px;
+    transform: translateY(50%);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    color: #64748B;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 1px 5px;
+    border-radius: 3px;
+    z-index: 3;
+    line-height: 1.2;
+  }
+  .chart-y-line {
+    position: absolute;
+    left: 0;
+    right: 56px;
+    height: 1px;
+    background: rgba(15, 23, 42, 0.05);
+  }
+  .chart-y-line.peg {
+    background: transparent;
+    border-top: 1px dashed rgba(124, 58, 237, 0.55);
+    height: 0;
+  }
+  .chart-y-tick.peg {
+    color: #7C3AED;
+    background: rgba(124, 58, 237, 0.10);
+    border: 1px solid rgba(124, 58, 237, 0.30);
+    font-weight: 700;
+  }
+
+  /*
+    (2026-05-08) X-axis time labels at the bottom of the chart.
+    Sits in the same 20px bottom inset that the candles already
+    leave free, aligned with the candle horizontal range
+    (left:20px, right:56px) so the labels line up with the bars.
+    Shows up to 5 evenly-spaced timestamps (HH:MM) sampled from
+    the visible trades.
+  */
+  /* (2026-05-11 v242) X-axis uses the same grid columns as
+     .chart-candles so labels sit directly under their candles. JS
+     mirrors --day-count onto this element. */
+  .chart-x-axis {
+    position: absolute;
+    left: 20px;
+    right: 56px;
+    bottom: 2px;
+    height: 16px;
+    display: grid;
+    grid-template-columns: repeat(var(--day-count, 1), 1fr);
+    align-items: center;
+    pointer-events: none;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 10px;
+    color: #64748B;
+  }
+  .chart-x-tick {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 1px 5px;
+    border-radius: 3px;
+    justify-self: center;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  /* Order Book */
+  .ob-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 5px 12px; font-family: 'Space Grotesk', monospace; font-size: 12px; position: relative; }
+  .ob-row.head { color: var(--steel); font-size: 10px; letter-spacing: 1px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  /* (2026-05-08) Same --success/--danger → --green/--red bug fix as
+     the candle styling above. The whole site uses --green / --red. */
+  .ob-row.sell { color: var(--red, #DC2626); }
+  .ob-row.buy { color: var(--green, #059669); }
+  .ob-row::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: var(--depth, 0%);
+    opacity: 0.1;
+  }
+  .ob-row.sell::before { background: var(--red, #DC2626); }
+  .ob-row.buy::before { background: var(--green, #059669); }
+  .ob-row > * { position: relative; }
+  .ob-row .price { font-weight: 700; }
+  .ob-row .amount { text-align: right; }
+  .ob-row .total { text-align: right; color: var(--steel); }
+  .ob-spread {
+    text-align: center;
+    padding: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    color: var(--aurora-3);
+    margin: 4px 0;
+  }
+
+  /* Order form — Buy/Sell switch (solid colors) */
+  .side-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    margin-bottom: 16px;
+    background: #F1F5F9;
+    border: 2px solid #E2E8F0;
+    border-radius: var(--r-sm);
+  }
+  .side-tab {
+    flex: 1;
+    padding: 12px 16px;
+    background: transparent;
+    border: 2px solid transparent;
+    color: #0F172A;
+    font-family: 'Oswald';
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    border-radius: 6px;
+    text-transform: uppercase;
+    transition: all .15s;
+  }
+  /* inactive state — Buy=green text, Sell=red text (immediate identification) */
+  .side-tab.buy { color: #059669; }
+  .side-tab.sell { color: #DC2626; }
+  .side-tab:hover { background: #FFFFFF; }
+  /* active state — solid fill + 3D shadow */
+  .side-tab.buy.active {
+    background: #059669;
+    color: #FFFFFF;
+    box-shadow: 0 3px 0 0 #064E3B, 0 4px 12px rgba(5, 150, 105, 0.30);
+  }
+  .side-tab.sell.active {
+    background: #DC2626;
+    color: #FFFFFF;
+    box-shadow: 0 3px 0 0 #991B1B, 0 4px 12px rgba(220, 38, 38, 0.30);
+  }
+
+  /*
+    (2026-05-08) Chart view-tabs — switches between traditional candles
+    chart and the SilicaSTO-peg-aware "Peg & Trades" view. Compact tab
+    pill row that lives at the top of the chart card.
+  */
+  .chart-view-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+  }
+  .chart-view-tab {
+    padding: 6px 14px;
+    background: transparent;
+    border: none;
+    color: #64748B;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    border-radius: 6px;
+    text-transform: uppercase;
+    transition: all .15s;
+  }
+  .chart-view-tab:hover { background: #FFFFFF; color: #0F172A; }
+  .chart-view-tab.active {
+    background: #7C3AED;
+    color: #FFFFFF;
+    box-shadow: 0 2px 0 0 #5B21B6, 0 3px 8px rgba(124, 58, 237, 0.25);
+  }
+
+  /* Peg view content */
+  .peg-view {
+    padding: 20px 16px;
+    text-align: center;
+    background: #FAF5FF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: var(--r-sm);
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .peg-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 3px;
+    color: #7C3AED; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .peg-anchor {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    color: #0F172A;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .peg-anchor .peg-num { color: #7C3AED; }
+  .peg-anchor small { font-size: 14px; color: #64748B; font-weight: 500; }
+  .peg-deviation {
+    margin: 14px auto 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 100px;
+    color: #059669;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .peg-deviation.discount {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #DC2626;
+  }
+  .peg-deviation.flat {
+    background: rgba(148, 163, 184, 0.10);
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #64748B;
+  }
+  .peg-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #E2E8F0;
+  }
+  .peg-stat { text-align: center; }
+  .peg-stat-label { font-size: 10px; letter-spacing: 1.5px; color: #94A3B8; text-transform: uppercase; }
+  .peg-stat-val { font-family: 'Unbounded', monospace; font-weight: 700; font-size: 16px; color: #0F172A; margin-top: 4px; }
+
+  /* Order type tabs (Limit/Market/AMM) — solid colors */
+  .order-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 16px;
+    background: #F1F5F9;
+    border: 2px solid #E2E8F0;
+    border-radius: var(--r-sm);
+  }
+  .order-tab {
+    flex: 1;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: #475569;
+    font-family: 'Oswald';
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all .15s;
+  }
+  .order-tab:hover { background: #FFFFFF; color: #0F172A; }
+  .order-tab.active {
+    color: #FFFFFF;
+    background: #7C3AED;
+    box-shadow: 0 2px 0 0 #5B21B6, 0 3px 8px rgba(124, 58, 237, 0.25);
+  }
+
+  /*
+    (2026-05-10 v216) Inline "you typed an invalid value" warning under
+    Price / Amount inputs. Stays hidden until the user actually types
+    or pastes something we have to clean up; then fades in for a few
+    seconds. Operator: '유저가 입력을 시도하면 나타나게 해줘.'
+  */
+  @keyframes tradeHelpWarnPulse {
+    0%   { transform: translateY(-2px); opacity: 0; }
+    100% { transform: translateY(0);    opacity: 1; }
+  }
+  .form-help.form-help-warn {
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.22);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 6px;
+    font-weight: 500;
+    animation: tradeHelpWarnPulse 0.18s ease-out;
+  }
+
+  /*
+    (2026-05-10 v211) Custom trade-confirm modal — replaces the
+    browser's native confirm() so Market orders don't read like the
+    price/total are guaranteed numbers. Operator: '안내 팝업 디자인을
+    해라.' Pattern mirrors swap.html .firm-quote-modal so the two
+    confirmation flows feel like the same family.
+  */
+  .trade-confirm-modal {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    z-index: 6300;
+    align-items: center; justify-content: center;
+    padding: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .trade-confirm-modal.open { display: flex; }
+  .trade-confirm-modal .tc-backdrop {
+    position: absolute; inset: 0;
+  }
+  @keyframes tcModalIn {
+    0%   { transform: translateY(16px) scale(0.96); opacity: 0; }
+    100% { transform: translateY(0)    scale(1);    opacity: 1; }
+  }
+  .trade-confirm-modal .tc-panel {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    max-width: 440px; width: 100%;
+    padding: 24px 24px 20px;
+    color: #111827;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+    animation: tcModalIn 0.28s cubic-bezier(.2,.8,.25,1.05);
+  }
+  .trade-confirm-modal .tc-head {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .trade-confirm-modal .tc-side-badge {
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase;
+  }
+  .trade-confirm-modal .tc-side-badge.buy {
+    background: rgba(16, 163, 74, 0.12); color: #059669;
+  }
+  .trade-confirm-modal .tc-side-badge.sell {
+    background: rgba(220, 38, 38, 0.12); color: #dc2626;
+  }
+  .trade-confirm-modal .tc-side-badge.warn {
+    background: rgba(245, 158, 11, 0.15); color: #b45309;
+  }
+  .trade-confirm-modal .tc-title {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-size: 19px; font-weight: 700;
+    color: #111827;
+    margin: 0; letter-spacing: -0.01em;
+  }
+  .trade-confirm-modal .tc-body {
+    background: #f9fafb;
+    border: 1px solid #f3f4f6;
+    border-radius: 10px;
+    padding: 4px 16px;
+  }
+  .trade-confirm-modal .tc-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 11px 0;
+    font-size: 14px;
+    gap: 12px;
+  }
+  .trade-confirm-modal .tc-row + .tc-row {
+    border-top: 1px solid #f3f4f6;
+  }
+  .trade-confirm-modal .tc-k {
+    color: #6b7280; font-size: 13px;
+    display: flex; align-items: baseline; gap: 4px;
+  }
+  .trade-confirm-modal .tc-k .tc-tag {
+    font-size: 10px;
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.4px;
+  }
+  .trade-confirm-modal .tc-v {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-weight: 700; color: #111827;
+    text-align: right;
+  }
+  .trade-confirm-modal .tc-row.tc-primary .tc-v {
+    font-size: 17px;
+    color: var(--aurora-1, #7C3AED);
+  }
+  .trade-confirm-modal .tc-row.tc-est .tc-v {
+    color: #b45309;
+    font-weight: 600;
+  }
+  .trade-confirm-modal .tc-row.tc-est .tc-v::before {
+    content: '~ ';
+    color: #d97706;
+    font-weight: 400;
+  }
+  .trade-confirm-modal .tc-note {
+    margin-top: 12px;
+    padding: 11px 14px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.22);
+    border-radius: 10px;
+    font-size: 12px; line-height: 1.55;
+    color: #78350f;
+    display: none;
+  }
+  .trade-confirm-modal .tc-note.show { display: block; }
+  .trade-confirm-modal .tc-note .tc-note-icon {
+    display: inline-block; width: 14px; height: 14px;
+    margin-right: 4px;
+    vertical-align: -2px;
+  }
+  .trade-confirm-modal .tc-actions {
+    display: flex; gap: 8px;
+    margin-top: 18px;
+  }
+  .trade-confirm-modal .tc-actions button {
+    flex: 1;
+    padding: 12px;
+    border: none; border-radius: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700; font-size: 13px;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    cursor: pointer;
+    transition: filter 0.15s, background 0.15s, transform 0.05s;
+  }
+  .trade-confirm-modal .tc-actions button:active { transform: translateY(1px); }
+  .trade-confirm-modal .tc-cancel {
+    background: #f3f4f6; color: #374151;
+  }
+  .trade-confirm-modal .tc-cancel:hover { background: #e5e7eb; }
+  .trade-confirm-modal .tc-confirm { color: #ffffff; }
+  /* (v605) gradient → 단색. */
+  .trade-confirm-modal .tc-confirm.buy { background: #16A34A; }
+  .trade-confirm-modal .tc-confirm.buy:hover { background: #15803D; }
+  .trade-confirm-modal .tc-confirm.sell { background: #DC2626; }
+  .trade-confirm-modal .tc-confirm.sell:hover { background: #B91C1C; }
+  .trade-confirm-modal .tc-confirm.warn { background: #D97706; }
+  .trade-confirm-modal .tc-confirm.warn:hover { background: #B45309; }
+
+  /*
+    (2026-05-11 v256) Trade-result modal — replaces native browser
+    alert() for order submit outcomes. Operator: '거래 페이지에서
+    이 팝업을 디자인해라'. Three visual states (good / warn / bad)
+    share the same panel skeleton; the accent (icon + ring + button
+    gradient) swaps based on .trade-result-modal[data-kind]. Same
+    look-and-feel as .trade-confirm-modal so success / failure feel
+    like the same family.
+  */
+  .trade-result-modal {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    z-index: 6400;
+    align-items: center; justify-content: center;
+    padding: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .trade-result-modal.open { display: flex; }
+  .trade-result-modal .tr-backdrop { position: absolute; inset: 0; }
+  @keyframes trModalIn {
+    0%   { transform: translateY(16px) scale(0.96); opacity: 0; }
+    100% { transform: translateY(0)    scale(1);    opacity: 1; }
+  }
+  .trade-result-modal .tr-panel {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    max-width: 420px; width: 100%;
+    padding: 28px 24px 22px;
+    color: #111827;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+    animation: trModalIn 0.28s cubic-bezier(.2,.8,.25,1.05);
+    text-align: center;
+  }
+  /* (v605) rgba → 단색 (light tint). */
+  .trade-result-modal .tr-icon {
+    width: 64px; height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px; font-weight: 700;
+    line-height: 1;
+    background: #ECFDF5;
+    color: #059669;
+    border: 2px solid #6EE7B7;
+  }
+  .trade-result-modal[data-kind="warn"] .tr-icon {
+    background: #FFFBEB;
+    color: #B45309;
+    border-color: #FCD34D;
+  }
+  .trade-result-modal[data-kind="bad"] .tr-icon {
+    background: #FEF2F2;
+    color: #DC2626;
+    border-color: #FCA5A5;
+  }
+  .trade-result-modal .tr-title {
+    font-family: 'Unbounded', 'Space Grotesk', sans-serif;
+    font-size: 19px; font-weight: 700;
+    color: #111827;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+  .trade-result-modal .tr-body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #4b5563;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    margin: 0 0 22px;
+  }
+  /* (v605) gradient → 단색. */
+  .trade-result-modal .tr-ok {
+    width: 100%;
+    padding: 13px;
+    border: none; border-radius: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700; font-size: 14px;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: #ffffff;
+    cursor: pointer;
+    background: #059669;
+    transition: background 0.15s, transform 0.05s;
+  }
+  .trade-result-modal[data-kind="warn"] .tr-ok { background: #D97706; }
+  .trade-result-modal[data-kind="bad"] .tr-ok { background: #DC2626; }
+  .trade-result-modal .tr-ok:hover { filter: brightness(0.92); }
+  .trade-result-modal .tr-ok:active { transform: translateY(1px); }
+
+  /* ════════════════════════════════════════════════════════════════
+     (2026-05-22 v762) MOBILE RAIL UNIFICATION — landing v756 동일 원칙.
+     trade-grid 는 1100px 미만에서 이미 1-col 로 collapse (기존). 모바일
+     세부 padding/font/chart-area 조정 추가.
+     Revert: 본 v762 블록 전체 삭제하면 기존 룰만 유지.
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    body[data-page="trade"] { --mobile-rail: 16px; }
+
+    .trade-page { padding: 16px var(--mobile-rail) !important; }
+    .trade-header { gap: 8px !important; margin-bottom: 14px !important; }
+    .trade-grid { gap: 12px !important; }
+
+    /* Chart card — 모바일 fit */
+    .chart-card { padding: var(--mobile-rail) !important; min-height: 360px !important; }
+    .chart-area-resizer { height: 240px !important; min-height: 200px; }
+
+    /* Chart x/y axis 텍스트 축소 */
+    .chart-zoom-hint { font-size: 9px !important; padding: 2px 6px; }
+    .chart-x-tick, .chart-y-tick { font-size: 9px !important; }
+
+    /* Chart view tabs */
+    .chart-view-tabs { gap: 4px !important; }
+    .chart-view-tab { padding: 6px 10px !important; font-size: 11px !important; }
+
+    /* Trade form inputs — iOS 줌 방지 */
+    .trade-page input, .trade-page select, .trade-page textarea {
+      font-size: 16px !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    /* 일반 카드/박스 padding 축소 */
+    .trade-page .card { padding: var(--mobile-rail) !important; }
+
+    /* (v779) 운영자 보고: '마이 오픈 주문 카드 내부 컨텐츠 깨진다.'
+       원인: <table class='table table-mono'> 7 컬럼 (Time/Type/Price/Amount/
+       Filled/Status/action) 이 모바일 좁은 viewport 에서 각 컬럼 폭 ~40px →
+       컬럼 헤더 'TIME' 글자도 fit 안 되어 'T/I/M/E' 세로 깨짐. 동일하게 row
+       데이터 '2026-05-20 18:55' 가 '2/0/2/6-/0/5-/2/0/1/8:/5/5' 로 깨짐.
+       해결: history.html v763 패턴 동일 — 테이블 가로 scroll + min-width +
+       white-space nowrap. */
+    .trade-page .table,
+    .trade-page table.table-mono {
+      font-size: 11px !important;
+      min-width: 560px;  /* 7 컬럼 fit (각 ~80px) */
+    }
+    .trade-page .table th,
+    .trade-page .table td,
+    .trade-page table.table-mono th,
+    .trade-page table.table-mono td {
+      padding: 6px 8px !important;
+      letter-spacing: 0.2px;
+      white-space: nowrap !important;  /* 'TIME' / 'Buy' / 날짜 등 글자별 break 차단 */
+    }
+    /* 부모 card 에 가로 scroll 활성화 — touch swipe 로 우측 컬럼 접근 */
+    .trade-page .card:has(table) {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* :has() 미지원 브라우저 fallback — table 자체에 wrap */
+    .trade-page table {
+      display: table;
+    }
+    /* 헤더 row (My Open Orders + History →) 와 table 사이 호흡 */
+    .trade-page .panel-title { margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .trade-page .panel-title h3 { font-size: 18px !important; letter-spacing: 0.3px; }
+
+    /* (v785) 운영자 보고: '여전히 트레이드 페이지에서 화면이 좌우로 움직인다.'
+       v762 의 overflow-x: clip 가 일부 모바일 브라우저 미지원 + v779 의
+       .card:has(table) 가 :has() 미지원 시 무력화 → 테이블이 body 까지
+       overflow → 페이지 전체 좌우 swipe 가능.
+       해결: html/body 레벨 overflow-x:hidden 강제 + .card 마다 명시적
+       overflow-x:auto (:has() 의존 제거). */
+    html,
+    body[data-page="trade"] {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      width: 100% !important;
+    }
+    body[data-page="trade"] > main,
+    .trade-page {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      width: 100% !important;
+    }
+    /* 모든 .card 에 명시적 overflow-x:auto — :has() 의존 제거 */
+    .trade-page .card {
+      max-width: 100% !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* trade-grid / trade-header — viewport 안 fit 강제 */
+    .trade-page .trade-grid,
+    .trade-page .trade-header {
+      max-width: 100% !important;
+      overflow-x: hidden;
+    }
+
+    /* 안전망 */
+    body[data-page="trade"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="trade"] > main { max-width: 100vw !important; overflow-x: hidden; }
+    body[data-page="trade"] *, body[data-page="trade"] *::before, body[data-page="trade"] *::after { box-sizing: border-box; }
+    body[data-page="trade"] img, body[data-page="trade"] video { max-width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body data-page="trade">
+<div class="trade-page">
+  <div class="trade-header">
+    <div class="pair-info">
+      <!--
+        (2026-05-08) Pair updated to SilicaSTO / USDT. Operator policy:
+        the Silica reward token trades externally, so the in-platform
+        order book is for SilicaSTO ↔ USDT only. SILICA-79907 is the
+        SilicaSTO asset id used by /api/orders.
+      -->
+      <div class="pair-icon">
+        <img class="pair-icon-img" src="assets/images/token-silicasto.svg" alt="SilicaSTO" data-token-logo="silicasto">
+        <img class="pair-icon-img" src="assets/images/token-usdt.svg" alt="USDT" data-token-logo="usdt">
+      </div>
+      <div>
+        <div class="pair-name">SilicaSTO / USDT</div>
+      </div>
+    </div>
+    <div class="pair-stats">
+      <div>
+        <div class="pair-stat-label">PRICE</div>
+        <div class="pair-stat-val text-mono" id="tradePrice">— USDT</div>
+      </div>
+      <div>
+        <div class="pair-stat-label">24H CHANGE</div>
+        <div class="pair-stat-val text-mono" id="tradeChange">—</div>
+      </div>
+      <div>
+        <div class="pair-stat-label">24H VOLUME</div>
+        <div class="pair-stat-val text-mono" id="tradeVolume">— STO</div>
+      </div>
+      <div>
+        <div class="pair-stat-label">24H HIGH</div>
+        <div class="pair-stat-val text-mono" id="tradeHigh">— USDT</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trade-grid">
+    <!-- Chart -->
+    <div class="card chart-card">
+      <!--
+        (2026-05-08) Two-view layout. Operator concern: SilicaSTO is
+        1:1 USDT-pegged with low early-stage volume, so a candle chart
+        would mostly be a flat line at $1.00. Solution: keep the
+        traditional chart available, but offer a 'Peg & Trades' view
+        that anchors on the peg and surfaces deviation/volume stats.
+        Default tab is the chart for users who expect it; 'Peg &
+        Trades' is the alternative for the early operating period.
+      -->
+      <div class="flex-between mb-md" style="flex-wrap:wrap; gap:8px;">
+        <div class="chart-view-tabs">
+          <button class="chart-view-tab active" data-chart-view="chart" type="button">Chart</button>
+          <button class="chart-view-tab" data-chart-view="peg" type="button">Peg &amp; Trades</button>
+        </div>
+        <div class="text-muted text-mono" style="font-size: 12px;" id="tradeChartLast">Last: — USDT</div>
+      </div>
+
+      <!-- View 1: SOL/USDT candle chart (trade2 — v910) -->
+      <div id="chartViewTraditional" class="chart-view-panel">
+        <!-- (2026-06-17 v912) 운영자: 안내 박스가 개발자 설명조로 보임 → 일반 유저
+             시세 위젯 톤으로. '(참고용)'/'호가·체결 USDT 기준' 메타 설명 제거,
+             SOL 실시간가 + STO 환산(1 SilicaSTO = 1.00 USDT · ≈ N SOL)만 표기. -->
+        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; background:#FAF5FF; border:1px solid #E9D5FF; border-radius:10px; margin-bottom:12px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:#0F172A;">
+              SilicaSTO / SOL
+              <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10B981; box-shadow:0 0 0 3px rgba(16,185,129,0.16);"></span>
+            </div>
+            <div class="text-mono" id="solPriceBadge" style="font-size:19px; font-weight:800; color:#7C3AED; line-height:1.2; margin-top:2px;">— SOL</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px; letter-spacing:0.5px; color:#94A3B8;" id="stoBaseLabel">1 SilicaSTO</div>
+            <div class="text-mono" style="font-size:15px; font-weight:800; color:#0F172A; line-height:1.35; margin-top:1px;">
+              1.00 USDT
+              <span style="color:#CBD5E1; font-weight:600; margin:0 4px;">·</span>
+              <span style="color:#94A3B8; font-weight:600;">SOL <span id="solUsdtRef">$—</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="flex-between mb-md">
+          <!-- (2026-06-17 v910 trade2) interval 탭 활성화 — SOL 봉 주기 전환.
+               data-sol-interval 로 renderSolCandles 가 fetch interval 결정. -->
+          <div class="tabs" style="border: none; margin: 0;">
+            <button class="tab" data-sol-interval="15m" type="button">15m</button>
+            <button class="tab active" data-sol-interval="1h" type="button">1H</button>
+            <button class="tab" data-sol-interval="4h" type="button">4H</button>
+            <button class="tab" data-sol-interval="1d" type="button">1D</button>
+          </div>
+          <div class="text-muted text-mono" style="font-size:12px;" id="solChartInfo">—</div>
+        </div>
+        <!-- (2026-05-11 v245) Resizable wrapper — operator wants to be
+             able to drag the chart height. CSS `resize: vertical` shows
+             a native handle in the bottom-right corner and persists the
+             new height for the session. min/max in CSS clamp the range. -->
+        <div class="chart-area-resizer">
+        <!-- (2026-06-17 v910 trade2) 기존 div 캔들 구조 → SOL/USDT SVG 캔들 차트.
+             #solCandleSvg 에 renderSolCandles() 가 wick+body+축을 직접 그린다.
+             기존 div 캔들/trail/y·x축 요소는 제거 (SOL 렌더러가 SVG 자체 축을 그림).
+             renderTradeChart 는 trade2 차트에 호출되지 않음(헤더 stats 만 유지;
+             getElementById 가 null → 함수 첫 줄 가드에서 early return). -->
+        <div class="chart-area" id="tradeChartArea">
+          <svg id="solCandleSvg" preserveAspectRatio="none" style="width:100%; height:100%; display:block;"></svg>
+          <div class="chart-empty-overlay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:var(--steel); font-family:'Space Grotesk', sans-serif; font-size:13px; pointer-events:none;">
+            <div style="font-size:32px; opacity:0.4;">📊</div>
+            <div>SOL 시세 불러오는 중…</div>
+            <div style="font-size:11px; opacity:0.7;">잠시만 기다려 주세요</div>
+          </div>
+        </div>
+        </div><!-- /.chart-area-resizer -->
+      </div>
+
+      <!-- View 2: Peg & Trades — stats grid only (operator removed
+           the peg eyebrow / anchor / deviation pill explanatory texts) -->
+      <div id="chartViewPeg" class="chart-view-panel" style="display:none;">
+        <div class="peg-view">
+          <div class="peg-stats" style="margin-top:0; padding-top:0; border-top:none;">
+            <div class="peg-stat">
+              <div class="peg-stat-label" id="peg24hVolLbl">24h Volume</div>
+              <div class="peg-stat-val" id="peg24hVol">— STO</div>
+            </div>
+            <div class="peg-stat">
+              <div class="peg-stat-label" id="peg24hTradesLbl">24h Trades</div>
+              <div class="peg-stat-val" id="peg24hTrades">0</div>
+            </div>
+            <!-- (2026-05-10 v219) Tooltip on Spread label so users don't
+                 have to ask what it means. Spread = best ask − best bid. -->
+            <div class="peg-stat" id="pegSpreadCell" title="Spread = lowest sell price − highest buy price. Tighter is more liquid.">
+              <div class="peg-stat-label" id="pegSpreadLbl">Spread</div>
+              <div class="peg-stat-val" id="pegSpread">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent trades — visible under both views -->
+      <div class="mt-lg">
+        <div class="eyebrow mb-md">◆ RECENT TRADES</div>
+        <div class="text-mono" id="tradeRecent" style="font-size: 12px;">
+          <div class="text-center text-muted" style="padding: 24px 0;">No recent trades.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Book -->
+    <div class="card" style="padding: 0;">
+      <!-- (v619) 운영자: 'Order Book 표기 중복. 하나 제거.' 우측 badge 삭제. -->
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--line);">
+        <h3 style="font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 1px;">Order Book</h3>
+      </div>
+      <div class="ob-row head"><span>Price (USDT)</span><span class="amount">Amount (STO)</span><span class="total">Total</span></div>
+
+      <div id="orderbookSells">
+        <div class="text-center text-muted" style="padding: 16px 0; font-size: 12px;">No sell orders</div>
+      </div>
+
+      <div class="ob-spread" id="orderbookSpread">↕ — USDT</div>
+
+      <div id="orderbookBuys">
+        <div class="text-center text-muted" style="padding: 16px 0; font-size: 12px;">No buy orders</div>
+      </div>
+    </div>
+
+    <!-- Order Form -->
+    <div class="card" style="padding: 20px;">
+      <div class="side-tabs">
+        <button class="side-tab buy active">Buy</button>
+        <button class="side-tab sell">Sell</button>
+      </div>
+      <div class="order-tabs">
+        <button class="order-tab active" data-order-type="limit" type="button">Limit</button>
+        <button class="order-tab" data-order-type="market" type="button">Market</button>
+      </div>
+
+      <div class="form-group" id="tradePriceFormGroup">
+        <label class="form-label">Price (USDT)</label>
+        <div class="form-input-group">
+          <input id="tradePriceInput" type="number" placeholder="0.05" step="0.01" min="0">
+          <span class="suffix">USDT</span>
+        </div>
+        <!-- (2026-05-10 v216) Operator: '유저가 입력을 시도하면
+             나타나게 해줘.' Help text is hidden by default; the input
+             handler reveals it only when the user actually types or
+             pastes an invalid 3rd-decimal, then auto-hides after a
+             short delay. -->
+        <div class="form-help form-help-warn" id="tradePriceHelp" style="display:none">e.g., 0.05, 1.23 (3 or more decimal places not allowed)</div>
+      </div>
+
+      <!-- Limit-mode token amount input (hidden in Market mode) -->
+      <div class="form-group" id="tradeAmountFormGroup">
+        <label class="form-label">Amount (SilicaSTO)</label>
+        <div class="form-input-group">
+          <input id="tradeAmountInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="100">
+          <span class="suffix">STO</span>
+        </div>
+        <div class="form-help form-help-warn" id="tradeAmountHelp" style="display:none">e.g., 1, 100, 1000 (decimals not allowed)</div>
+      </div>
+
+      <!--
+        (2026-05-08) Market-mode replacement for the token amount field.
+        Operator: '토큰 입력칸에는 입력은 할 수 없고, 시장가격이라고 영문으로
+        텍스트 표기만 되면 된다.' Plain text 'Market Price' badge — not an
+        input, can't receive focus or input. Hidden by default; shown
+        only when Market tab is active.
+      -->
+      <div class="form-group" id="tradeMarketPriceNote" style="display:none;">
+        <label class="form-label">Amount (SilicaSTO)</label>
+        <div class="form-input-group" style="background: var(--glass-2); border-color: var(--line); pointer-events: none;">
+          <div style="flex:1; padding: 12px 14px; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #7C3AED; text-transform: uppercase;">Market Price</div>
+          <span class="suffix">STO</span>
+        </div>
+      </div>
+
+      <!-- Total / Spend field (hidden in Sell+Market) -->
+      <div class="form-group" id="tradeTotalFormGroup">
+        <label class="form-label" id="tradeTotalLabel">Total</label>
+        <div class="form-input-group">
+          <input id="tradeTotalInput" type="text" inputmode="decimal" value="0.00" readonly>
+          <span class="suffix">USDT</span>
+        </div>
+      </div>
+
+      <!--
+        (2026-05-08) Market Price badge for the Total slot — shown only
+        in Sell+Market mode where the user enters token amount and the
+        USDT proceeds are determined by the market.
+      -->
+      <div class="form-group" id="tradeTotalMarketNote" style="display:none;">
+        <label class="form-label">Total</label>
+        <div class="form-input-group" style="background: var(--glass-2); border-color: var(--line); pointer-events: none;">
+          <div style="flex:1; padding: 12px 14px; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #7C3AED; text-transform: uppercase;">Market Price</div>
+          <span class="suffix">USDT</span>
+        </div>
+      </div>
+
+      <div class="card" style="background: var(--glass-2); padding: 16px; margin: 16px 0;">
+        <div class="flex-between" style="font-size: 12px; padding: 4px 0;">
+          <span class="text-muted">Available</span>
+          <span class="text-mono" id="tradeAvailable">0.00 USDT</span>
+        </div>
+        <!--
+          (2026-05-08) STO holdings row under USDT — operator wanted
+          the user's tradable token balance visible alongside USDT.
+        -->
+        <div class="flex-between" style="font-size: 12px; padding: 4px 0;">
+          <span class="text-muted">Holdings</span>
+          <span class="text-mono" id="tradeAvailableSto">0 STO</span>
+        </div>
+        <div class="flex-between" style="font-size: 12px; padding: 4px 0;">
+          <!-- (2026-05-11 v247) Fee % is dynamic — pulled from
+               asset.fee_buyer (= asset.fee_seller in our admin which
+               saves a single unified value to both sides) via
+               /api/assets/SILICA-79907 at page load. Default fallback
+               '0.1%' is used until the fetch resolves so the UI isn't
+               blank. Operator: '관리자 설정에서 수수료를 0.5%로 변경
+               하였지만, 거래페이지에서는 여전히 0.1%로 표기'. -->
+          <span class="text-muted">Fee (<span id="tradeFeePctLabel">0.1</span>%)</span>
+          <span class="text-mono" id="tradeFee">0.00 USDT</span>
+        </div>
+        <!--
+          (2026-05-10 v219) Min trade-fee note. Operator: 'Fee (0.1%) 이
+          아래에 최소 거래 수수료 usdt에 대한 안내 멘트를 넣어줘.' Backend
+          applyMinTradeFee() forces fee >= 0.001 USDT whenever fee_pct > 0,
+          so a micro-trade where 0.1% would round below 0.001 still pays
+          the floor. Localized in JS below.
+        -->
+        <div id="tradeFeeMinNote" style="font-size: 10px; color: var(--steel); padding: 0 0 2px; line-height: 1.4; text-align: right;">
+          Min trade fee: 0.001 USDT
+        </div>
+      </div>
+
+      <button class="btn btn-success btn-block">Buy Order</button>
+      <!-- (2026-05-10 v215) Inline validation message under the order button.
+           Operator: '총 토탈 금액이 1달러 이상이 아니면 오더를 할 수 없도록
+           하고, 이런 경우 buy order 버튼 하단에 빨간색 코멘트가 나오게 해줘.' -->
+      <div id="tradeOrderStatusMsg" style="display:none;color:#dc2626;font-size:12px;margin-top:8px;text-align:center;font-weight:600;line-height:1.45"></div>
+    </div>
+  </div>
+
+  <!-- My Open Orders -->
+  <div class="card mt-xl">
+    <div class="panel-title">
+      <h3 class="heading-sm" style="font-size: 24px;">My Open Orders</h3>
+      <a href="history.html" class="text-cyan" style="text-decoration: none; font-size: 12px;">History →</a>
+    </div>
+    <table class="table table-mono">
+      <thead>
+        <tr><th>Time</th><th>Type</th><th>Price</th><th>Amount</th><th>Filled</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody id="myOpenOrdersBody">
+        <tr><td colspan="7" class="text-center text-muted" style="padding:32px 0">No open orders.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- (2026-05-10 v211) Custom trade-confirm modal — replaces native confirm() -->
+<div id="tradeConfirmModal" class="trade-confirm-modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="tc-backdrop" data-tc-dismiss="1"></div>
+  <div class="tc-panel" role="document">
+    <div class="tc-head">
+      <span class="tc-side-badge buy" id="tcSideBadge">BUY · MARKET</span>
+      <h3 class="tc-title" id="tcTitle">Order</h3>
+    </div>
+    <div class="tc-body" id="tcBody"></div>
+    <div class="tc-note" id="tcNote">
+      <svg class="tc-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span id="tcNoteText"></span>
+    </div>
+    <div class="tc-actions">
+      <button type="button" class="tc-cancel" id="tcCancelBtn">Cancel</button>
+      <button type="button" class="tc-confirm buy" id="tcConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!--
+  (2026-05-11 v256) Designed result modal — replaces native alert()
+  for order-submit outcomes (success / partial fill / quote gone /
+  generic failure). Three kinds (good / warn / bad) share the same
+  panel; the JS helper showTradeResult(kind, title, msg) sets
+  data-kind and toggles .open. Backdrop click + ESC also close.
+-->
+<div id="tradeResultModal" class="trade-result-modal" data-kind="good" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="tr-backdrop" data-tr-dismiss="1"></div>
+  <div class="tr-panel" role="document">
+    <div class="tr-icon" id="trIcon">✓</div>
+    <h3 class="tr-title" id="trTitle">Order placed</h3>
+    <div class="tr-body" id="trBody"></div>
+    <button type="button" class="tr-ok" id="trOkBtn">OK</button>
+  </div>
+</div>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+<script>
+  // trade.html mock 페이지용 인터랙션
+  document.addEventListener('DOMContentLoaded', () => {
+    // (2026-05-08) i18n helpers — pull from documentElement.data-rwa-lang
+    //   (set by the boot script at the top of this file). All side/order
+    //   labels go through these so EN mode never sees Korean leftovers.
+    const isKoTrade = () => (document.documentElement.getAttribute('data-rwa-lang') || 'en') === 'ko';
+    const tTrade = (ko, en) => (isKoTrade() ? ko : en);
+
+    // (2026-05-08) Chart view tabs — Chart vs Peg & Trades. Default is
+    //   the traditional candle chart. The 'Peg & Trades' view shows the
+    //   1:1 SilicaSTO peg anchor + premium/discount + volume stats; the
+    //   shared Recent Trades list below is visible in both modes.
+    const chartViewTabs = document.querySelectorAll('.chart-view-tab');
+    const chartViewTraditional = document.getElementById('chartViewTraditional');
+    const chartViewPeg = document.getElementById('chartViewPeg');
+    const localizeChartViewLabels = () => {
+      chartViewTabs.forEach((btn) => {
+        const k = btn.dataset.chartView;
+        if (k === 'chart') btn.textContent = tTrade('차트', 'Chart');
+        else if (k === 'peg') btn.textContent = tTrade('통계', 'Stats');
+      });
+      const v = document.getElementById('peg24hVolLbl');
+      const t = document.getElementById('peg24hTradesLbl');
+      const s = document.getElementById('pegSpreadLbl');
+      if (v) v.textContent = tTrade('24시간 거래량', '24h Volume');
+      if (t) t.textContent = tTrade('24시간 거래 수', '24h Trades');
+      if (s) s.textContent = tTrade('스프레드', 'Spread');
+      // (2026-05-10 v219) Tooltip on the Spread cell explains what the
+      //   number actually means — bestAsk − bestBid; tighter is more
+      //   liquid. Operator asked verbally what Spread shows.
+      const sCell = document.getElementById('pegSpreadCell');
+      if (sCell) {
+        sCell.title = tTrade(
+          '스프레드 = 최저 매도호가 − 최고 매수호가. 좁을수록 유동성이 좋습니다.',
+          'Spread = lowest sell price − highest buy price. Tighter is more liquid.'
+        );
+      }
+      // (2026-05-10 v219) Min trade-fee note under the Fee (0.1%) row.
+      const feeMin = document.getElementById('tradeFeeMinNote');
+      if (feeMin) {
+        feeMin.textContent = tTrade(
+          '최소 거래 수수료 0.001 USDT',
+          'Min trade fee: 0.001 USDT'
+        );
+      }
+    };
+    chartViewTabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        chartViewTabs.forEach((b) => b.classList.toggle('active', b === btn));
+        const view = btn.dataset.chartView;
+        if (chartViewTraditional) chartViewTraditional.style.display = (view === 'chart') ? '' : 'none';
+        if (chartViewPeg) chartViewPeg.style.display = (view === 'peg') ? '' : 'none';
+      });
+    });
+    localizeChartViewLabels();
+
+    // Side / order-type toggle state
+    const sideTabs = document.querySelectorAll('.side-tab');
+    const orderBtn = document.querySelector('.btn.btn-success.btn-block, .btn.btn-block.btn-success');
+    let currentSide = 'buy';
+    let currentOrderType = 'limit';
+
+    // (2026-05-08) Cached best ask / bid from refreshOrderBook so the
+    //   Market-mode submit can size the limit order against the
+    //   current best opposing price. Declared at the outer scope so
+    //   both refreshOrderBook (writer) and the orderBtn click handler
+    //   (reader) can see them.
+    // (2026-05-10 v208) Hoisted ABOVE refreshOrderBtnLabel so the
+    //   no-opposing-quote check inside the label refresher can read
+    //   them without TDZ trouble at first render.
+    let bestAskPrice = null;
+    let bestBidPrice = null;
+
+    // (2026-05-10 v215) Input refs hoisted above refreshOrderBtnLabel
+    //   so the min-total check inside the label refresher can read live
+    //   values without TDZ at first render. Operator: 'Price (USDT) ·
+    //   2 decimal places로 표기 되어 있지만, 실제로 입력은 그 이상도
+    //   가능한 문제' + '총 토탈 금액이 1달러 이상이 아니면 오더를 할 수
+    //   없도록'.
+    const tradePriceInputEl  = document.getElementById('tradePriceInput');
+    const tradeAmountInputEl = document.getElementById('tradeAmountInput');
+    const tradeTotalInputEl  = document.getElementById('tradeTotalInput');
+    const tradeOrderStatusMsgEl = document.getElementById('tradeOrderStatusMsg');
+    const TRADE_MIN_ORDER_USDT = 1.0;
+
+    // (2026-05-08) Re-render the order button label based on side +
+    //   order type + locale. Was hardcoded Korean ('매도 주문' / '매수 주문')
+    //   inside the side-tab click handler, leaking even in EN mode.
+    // (2026-05-10 v208) Also disable the button when the user picks
+    //   Market mode but there is no opposing-side quote to fill against
+    //   — operator: '시장가로 체결할 반대편 주문이 없는 경우에는 애초에
+    //   시장가 주문을 넣을 수 없도록 해야 할 것 같다.'
+    // (2026-05-10 v215) Also enforce a 1-USDT minimum on the order
+    //   total. Below the threshold the button is disabled and a red
+    //   status line under the button explains why.
+    const refreshOrderBtnLabel = () => {
+      if (!orderBtn) return;
+      const isSell = currentSide === 'sell';
+      const isMarket = currentOrderType === 'market';
+      const oppositePrice = isSell ? bestBidPrice : bestAskPrice;
+      const noQuote = isMarket && (!oppositePrice || oppositePrice <= 0);
+
+      // Estimated total — what would we POST?
+      //   Limit:       price × qty
+      //   Market (any): qty × bestPrice (Buy uses bestAsk, Sell bestBid;
+      //                  v217 unified — both sides take STO qty input).
+      let estTotal = 0;
+      if (isMarket) {
+        const q = parseFloat(tradeAmountInputEl?.value) || 0;
+        estTotal = q * (oppositePrice || 0);
+      } else {
+        const p = parseFloat(tradePriceInputEl?.value) || 0;
+        const q = parseFloat(tradeAmountInputEl?.value) || 0;
+        estTotal = p * q;
+      }
+      const belowMin = estTotal > 0 && estTotal < TRADE_MIN_ORDER_USDT;
+
+      let label;
+      if (noQuote) {
+        label = isKoTrade()
+          ? (isSell ? '시장가 매도 불가 (호가 없음)' : '시장가 매수 불가 (호가 없음)')
+          : (isSell ? 'Market Sell unavailable (no bids)' : 'Market Buy unavailable (no asks)');
+      } else if (isKoTrade()) {
+        label = isMarket
+          ? (isSell ? '시장가 매도' : '시장가 매수')
+          : (isSell ? '매도 주문' : '매수 주문');
+      } else {
+        label = isMarket
+          ? (isSell ? 'Market Sell' : 'Market Buy')
+          : (isSell ? 'Sell Order' : 'Buy Order');
+      }
+      orderBtn.textContent = label;
+      const disabled = noQuote || belowMin;
+      orderBtn.disabled = disabled;
+      orderBtn.classList.toggle('btn-danger', isSell && !disabled);
+      orderBtn.classList.toggle('btn-success', !isSell && !disabled);
+      orderBtn.classList.toggle('btn-disabled', disabled);
+
+      // Status message under the button — only shown for the min-total
+      // case. The no-quote case already explains itself via the button
+      // label, so we keep the area clean there.
+      if (tradeOrderStatusMsgEl) {
+        if (belowMin) {
+          tradeOrderStatusMsgEl.textContent = isKoTrade()
+            ? `최소 주문 금액은 ${TRADE_MIN_ORDER_USDT.toFixed(2)} USDT 입니다 (현재 ${estTotal.toFixed(2)} USDT).`
+            : `Minimum order is ${TRADE_MIN_ORDER_USDT.toFixed(2)} USDT (currently ${estTotal.toFixed(2)} USDT).`;
+          tradeOrderStatusMsgEl.style.display = 'block';
+        } else {
+          tradeOrderStatusMsgEl.style.display = 'none';
+        }
+      }
+    };
+
+    sideTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        sideTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentSide = tab.classList.contains('sell') ? 'sell' : 'buy';
+        // (2026-05-08) Trigger applyOrderType so Market mode can flip
+        //   its Amount/Total visibility to match the new side
+        //   (Buy → token=badge, Sell → USDT=badge).
+        applyOrderType();
+      });
+    });
+
+    // (2026-05-08 v3 / 2026-05-10 v217) Limit / Market order-type toggle.
+    //   Operator (v2): '마켓 거래에서는 usdt 입력칸만 있어야한다.'
+    //   Operator (v3): '판매에서는 반대가 되어야한다. 토큰 수량을 입력
+    //                   하고, usdt는 마켓가격으로 표기 되어야한다.'
+    //   Operator (v4 / v217): 'buy에서 마켓 주문은 실리카 수량을 유저가
+    //                   입력하고, 시장가격의 usdt로 매수가 되어야한다.'
+    //
+    //   Limit (any side):
+    //     Price (USDT) editable + Amount (STO) editable + Total (USDT)
+    //     readonly = Price × Amount.
+    //
+    //   Market + Buy   (v217: STO input, USDT badge — same as Sell):
+    //     Price hidden, Amount editable (token qty), Total = 'Market
+    //     Price' badge — system buys that many tokens at market.
+    //
+    //   Market + Sell  (unchanged):
+    //     Price hidden, Amount editable (token qty), Total = 'Market
+    //     Price' badge — system sells at market and pays out USDT.
+    const tradePriceFormGroup     = document.getElementById('tradePriceFormGroup');
+    const tradeAmountFormGroup    = document.getElementById('tradeAmountFormGroup');
+    const tradeMarketPriceNote    = document.getElementById('tradeMarketPriceNote');
+    const tradeTotalFormGroup     = document.getElementById('tradeTotalFormGroup');
+    const tradeTotalMarketNote    = document.getElementById('tradeTotalMarketNote');
+    const tradeTotalInput         = document.getElementById('tradeTotalInput');
+    const tradeTotalLabel         = document.getElementById('tradeTotalLabel');
+    const applyOrderType = () => {
+      const isMarket = currentOrderType === 'market';
+      // (2026-05-10 v217) Market mode (both Buy and Sell) now uses STO
+      //   input + USDT badge. The old Market-Buy USDT-spend variant is
+      //   gone — user always enters token qty in market mode.
+      if (tradePriceFormGroup)   tradePriceFormGroup.style.display   = isMarket ? 'none' : '';
+      if (tradeAmountFormGroup)  tradeAmountFormGroup.style.display  = '';
+      if (tradeMarketPriceNote)  tradeMarketPriceNote.style.display  = 'none';
+      if (tradeTotalFormGroup)   tradeTotalFormGroup.style.display   = isMarket ? 'none' : '';
+      if (tradeTotalMarketNote)  tradeTotalMarketNote.style.display  = isMarket ? '' : 'none';
+
+      // Total input is always readonly now (auto-calc in Limit; hidden
+      //   behind the 'Market Price' badge in Market).
+      if (tradeTotalInput) {
+        tradeTotalInput.setAttribute('readonly', 'readonly');
+        tradeTotalInput.value = '0.00';
+      }
+      if (tradeTotalLabel) {
+        tradeTotalLabel.textContent = tTrade('총액', 'Total');
+      }
+      refreshOrderBtnLabel();
+    };
+    document.querySelectorAll('.order-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.order-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentOrderType = tab.dataset.orderType || 'limit';
+        applyOrderType();
+      });
+    });
+
+    // Initialize button label on first render so EN users don't briefly
+    // see the HTML default 'Buy Order' before the JS reads the locale.
+    refreshOrderBtnLabel();
+
+    // 가격 × 수량 → 총액 자동 계산
+    const inputs = document.querySelectorAll('.form-input-group input[type="number"], #tradeAmountInput');
+    const totalInput = document.querySelectorAll('.form-input-group input[readonly]')[0];
+    // (2026-05-08) Live Fee preview matches the backend floor.
+    //   markets.php applyMinTradeFee() forces fee >= 0.001 USDT
+    //   whenever fee_pct > 0 so micro-trades can't slip through with
+    //   $0 fees. Mirror that here so the user sees the real charge.
+    // (2026-05-11 v247) Default fallback 0.1% (matches the static
+    //   label). Replaced by /api/assets/SILICA-79907 → asset.fee_buyer
+    //   shortly after page load so the displayed fee reflects whatever
+    //   the admin currently has set in admin/settings.html → 거래 수수료.
+    let TRADE_FEE_PCT = 0.001;            // multiplier form, NOT %
+    const TRADE_MIN_FEE_USDT = 0.001;     // backend floor (markets.php MIN_TRADE_FEE_USDT)
+    const tradeFeeEl = document.getElementById('tradeFee');
+    const computeTradeFee = (gross) => {
+      if (!(gross > 0)) return 0;
+      const raw = gross * TRADE_FEE_PCT;
+      return raw < TRADE_MIN_FEE_USDT ? TRADE_MIN_FEE_USDT : raw;
+    };
+    const updateTotal = () => {
+      const price = parseFloat(inputs[0]?.value) || 0;
+      const qty = parseFloat(inputs[1]?.value) || 0;
+      const total = price * qty;
+      if (totalInput) totalInput.value = total.toFixed(2);
+      if (tradeFeeEl) {
+        const fee = computeTradeFee(total);
+        tradeFeeEl.textContent = `${fee.toFixed(3)} USDT`;
+      }
+      // (2026-05-10 v215) Re-evaluate the order button (label, disable
+      //   state, and min-total status message) whenever an input moves.
+      refreshOrderBtnLabel();
+    };
+    inputs.forEach(i => i.addEventListener('input', updateTotal));
+
+    // (2026-05-10 v216) Operator: '유저가 입력을 시도하면 나타나게 해줘.'
+    //   The Price/Amount help text under each input is hidden until the
+    //   user actually attempts an invalid character (3rd decimal in
+    //   price, or any non-digit in amount). flashHelp shows the
+    //   element with a fade-in pulse, then auto-hides after 4s. Each
+    //   call resets the timer so consecutive invalid keystrokes keep
+    //   it visible.
+    const tradePriceHelpEl  = document.getElementById('tradePriceHelp');
+    const tradeAmountHelpEl = document.getElementById('tradeAmountHelp');
+    const helpTimers = new WeakMap();
+    const flashHelp = (el) => {
+      if (!el) return;
+      const t = helpTimers.get(el);
+      if (t) clearTimeout(t);
+      // Restart the CSS pulse animation by toggling display off/on.
+      el.style.display = 'none';
+      // Force reflow so the next display:block re-triggers the animation.
+      // eslint-disable-next-line no-unused-expressions
+      void el.offsetWidth;
+      el.style.display = 'block';
+      helpTimers.set(el, setTimeout(() => {
+        el.style.display = 'none';
+        helpTimers.delete(el);
+      }, 4000));
+    };
+
+    // (2026-05-10 v215) Price input — enforce 2-decimal-place limit at
+    //   typing time. Operator: 'Price (USDT) · 2 decimal places로 표기
+    //   되어 있지만, 실제로 입력은 그 이상도 가능한 문제'. The HTML
+    //   `step=0.01` attribute only validates on blur via standard form
+    //   submission, which we bypass; we run our own POST so the user
+    //   could happily type '1.234' and the constraint never fired.
+    if (tradePriceInputEl) {
+      tradePriceInputEl.addEventListener('input', () => {
+        const raw = String(tradePriceInputEl.value || '');
+        if (raw.includes('.')) {
+          const [intPart, decPart] = raw.split('.');
+          if (decPart && decPart.length > 2) {
+            tradePriceInputEl.value = `${intPart}.${decPart.slice(0, 2)}`;
+            flashHelp(tradePriceHelpEl);
+            updateTotal();
+            return;
+          }
+        }
+        // Even when no truncation happened, still revalidate the button
+        //   so a price change without a qty also triggers re-eval.
+        refreshOrderBtnLabel();
+      });
+      tradePriceInputEl.addEventListener('paste', (e) => {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        const m = text.match(/^(\d+)(?:\.(\d{0,2}))?/);
+        if (m) {
+          const cleaned = m[2] != null ? `${m[1]}.${m[2]}` : m[1];
+          if (cleaned !== text) {
+            e.preventDefault();
+            tradePriceInputEl.value = cleaned;
+            flashHelp(tradePriceHelpEl);
+            updateTotal();
+          }
+        }
+      });
+      tradePriceInputEl.addEventListener('blur', () => {
+        // Final normalize on blur — formats '1.5' → '1.50' for clarity.
+        const v = parseFloat(tradePriceInputEl.value);
+        if (Number.isFinite(v) && v > 0) {
+          tradePriceInputEl.value = v.toFixed(2);
+          updateTotal();
+        }
+      });
+    }
+
+    // (2026-05-10 v217) tradeTotalInput is now always readonly (Limit:
+    //   auto-calc; Market: hidden behind 'Market Price' badge), so the
+    //   v215 USDT-spend input listener is no longer needed — qty input
+    //   already drives all min-total updates via updateTotal().
+
+    // (2026-05-08) Amount input — integers only. Block decimal point at
+    //   keydown so the user can't even type a dot, plus strip any
+    //   non-digit on input/paste as a backstop. Was 'type=number step=1'
+    //   which still allowed typing '.' (browser only validates on blur).
+    // (2026-05-10 v216) Each blocked character / cleaned value also
+    //   triggers flashHelp so the user sees the explanation only when
+    //   they actually attempt an invalid character.
+    const tradeAmountInput = document.getElementById('tradeAmountInput');
+    if (tradeAmountInput) {
+      tradeAmountInput.addEventListener('keydown', (e) => {
+        // Allow navigation / editing keys
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const allowed = ['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+        if (allowed.includes(e.key)) return;
+        // Block anything that's not a digit
+        if (!/^[0-9]$/.test(e.key)) {
+          e.preventDefault();
+          flashHelp(tradeAmountHelpEl);
+        }
+      });
+      tradeAmountInput.addEventListener('input', () => {
+        const raw = String(tradeAmountInput.value || '');
+        const cleaned = raw.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
+        if (cleaned !== raw) {
+          tradeAmountInput.value = cleaned;
+          flashHelp(tradeAmountHelpEl);
+          updateTotal();
+        }
+      });
+      tradeAmountInput.addEventListener('paste', (e) => {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        const cleaned = text.replace(/[^0-9]/g, '');
+        if (cleaned !== text) {
+          e.preventDefault();
+          // Manually insert cleaned value at the cursor
+          const start = tradeAmountInput.selectionStart || 0;
+          const end   = tradeAmountInput.selectionEnd   || 0;
+          const cur   = tradeAmountInput.value;
+          tradeAmountInput.value = cur.slice(0, start) + cleaned + cur.slice(end);
+          flashHelp(tradeAmountHelpEl);
+          updateTotal();
+        }
+      });
+    }
+
+    // (2026-05-08) trade.html i18n + storage-key fix.
+    //   Earlier all alerts/confirms were hardcoded Korean; in EN mode
+    //   the user-side i18n auto-translator partial-matched fragments
+    //   producing hybrids like '주문하려면 먼저 Connect your wallet.'
+    //   Storage key was also stale (rwa_wallet_v1) so the wallet-
+    //   connected check ALWAYS failed even when the user was logged in
+    //   — core.js bumped the key to rwa_wallet_v3 ages ago.
+    //
+    //   Now: language picked from the documentElement's data-rwa-lang
+    //   attribute (set by the boot script at the top of trade.html),
+    //   and wallet info pulled from RwaCore.getWallet() with a fallback
+    //   to the new v3 storage key.
+    const isKo = () => (document.documentElement.getAttribute('data-rwa-lang') || 'en') === 'ko';
+    const tT = (ko, en) => (isKo() ? ko : en);
+    const getWalletState = () => {
+      try {
+        const w = window.RwaCore?.getWallet?.();
+        if (w) return w;
+        return JSON.parse(localStorage.getItem('rwa_wallet_v3') || '{}');
+      } catch { return {}; }
+    };
+
+    // (2026-05-10 v211) Promise-based modal confirm — replaces the
+    //   browser's native confirm() dialog for trade order placement.
+    //   Operator: '안내 팝업 디자인을 해라.' Same await contract as
+    //   confirm(): resolves to true (proceed) / false (cancel).
+    //   Markup + styles are static at the bottom of the page; this
+    //   helper just populates the slots and binds the buttons.
+    const tcRowHTML = (label, value, opts = {}) => {
+      const cls = ['tc-row'];
+      if (opts.primary)  cls.push('tc-primary');
+      if (opts.estimate) cls.push('tc-est');
+      const tag = opts.tag ? `<span class="tc-tag">${opts.tag}</span>` : '';
+      return `<div class="${cls.join(' ')}"><span class="tc-k">${label}${tag}</span><span class="tc-v">${value}</span></div>`;
+    };
+    const showTradeConfirm = (opts) => new Promise((resolve) => {
+      const modal      = document.getElementById('tradeConfirmModal');
+      const badge      = document.getElementById('tcSideBadge');
+      const titleEl    = document.getElementById('tcTitle');
+      const bodyEl     = document.getElementById('tcBody');
+      const noteEl     = document.getElementById('tcNote');
+      const noteTextEl = document.getElementById('tcNoteText');
+      const cancelBtn  = document.getElementById('tcCancelBtn');
+      const confirmBtn = document.getElementById('tcConfirmBtn');
+      if (!modal || !badge || !titleEl || !bodyEl || !cancelBtn || !confirmBtn) {
+        // Fallback to native confirm() if any slot is missing.
+        resolve(window.confirm(opts.fallbackText || ''));
+        return;
+      }
+
+      badge.textContent  = opts.badgeText || '';
+      badge.className    = `tc-side-badge ${opts.badgeClass || 'buy'}`;
+      titleEl.textContent = opts.title || '';
+      bodyEl.innerHTML   = opts.bodyHTML || '';
+
+      if (opts.note && noteEl && noteTextEl) {
+        noteTextEl.textContent = opts.note;
+        noteEl.classList.add('show');
+      } else if (noteEl) {
+        noteEl.classList.remove('show');
+      }
+
+      cancelBtn.textContent  = opts.cancelLabel  || (isKoTrade() ? '취소' : 'Cancel');
+      confirmBtn.textContent = opts.confirmLabel || (isKoTrade() ? '진행' : 'Confirm');
+      confirmBtn.className   = `tc-confirm ${opts.confirmClass || opts.badgeClass || 'buy'}`;
+
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+
+      const backdrop = modal.querySelector('.tc-backdrop');
+      const cleanup = (result) => {
+        // Blur the currently-focused button BEFORE flipping aria-hidden
+        // — otherwise Chrome logs an accessibility warning about a
+        // focused descendant of an aria-hidden ancestor.
+        try { confirmBtn.blur?.(); cancelBtn.blur?.(); } catch (_) {}
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        confirmBtn.removeEventListener('click', onYes);
+        cancelBtn.removeEventListener('click', onNo);
+        if (backdrop) backdrop.removeEventListener('click', onNo);
+        document.removeEventListener('keydown', onKey);
+        resolve(result);
+      };
+      const onYes = () => cleanup(true);
+      const onNo  = () => cleanup(false);
+      const onKey = (e) => {
+        if (e.key === 'Escape') cleanup(false);
+        else if (e.key === 'Enter' && document.activeElement !== cancelBtn) cleanup(true);
+      };
+
+      confirmBtn.addEventListener('click', onYes);
+      cancelBtn.addEventListener('click', onNo);
+      if (backdrop) backdrop.addEventListener('click', onNo);
+      document.addEventListener('keydown', onKey);
+
+      // Focus the confirm button so Enter / Esc work intuitively but
+      //   the user still has to deliberately move-and-press for confirm.
+      setTimeout(() => { try { confirmBtn.focus(); } catch (_) {} }, 50);
+    });
+
+    // (2026-05-11 v257) Designed result modal — replaces native alert()
+    //   for order outcomes. kind: 'good' (default green ✓), 'warn'
+    //   (amber !), 'bad' (red ✕). Fire-and-forget: callers do NOT
+    //   await it, so the surrounding logic (clearing inputs, kicking
+    //   off orderbook refresh, etc.) is never blocked by the modal.
+    //   The previous awaited version sometimes left the post-order
+    //   refresh waiting on the dismiss handler — operator reported
+    //   'Buy 주문이 들어가지지 않는다'.
+    const TRADE_RESULT_ICONS = { good: '✓', warn: '!', bad: '✕' };
+    const showTradeResult = (kind, title, message) => {
+      try {
+        const k = (kind === 'warn' || kind === 'bad') ? kind : 'good';
+        const modal   = document.getElementById('tradeResultModal');
+        const iconEl  = document.getElementById('trIcon');
+        const titleEl = document.getElementById('trTitle');
+        const bodyEl  = document.getElementById('trBody');
+        const okBtn   = document.getElementById('trOkBtn');
+        const backdrop = modal?.querySelector('.tr-backdrop');
+        if (!modal || !iconEl || !titleEl || !bodyEl || !okBtn) {
+          // DOM missing — silently no-op rather than blocking.
+          console.warn('[trade] tradeResultModal DOM missing; result:', title, message);
+          return;
+        }
+        modal.setAttribute('data-kind', k);
+        iconEl.textContent = TRADE_RESULT_ICONS[k];
+        titleEl.textContent = title || '';
+        bodyEl.textContent  = message || '';
+        okBtn.textContent   = isKoTrade() ? '확인' : 'OK';
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+
+        const cleanup = () => {
+          // Move focus OUT of the modal before flipping aria-hidden to
+          // avoid the 'Blocked aria-hidden on an element because its
+          // descendant retained focus' accessibility warning.
+          try { okBtn.blur?.(); } catch (_) {}
+          modal.classList.remove('open');
+          modal.setAttribute('aria-hidden', 'true');
+          okBtn.removeEventListener('click', onDismiss);
+          if (backdrop) backdrop.removeEventListener('click', onDismiss);
+          document.removeEventListener('keydown', onKey);
+        };
+        const onDismiss = () => cleanup();
+        const onKey = (e) => {
+          if (e.key === 'Escape' || e.key === 'Enter') cleanup();
+        };
+        okBtn.addEventListener('click', onDismiss);
+        if (backdrop) backdrop.addEventListener('click', onDismiss);
+        document.addEventListener('keydown', onKey);
+        setTimeout(() => { try { okBtn.focus(); } catch (_) {} }, 50);
+        // Auto-dismiss the success state after 3s so the user doesn't
+        // have to click OK on every fill. Warn / bad stay until clicked.
+        if (k === 'good') setTimeout(cleanup, 3000);
+      } catch (e) {
+        // Last-ditch: never let a presentation bug break the order flow.
+        console.warn('[trade] showTradeResult crash:', e);
+      }
+    };
+
+    // 주문 버튼 클릭
+    if (orderBtn) {
+      orderBtn.addEventListener('click', async () => {
+        // 지갑 연결 확인 먼저
+        const w = getWalletState();
+        const walletConnected = !!w?.connected && !!w?.token;
+        if (!walletConnected) {
+          showTradeResult(
+            'warn',
+            tT('지갑 연결 필요', 'Wallet not connected'),
+            tT('주문하려면 먼저 지갑을 연결하세요.', 'Please connect your wallet before placing an order.')
+          );
+          return;
+        }
+
+        const isMarket = currentOrderType === 'market';
+        const isSell   = currentSide === 'sell';
+        let price, qty;
+
+        if (isMarket) {
+          // Market mode — construct a limit order at the current best
+          //   opposing price. (v217) Both Buy and Sell now read STO qty
+          //   from the Amount input; Buy fills against best ask, Sell
+          //   into best bid.
+          const oppositePrice = isSell ? bestBidPrice : bestAskPrice;
+          if (!oppositePrice || oppositePrice <= 0) {
+            return alert(tT(
+              '시장 호가가 없어 시장가 주문을 실행할 수 없습니다. 호가창에 반대측 주문이 들어올 때까지 기다리거나 지정가로 주문하세요.',
+              'No market quote available. Wait for the order book to populate or place a limit order instead.'
+            ));
+          }
+          price = oppositePrice;
+
+          qty = parseFloat(inputs[1]?.value) || 0;
+          if (qty <= 0) return alert(tT('수량을 입력하세요.', 'Enter an amount.'));
+          if (!Number.isInteger(qty)) return alert(tT('수량은 정수만 입력 가능합니다.', 'Amount must be an integer.'));
+        } else {
+          // Limit mode — read price + amount from inputs.
+          price = parseFloat(inputs[0]?.value) || 0;
+          qty   = parseFloat(inputs[1]?.value) || 0;
+          if (price <= 0) return alert(tT('가격을 입력하세요.', 'Enter a price.'));
+          if (qty <= 0)   return alert(tT('수량을 입력하세요.', 'Enter an amount.'));
+          if (!Number.isInteger(qty)) return alert(tT('수량은 정수만 입력 가능합니다.', 'Amount must be an integer.'));
+          // (2026-05-10 v215) Defensive 2-decimal price check — the
+          //   input handler enforces it live, but a paste followed by
+          //   a click that out-races our input listener is conceivable.
+          if (Math.abs(price * 100 - Math.round(price * 100)) > 0.0001) {
+            return alert(tT('가격은 소수점 2자리까지만 입력할 수 있습니다.', 'Price allows up to 2 decimal places only.'));
+          }
+        }
+
+        // (2026-05-10 v215 / v217) Min-total floor (1 USDT). Enforced
+        //   live via refreshOrderBtnLabel; this duplicate guard catches
+        //   any path where the disabled state is bypassed. v217: market
+        //   Buy now uses qty input too, so price × qty works for all
+        //   four combinations (Limit Buy/Sell, Market Buy/Sell).
+        const estimatedTotal = price * qty;
+        if (estimatedTotal > 0 && estimatedTotal < 1.0) {
+          return alert(tT(
+            `최소 주문 금액은 1 USDT 입니다 (현재 ${estimatedTotal.toFixed(2)} USDT).`,
+            `Minimum order is 1 USDT (currently ${estimatedTotal.toFixed(2)} USDT).`
+          ));
+        }
+
+        const sideLabel = isKo()
+          ? (currentSide === 'sell' ? '매도' : '매수')
+          : (currentSide === 'sell' ? 'Sell' : 'Buy');
+
+        // (2026-05-10 v211) Custom modal confirm — replaces the native
+        //   confirm() dialog. Market mode marks estimated values
+        //   ('~' prefix + 참고/EST tag + amber tint) so the user
+        //   doesn't read them as guarantees.
+        let dialogOpts;
+        const k = (ko, en) => (isKo() ? ko : en);
+        const NOTE_MARKET = k(
+          '실제 체결가는 시장 상황에 따라 달라지며, 호가 부족 시 일부만 체결될 수 있습니다.',
+          'Actual fill price varies with market depth. Partial fill possible if quotes thin.'
+        );
+
+        if (isMarket) {
+          if (isSell) {
+            // (2026-05-10 v212) Operator: 'Estimated proceeds 제거.
+            //   Reference best bid 텍스트 변경 → 매수금액. 아울러 숫자
+            //   표기하지말고 텍스트로 시장가격으로 표기.' Market sell
+            //   shows the user's deterministic input (qty) + a non-
+            //   numeric placeholder so they don't misread the bid as
+            //   a guaranteed proceeds figure.
+            dialogOpts = {
+              badgeText:    k('매도 · 시장가', 'SELL · MARKET'),
+              badgeClass:   'sell',
+              title:        k('시장가 매도', 'Market Sell'),
+              bodyHTML:
+                tcRowHTML(k('수량',     'Amount'),    `${qty} STO`, { primary: true }) +
+                tcRowHTML(k('매수금액', 'Bid price'), k('시장가격', 'Market price')),
+              note:         NOTE_MARKET,
+              confirmLabel: k('시장가 매도', 'Market Sell'),
+              confirmClass: 'sell',
+            };
+          } else {
+            // (2026-05-10 v217) Operator flipped Market Buy to use STO
+            //   input (matches Market Sell structure). Confirm dialog
+            //   now shows the same '수량 / 매도금액' rows.
+            dialogOpts = {
+              badgeText:    k('매수 · 시장가', 'BUY · MARKET'),
+              badgeClass:   'buy',
+              title:        k('시장가 매수', 'Market Buy'),
+              bodyHTML:
+                tcRowHTML(k('수량',     'Amount'),    `${qty} STO`, { primary: true }) +
+                tcRowHTML(k('매도금액', 'Ask price'), k('시장가격', 'Market price')),
+              note:         NOTE_MARKET,
+              confirmLabel: k('시장가 매수', 'Market Buy'),
+              confirmClass: 'buy',
+            };
+          }
+        } else {
+          // Limit: deterministic price chosen by the user — no estimate
+          //   markers, no note.
+          dialogOpts = {
+            badgeText:    k(`${sideLabel} · 지정가`, `${currentSide.toUpperCase()} · LIMIT`),
+            badgeClass:   isSell ? 'sell' : 'buy',
+            title:        k(`지정가 ${sideLabel}`, `Limit ${sideLabel}`),
+            bodyHTML:
+              tcRowHTML(k('가격', 'Price'),  `${price.toFixed(2)} USDT`) +
+              tcRowHTML(k('수량', 'Amount'), `${qty} STO`) +
+              tcRowHTML(k('총액', 'Total'),  `${(price*qty).toFixed(2)} USDT`, { primary: true }),
+            confirmLabel: k(isSell ? '매도 주문' : '매수 주문', isSell ? 'Sell Order' : 'Buy Order'),
+            confirmClass: isSell ? 'sell' : 'buy',
+          };
+        }
+
+        const proceed = await showTradeConfirm(dialogOpts);
+        if (!proceed) return;
+
+        // (2026-05-08) Slippage protection for Market orders.
+        //   Operator: '시장 가격이 바뀐 후 누르면 어떻게 되나?'
+        //   The 1st confirm() blocks the main thread, so the polling
+        //   cadence freezes while the user thinks. To make sure the
+        //   POST goes out at the CURRENT market — not the snapshot
+        //   shown in the dialog — we re-fetch the order book here,
+        //   compare to the agreed price, and either auto-adjust
+        //   (drift ≤ 5%) or pop a 2nd confirm with the new price
+        //   (drift > 5%). Limit orders skip this check entirely
+        //   because their price is the user's explicit choice.
+        if (isMarket) {
+          await refreshOrderBook();
+          const freshPrice = isSell ? bestBidPrice : bestAskPrice;
+          if (!freshPrice || freshPrice <= 0) {
+            return alert(tT(
+              '시장 호가가 사라졌습니다. 다시 시도하세요.',
+              'Market quote no longer available. Please retry.'
+            ));
+          }
+          const slippagePct = (price > 0)
+            ? Math.abs(freshPrice - price) / price * 100
+            : 100;
+          const SLIPPAGE_THRESHOLD = 5;
+          if (slippagePct > SLIPPAGE_THRESHOLD) {
+            // (2026-05-10 v211) Drift dialog uses the same modal as
+            //   the main order confirm but with the 'warn' visual
+            //   variant — amber badge + amber confirm button to
+            //   signal 'we're proceeding under changed conditions'.
+            const k = (ko, en) => (isKo() ? ko : en);
+            const driftProceed = await showTradeConfirm({
+              badgeText:    k('시세 변동 감지', 'PRICE MOVED'),
+              badgeClass:   'warn',
+              title:        k('시장 가격이 변동했습니다', 'Market Price Has Moved'),
+              bodyHTML:
+                tcRowHTML(k('이전', 'Was'),     `${price.toFixed(2)} USDT`) +
+                tcRowHTML(k('현재', 'Now'),     `${freshPrice.toFixed(2)} USDT`, { primary: true }) +
+                tcRowHTML(k('변동률', 'Drift'), `${slippagePct.toFixed(1)}%`, { estimate: true }),
+              note:         k(
+                '새 가격으로 진행하시겠습니까? 취소를 누르면 주문이 등록되지 않습니다.',
+                'Proceed at the new price? Cancel will abort the order.'
+              ),
+              confirmLabel: k('새 가격으로 진행', 'Proceed at New Price'),
+              confirmClass: 'warn',
+            });
+            if (!driftProceed) return;
+          }
+          // Use the fresh price for the actual order.
+          price = freshPrice;
+          // (2026-05-10 v217) Both Market Buy and Sell now use a fixed
+          //   token-qty input from the user, so no recompute is needed
+          //   when the price drifts — qty stays as the user entered.
+          //   Old behaviour (Buy recomputed qty = floor(usdtSpend/price))
+          //   was tied to the USDT-spend variant of Market Buy that's
+          //   been removed.
+        }
+
+        try {
+          const base = String(localStorage.getItem('rwa_api_base_v1') || '').trim();
+          const url = (base || '') + '/api/orders';
+          const token = String(w?.token || '');
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token ? `Bearer ${token}` : '',
+            },
+            body: JSON.stringify({
+              asset_id: 'SILICA-79907',
+              side: currentSide,
+              price,
+              amount: qty,
+              expiry: null,
+              // (2026-05-10 v209) Mark Market orders so the backend
+              //   drops any unfilled remainder instead of resting it
+              //   in the book. Race-fallback for clicks that landed
+              //   between the button-disable refresh and the POST.
+              order_type: isMarket ? 'market' : 'limit',
+            }),
+          });
+          const data = await r.json();
+          if (!r.ok) throw new Error(data?.error || data?.message || tT('주문 실패', 'Order failed'));
+
+          // (2026-05-10 v209) Market unfilled handler — backend dropped
+          //   the un-matched portion (no resting order). Tell the user
+          //   exactly how much filled vs. how much was cancelled.
+          if (data?.market_unfilled === true) {
+            const filled = Number(data.filled_qty || 0);
+            const remain = Number(data.remaining || 0);
+            const reqd   = Number(data.requested || qty);
+            if (filled > 0) {
+              showTradeResult(
+                'warn',
+                isKo() ? '일부만 체결되었습니다' : 'Partial fill only',
+                isKo()
+                  ? `시장 호가가 부족하여 일부만 체결되었습니다.\n\n  체결: ${filled} / ${reqd} STO\n  미체결 ${remain} STO 는 취소되었습니다 (오더북에 등록되지 않음).`
+                  : `Market quote insufficient — partial fill only.\n\n  Filled: ${filled} / ${reqd} STO\n  Unfilled ${remain} STO cancelled (not posted to book).`
+              );
+            } else {
+              showTradeResult(
+                'warn',
+                isKo() ? '주문 체결 실패' : 'Order did not fill',
+                isKo()
+                  ? '시장 호가가 사라져 체결되지 못했습니다.\n주문은 오더북에 등록되지 않았습니다. 잠시 후 다시 시도하세요.'
+                  : 'Market quote disappeared — order could not fill.\nNothing posted to the book. Please retry.'
+              );
+            }
+          } else {
+            // (2026-05-11 v258) Differentiate instant-fill vs resting
+            //   order. Operator: 'Buy 주문이 들어가지지 않는다.' The
+            //   order was actually executing on POST (limit price matched
+            //   the best ask, so the whole qty filled and nothing rested
+            //   on the book) — but the old success message said '주문
+            //   등록 완료' implying it sits on the book. User then
+            //   checked My Open Orders and saw nothing → 'didn't go in'.
+            //   Response shape (markets.php /api/orders):
+            //     filled_qty, remaining, avg_price, auto_matched.
+            //   Three states matter for the message:
+            //     - filled_qty > 0 && remaining <= 0  → fully filled
+            //     - filled_qty > 0 && remaining  > 0  → partial + rest
+            //     - filled_qty == 0                   → resting only
+            const filledQty = Number(data?.filled_qty || 0);
+            const restingQty = Math.max(0, Number(data?.remaining || 0));
+            const avgPrice = Number(data?.avg_price || 0);
+            const fillLine = (avgPrice > 0)
+              ? (isKo()
+                  ? `평균 체결가: ${avgPrice.toFixed(2)} USDT`
+                  : `Avg fill: ${avgPrice.toFixed(2)} USDT`)
+              : '';
+            if (filledQty > 0 && restingQty <= 0.000001) {
+              // Fully filled — no resting order
+              showTradeResult(
+                'good',
+                isKo() ? `${sideLabel} 체결 완료` : `${sideLabel} order filled`,
+                isKo()
+                  ? `${filledQty} STO 가 즉시 체결되었습니다.${fillLine ? '\n' + fillLine : ''}\n포트폴리오 / 거래 내역에서 확인하세요.`
+                  : `${filledQty} STO filled immediately.${fillLine ? '\n' + fillLine : ''}\nCheck your portfolio / trade history.`
+              );
+            } else if (filledQty > 0 && restingQty > 0) {
+              // Partial fill + remainder on book
+              showTradeResult(
+                'good',
+                isKo() ? `${sideLabel} 일부 체결 + 등록` : `${sideLabel} partial fill + posted`,
+                isKo()
+                  ? `즉시 체결: ${filledQty} STO\n오더북 등록: ${restingQty} STO${fillLine ? '\n' + fillLine : ''}`
+                  : `Filled now: ${filledQty} STO\nResting on book: ${restingQty} STO${fillLine ? '\n' + fillLine : ''}`
+              );
+            } else {
+              // No match — full order rests on the book
+              showTradeResult(
+                'good',
+                isKo() ? `${sideLabel} 주문 등록 완료` : `${sideLabel} order placed`,
+                isKo()
+                  ? `${restingQty} STO 가 오더북에 등록되었습니다.\n매수/매도 호가와 매칭되면 자동 체결됩니다.`
+                  : `${restingQty} STO posted to the order book.\nWill fill automatically when a matching counter-order appears.`
+              );
+            }
+          }
+          inputs.forEach(i => i.value = '');
+          if (totalInput) {
+            // In market mode the total IS user-input; clear it. In limit
+            // mode it's the auto-calc; reset to 0.00.
+            totalInput.value = isMarket ? '' : '0.00';
+          }
+          // Immediate refresh — bypass the polling cadence so the user
+          // sees their new order, any immediate match, and updated 24h
+          // stats / chart instantly.
+          refreshOrderBook();
+          refreshMyOrders();
+          refreshTrades();
+          // (v663) Available USDT / Holdings STO 도 즉시 갱신.
+          refreshBalance();
+        } catch (e) {
+          showTradeResult(
+            'bad',
+            tT('주문 실패', 'Order failed'),
+            String(e?.message || e || '')
+          );
+        }
+      });
+    }
+
+    // ============================================================
+    // (2026-05-08) Order book + My Open Orders renderer.
+    //   Earlier these elements (#orderbookSells / #orderbookBuys /
+    //   #myOpenOrdersBody) had no JS attached — placing an order
+    //   succeeded server-side but the page UI was a frozen
+    //   placeholder ("No sell orders" / "No buy orders" /
+    //   "No open orders.") forever. Operator: '나의 매수 주문이
+    //   오더북에 들어가지 않는다.'
+    //
+    //   trade.js (the canonical page handler in /pages/trade.js)
+    //   binds to legacy IDs that don't exist in current trade.html,
+    //   so it never wires up to this DOM. Easier path: add a
+    //   self-contained fetch+render block here that calls
+    //   /api/orders and updates the three regions every 8 seconds.
+    // ============================================================
+    const ASSET_ID_ORDERS = 'SILICA-79907';
+    const apiBaseFor = () => String(localStorage.getItem('rwa_api_base_v1') || '').trim();
+
+    // (2026-05-10 v208) bestAskPrice / bestBidPrice are now declared
+    //   far above (next to refreshOrderBtnLabel) so the label-disabler
+    //   can read them at first render without TDZ. Don't redeclare here.
+
+    const fetchJson = async (path, opt = {}) => {
+      const url = apiBaseFor() + path;
+      const headers = { 'Accept': 'application/json' };
+      if (opt.auth) {
+        const w = getWalletState();
+        const token = String(w?.token || '');
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+      }
+      const r = await fetch(url, { method: opt.method || 'GET', headers, body: opt.body || null });
+      let data = null;
+      try { data = await r.json(); } catch (_) {}
+      if (!r.ok) throw new Error(data?.error || data?.message || `HTTP ${r.status}`);
+      return data;
+    };
+
+    const fmtNum = (n, d = 2) => {
+      const x = Number(n);
+      if (!Number.isFinite(x)) return '—';
+      return x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    };
+
+    // (2026-05-11 v247) Pull the current trade-fee % from the asset row
+    //   so the displayed 'Fee (X%)' matches whatever the admin saved in
+    //   admin/settings.html. asset.fee_buyer and asset.fee_seller are
+    //   stored as whole-percent values (e.g. 0.5 means 0.5%), so we
+    //   divide by 100 to get the multiplier used in computeTradeFee().
+    //   Buy / sell currently share the same % (admin saves one value
+    //   to both columns); when that policy splits we can branch by
+    //   currentSide here.
+    const refreshTradeFeePct = async () => {
+      try {
+        const data = await fetchJson(`/api/assets/${encodeURIComponent(ASSET_ID_ORDERS)}`);
+        const asset = data?.asset;
+        if (!asset) return;
+        const pctWhole = Number(asset.fee_buyer ?? asset.fee_seller ?? 0);
+        if (!Number.isFinite(pctWhole) || pctWhole < 0) return;
+        TRADE_FEE_PCT = pctWhole / 100;
+        const lbl = document.getElementById('tradeFeePctLabel');
+        if (lbl) {
+          // Display whole-percent — strip trailing zeros for clean output
+          // (e.g. '0.5' instead of '0.50', '1' instead of '1.00').
+          const txt = (Math.round(pctWhole * 1000) / 1000).toString();
+          lbl.textContent = txt;
+        }
+        // Re-compute the visible 'Fee (X%)' number against current inputs.
+        if (typeof updateTotal === 'function') updateTotal();
+      } catch (e) {
+        console.warn('[trade] refreshTradeFeePct failed:', e?.message || e);
+      }
+    };
+    refreshTradeFeePct();
+
+    const orderbookSellsEl = document.getElementById('orderbookSells');
+    const orderbookBuysEl  = document.getElementById('orderbookBuys');
+    const orderbookSpreadEl = document.getElementById('orderbookSpread');
+    const myOpenOrdersBody = document.getElementById('myOpenOrdersBody');
+
+    const renderOrderRow = (o) => {
+      const price  = Number(o.price || 0);
+      const remain = Number(o.remaining || o.amount || 0);
+      const total  = price * remain;
+      const sideClass = (o.side === 'sell') ? 'sell' : 'buy';
+      return `<div class="ob-row ${sideClass}">
+        <span class="price">${fmtNum(price, 2)}</span>
+        <span class="amount">${fmtNum(remain, 0)}</span>
+        <span class="total">${fmtNum(total, 2)}</span>
+      </div>`;
+    };
+
+    const renderEmpty = (msg) =>
+      `<div class="text-center text-muted" style="padding:16px 0;font-size:12px;">${msg}</div>`;
+
+    // (2026-05-20 v663) 매수/매도 체결 후 사용자 잔고(Available USDT /
+    //   Holdings STO) 즉시 갱신. 이전엔 페이지 로드 시점의 silica-data-bind
+    //   초기값만 표시되어 거래 후 새로고침 전까지는 stale balance 가 보였음.
+    //   /api/me (USDT) + /api/portfolio (STO holdings) 호출하여 #tradeAvailable
+    //   / #tradeAvailableSto 두 DOM 만 갱신. 다른 카드는 영향 없음.
+    const refreshBalance = async () => {
+      try {
+        const w = (typeof RwaCore !== 'undefined' && RwaCore?.getWallet) ? RwaCore.getWallet() : null;
+        if (!w?.connected || !w?.token) return;
+        const [me, pf] = await Promise.all([
+          fetchJson('/api/me', { auth: true }).catch(() => null),
+          fetchJson('/api/portfolio', { auth: true }).catch(() => null),
+        ]);
+        const usdtVal = Number(me?.usdt ?? me?.user?.usdt ?? 0) || 0;
+        // STO 토큰 보유량 — portfolio.holdings 에서 SILICA-79907 찾기
+        const holdings = Array.isArray(pf?.holdings) ? pf.holdings : [];
+        const sto = holdings.find(h => String(h?.asset_id || '').toUpperCase().includes('SILICA-79907'));
+        const stoBal = Number(sto?.balance_token ?? sto?.balance ?? 0) || 0;
+        const fmt2 = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmt0 = (n) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const elU = document.getElementById('tradeAvailable');
+        const elS = document.getElementById('tradeAvailableSto');
+        if (elU) elU.textContent = `${fmt2(usdtVal)} USDT`;
+        if (elS) elS.textContent = `${fmt0(stoBal)} STO`;
+      } catch (e) {
+        // 잔고 갱신 실패는 무시 (다음 polling 또는 새로고침 때 재시도)
+        console.warn('[refreshBalance]', e?.message || e);
+      }
+    };
+
+    const refreshOrderBook = async () => {
+      try {
+        const data = await fetchJson(`/api/orders?asset_id=${encodeURIComponent(ASSET_ID_ORDERS)}&status=open&limit=50`);
+        const orders = Array.isArray(data?.orders) ? data.orders : [];
+        const sells = orders.filter(o => o.side === 'sell').sort((a, b) => Number(a.price) - Number(b.price));
+        const buys  = orders.filter(o => o.side === 'buy').sort((a, b) => Number(b.price) - Number(a.price));
+
+        if (orderbookSellsEl) {
+          orderbookSellsEl.innerHTML = sells.length
+            ? sells.slice(0, 10).reverse().map(renderOrderRow).join('')
+            : renderEmpty(tTrade('매도 주문 없음', 'No sell orders'));
+        }
+        if (orderbookBuysEl) {
+          orderbookBuysEl.innerHTML = buys.length
+            ? buys.slice(0, 10).map(renderOrderRow).join('')
+            : renderEmpty(tTrade('매수 주문 없음', 'No buy orders'));
+        }
+        // Cache best prices for Market-mode order submit (best opposing
+        // price = the price the taker would actually pay).
+        bestAskPrice = sells.length ? Number(sells[0].price) : null;
+        bestBidPrice = buys.length  ? Number(buys[0].price)  : null;
+        // (2026-05-10 v208) Re-evaluate the order button label so a
+        //   Market-mode user sees the disabled/enabled state flip as
+        //   soon as the opposing-side book empties or fills back up.
+        refreshOrderBtnLabel();
+
+        if (orderbookSpreadEl) {
+          if (sells.length && buys.length) {
+            const spread = bestAskPrice - bestBidPrice;
+            orderbookSpreadEl.textContent = `↕ ${fmtNum(spread, 2)} USDT`;
+          } else {
+            orderbookSpreadEl.textContent = '↕ — USDT';
+          }
+        }
+      } catch (e) {
+        // Network / 4xx — leave existing content; surface only console
+        // warning so transient hiccups don't spam the user.
+        console.warn('[trade] orderbook refresh failed:', e?.message || e);
+      }
+    };
+
+    const renderMyOrderRow = (o) => {
+      // (2026-05-20 v669) created_at UTC → local timezone 변환 (robust 버전).
+      const tsRaw = String(o.created_at || '').trim();
+      const d = parseServerUtc(tsRaw);
+      let ts;
+      if (d) {
+        const pad = (n) => String(n).padStart(2, '0');
+        ts = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } else {
+        ts = tsRaw ? tsRaw.replace('T', ' ').slice(0, 16) : '-';
+      }
+      const sideTxt = (o.side === 'sell')
+        ? (isKoTrade() ? '매도' : 'Sell')
+        : (isKoTrade() ? '매수' : 'Buy');
+      const sideClass = (o.side === 'sell') ? 'side-sell' : 'side-buy';
+      const remain = Number(o.remaining || o.amount || 0);
+      const filled = Number(o.amount || 0) - remain;
+      const status = String(o.status || 'open');
+      const statusBadge = status === 'open'
+        ? `<span class="badge" style="background:rgba(124,58,237,0.15);color:#7C3AED">${tTrade('열림', 'Open')}</span>`
+        : `<span class="badge">${status}</span>`;
+      const cancelBtn = (status === 'open')
+        ? `<button class="btn small" data-cancel-id="${o.id}" type="button">${tTrade('취소', 'Cancel')}</button>`
+        : '—';
+      return `<tr>
+        <td class="text-mono" style="font-size:11px">${ts}</td>
+        <td><span class="${sideClass}" style="font-weight:700">${sideTxt}</span></td>
+        <td class="text-mono">${fmtNum(o.price, 2)}</td>
+        <td class="text-mono">${fmtNum(o.amount, 0)}</td>
+        <td class="text-mono">${fmtNum(filled, 0)}</td>
+        <td>${statusBadge}</td>
+        <td>${cancelBtn}</td>
+      </tr>`;
+    };
+
+    const refreshMyOrders = async () => {
+      if (!myOpenOrdersBody) return;
+      const w = getWalletState();
+      if (!w?.connected || !w?.token) {
+        myOpenOrdersBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted" style="padding:32px 0">${tTrade('지갑을 연결해 내 주문을 확인하세요.', 'Connect your wallet to view your orders.')}</td></tr>`;
+        return;
+      }
+      try {
+        const data = await fetchJson(`/api/orders?asset_id=${encodeURIComponent(ASSET_ID_ORDERS)}&status=open&mine=1&limit=50`, { auth: true });
+        const orders = Array.isArray(data?.orders) ? data.orders : [];
+        if (!orders.length) {
+          myOpenOrdersBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted" style="padding:32px 0">${tTrade('미체결 주문 없음.', 'No open orders.')}</td></tr>`;
+          return;
+        }
+        myOpenOrdersBody.innerHTML = orders.map(renderMyOrderRow).join('');
+        // Wire cancel buttons
+        myOpenOrdersBody.querySelectorAll('button[data-cancel-id]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.dataset.cancelId;
+            if (!id) return;
+            if (!confirm(tTrade('이 주문을 취소하시겠습니까?', 'Cancel this order?'))) return;
+            btn.disabled = true;
+            try {
+              await fetchJson(`/api/orders/${encodeURIComponent(id)}/cancel`, { method: 'POST', auth: true });
+              refreshOrderBook();
+              refreshMyOrders();
+              // (v663) 취소 시 에스크로 환불 → Available 즉시 갱신.
+              refreshBalance();
+            } catch (e) {
+              alert(tTrade('취소 실패: ', 'Cancel failed: ') + (e?.message || e));
+              btn.disabled = false;
+            }
+          });
+        });
+      } catch (e) {
+        console.warn('[trade] my-orders refresh failed:', e?.message || e);
+      }
+    };
+
+    // ============================================================
+    // (2026-05-08) Trades feed → Recent Trades list + header 24h
+    //   stats + Peg-view stats + minimal candle chart.
+    //
+    //   Operator: '거래가 체결 되었지만, 차트가 생성 되지 않고,
+    //   거래량 변동이 없다.' Backend GET /api/trades works and
+    //   the trades table receives rows on every match, but no
+    //   client-side code was reading them — every header stat
+    //   stayed at the silica-data-bind.js-set placeholder
+    //   ('0 STO' / '— USDT' / '0.00%') and the chart stayed
+    //   on its 'No chart data' overlay forever.
+    // ============================================================
+    const tradeRecentEl   = document.getElementById('tradeRecent');
+    const tradeChartLast  = document.getElementById('tradeChartLast');
+    const tradeChartCandles = document.getElementById('tradeChartCandles');
+    const tradeChartEmpty = document.querySelector('#tradeChartArea .chart-empty-overlay');
+
+    const setTextById = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    };
+
+    // (2026-05-20 v669) Helper — 서버 응답의 created_at 등 UTC datetime
+    //   문자열을 안전하게 Date 객체로 변환. 백엔드 nowUtcSql() 가
+    //   'YYYY-MM-DD HH:MM:SS' (UTC) 로 저장하지만 'Z' 타임존 마커 없어
+    //   JS new Date() 가 local time 으로 잘못 파싱하는 문제 해결.
+    //   다양한 입력 포맷 대응:
+    //     'YYYY-MM-DD HH:MM:SS'                  → UTC로 가정
+    //     'YYYY-MM-DDTHH:MM:SS'                  → UTC로 가정
+    //     'YYYY-MM-DDTHH:MM:SS.123456'           → 미세초 strip 후 UTC
+    //     'YYYY-MM-DDTHH:MM:SSZ' / '+09:00' 등   → 그대로 (이미 TZ 명시)
+    //   반환: Date 또는 null (parse 실패 시)
+    const parseServerUtc = (s) => {
+      if (!s) return null;
+      let str = String(s).trim();
+      if (!str) return null;
+      // 이미 타임존 마커가 있으면 그대로 파싱
+      const hasTz = /Z$|[+-]\d{2}:?\d{2}$/i.test(str);
+      if (!hasTz) {
+        if (str.includes(' ')) str = str.replace(' ', 'T');
+        str = str.replace(/\.\d+$/, '');  // 미세초 부분 strip
+        str += 'Z';
+      }
+      const d = new Date(str);
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
+
+    // (2026-05-08) Tick-direction coloring (was peg-based, which made
+    //   every trade < $1 show red regardless of trend). Now: green if
+    //   this trade's price > the chronologically previous trade,
+    //   red if lower, neutral on equal / first row. Operator:
+    //   '시세가 1달러 미만일때 무언가 이상하다.'
+    //   Caller passes (trade, prevPrice) so we don't have to peek at
+    //   the surrounding array here.
+    const renderTradeRow = (t, prevPrice) => {
+      // (2026-05-20 v669) created_at UTC → local timezone 변환 (robust 버전).
+      const tsRaw = String(t.created_at || '').trim();
+      const d = parseServerUtc(tsRaw);
+      let ts;
+      if (d) {
+        const pad = (n) => String(n).padStart(2, '0');
+        ts = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } else {
+        ts = tsRaw ? tsRaw.replace('T', ' ').slice(0, 16) : '-';
+      }
+      const price = Number(t.price || 0);
+      const amt   = Number(t.amount || 0);
+      let colorClass = '';
+      if (prevPrice !== null && Number.isFinite(prevPrice)) {
+        if (price > prevPrice) colorClass = 'side-buy';
+        else if (price < prevPrice) colorClass = 'side-sell';
+      }
+      const colorStyle = colorClass ? '' : 'color:#0F172A;';
+      return `<div class="ob-row" style="padding:6px 0;border-bottom:1px solid #F1F5F9;">
+        <span style="font-size:11px;color:#94A3B8;">${ts}</span>
+        <span class="${colorClass}" style="font-weight:700;text-align:right;${colorStyle}">${fmtNum(price, 2)}</span>
+        <span style="text-align:right;color:#475569;">${fmtNum(amt, 0)} STO</span>
+      </div>`;
+    };
+
+    const tradeChartYAxis = document.getElementById('tradeChartYAxis');
+    const tradeChartXAxis = document.getElementById('tradeChartXAxis');
+    const tradeChartTrail = document.getElementById('tradeChartTrail');
+    const tradeChartArea = document.getElementById('tradeChartArea');
+
+    // (2026-05-11 v245) Interactive y-axis zoom — operator: '막대를
+    //   마우스로 줄여서 볼 수 없다, 1usdt 이상의 막대 상태를 볼 수
+    //   없다.' Mouse-wheel over the chart adjusts the y-range so the
+    //   user can zoom out to see prices above the auto-fit range
+    //   (e.g. include the peg + previous days). Double-click resets.
+    let chartZoom = 1.0;         // 1.0 = auto-fit; <1 = zoomed out; >1 = zoomed in
+    let lastChartTrades = [];    // cached so wheel events can re-render without refetch
+
+    const renderTradeChart = (trades) => {
+      if (!tradeChartCandles) return;
+      lastChartTrades = trades;  // cache for wheel-zoom re-render
+      // (2026-05-19 v594) 운영자 요청 — 거래 데이터 없으면 SilicaSTO 의 1 USDT
+      //   peg 시세를 기본값으로 베이스라인 표시. "No chart data" 안내 대신
+      //   1 USDT 수평선 (flat 캔들 한 개) 렌더링.
+      if (!trades.length) {
+        const now = new Date();
+        const isoNow = now.toISOString().replace('T', ' ').slice(0, 19);
+        trades = [{ id: 0, created_at: isoNow, price: 1.0, amount: 0 }];
+      }
+      if (tradeChartEmpty) tradeChartEmpty.style.display = 'none';
+
+      // (2026-05-08 v3) Sort oldest → newest with id as tiebreaker.
+      //   Two-step comparator. v2 used a single numeric key
+      //   (timestamp * 1e7 + id), but Unix-ms timestamps ~1.75e12
+      //   times 1e7 give ~1.75e19, exceeding JS's
+      //   Number.MAX_SAFE_INTEGER (~9e15) — tiebreaker bits got
+      //   silently dropped, so the fix didn't actually take effect.
+      //   Comparator-based sort avoids the precision loss entirely.
+      //   Operator's debug log confirmed: API gave id=32 P=0.50
+      //   newest, id=31 P=1.00 second, both at 07:20:14, but the
+      //   chart still computed C=1.00 because the broken key
+      //   collapsed 31 and 32 to the same value.
+      const tradeCmp = (a, b) => {
+        const ta = new Date(a.created_at).getTime() || 0;
+        const tb = new Date(b.created_at).getTime() || 0;
+        if (ta !== tb) return ta - tb;
+        const ia = Number(a.id) || 0;
+        const ib = Number(b.id) || 0;
+        return ia - ib;
+      };
+      const sorted = [...trades].sort(tradeCmp);
+
+      // (2026-05-08) Daily bars (1D timeframe). Operator: '일봉 막대이므로
+      //   하루에 하나의 봉에서 움직여야한다.' Group trades by local
+      //   YYYY-MM-DD, compute OHLC per day, render one candle per day.
+      //   Color: green if close >= open, red if close < open.
+      //   Bar vertical extent = low → high (the daily range).
+      // (2026-05-20 v669) UTC → local timezone 변환 (robust 버전).
+      const byDate = new Map();
+      sorted.forEach((t) => {
+        const d = parseServerUtc(t.created_at);
+        if (!d) return;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (!byDate.has(key)) byDate.set(key, []);
+        byDate.get(key).push(t);
+      });
+
+      const days = [];
+      byDate.forEach((bucket, dateKey) => {
+        // Same id-aware comparator as the outer sort, applied per
+        // day-bucket so open/close pick the genuine first/last trade.
+        const tradesSorted = bucket.slice().sort(tradeCmp);
+        const prices = tradesSorted.map(t => Number(t.price || 0)).filter(p => p > 0);
+        if (!prices.length) return;
+        days.push({
+          date: dateKey,
+          open:  prices[0],
+          close: prices[prices.length - 1],
+          high:  Math.max(...prices),
+          low:   Math.min(...prices),
+          count: prices.length,
+        });
+      });
+
+      if (!days.length) {
+        tradeChartCandles.innerHTML = '';
+        if (tradeChartYAxis) tradeChartYAxis.innerHTML = '';
+        if (tradeChartXAxis) tradeChartXAxis.innerHTML = '';
+        if (tradeChartTrail) tradeChartTrail.innerHTML = '';
+        return;
+      }
+
+      // (2026-05-08) Chart debug — inline string format so OHLC values
+      //   show without expanding objects. Also dumps raw API order
+      //   (newest-first) so we can verify the id-based sort fix.
+      try {
+        const summary = days.map((d, idx) => {
+          const pc = idx > 0 ? days[idx - 1].close : null;
+          let color;
+          if (d.close > d.open + 1e-9) color = 'GREEN';
+          else if (d.close < d.open - 1e-9) color = 'RED';
+          else if (pc !== null) color = (d.close >= pc) ? 'GREEN' : 'RED';
+          else color = 'GREEN';
+          return `${d.date}: O=${(+d.open).toFixed(2)} H=${(+d.high).toFixed(2)} L=${(+d.low).toFixed(2)} C=${(+d.close).toFixed(2)} ${color} (n=${d.count}${pc !== null ? `,prevC=${pc.toFixed(2)}` : ''})`;
+        }).join(' | ');
+        // eslint-disable-next-line no-console
+        console.log(`[silica][chart-debug] trade_count=${trades.length} ${summary}`);
+
+        const tradePeek = trades.slice(0, 6).map(t =>
+          `id=${t.id} ${String(t.created_at).slice(11, 19)} P=${(+t.price).toFixed(2)}`
+        ).join(' | ');
+        // eslint-disable-next-line no-console
+        console.log(`[silica][chart-debug] api_order(newest_first)= ${tradePeek}`);
+      } catch (_) { /* no-throw debug */ }
+
+      // (2026-05-11 v241) Auto-zoom on the data range instead of
+      //   force-anchoring the peg into y-axis. When today's prices are
+      //   3-5 USDT and the peg is 1.00, the old logic stretched the
+      //   y-axis to [0.97, 5.15], leaving the bottom half empty and
+      //   making the candle look top-heavy. Operator: '차트가 이상하게
+      //   나온다.' Now: pad ±10% around the data's actual high/low.
+      //   The peg line still draws when it happens to fall within the
+      //   visible range; otherwise it's omitted (no off-chart anchor).
+      const allPrices = days.flatMap(d => [d.high, d.low]);
+      const lowest  = Math.min(...allPrices);
+      const highest = Math.max(...allPrices);
+      const dataRange = highest - lowest;
+      // Pad: 10% of range, or 5% of price if range is tiny.
+      const padding = dataRange > 0.0001
+        ? dataRange * 0.10
+        : Math.max(highest * 0.05, 0.05);
+      const autoMinP = Math.max(0, lowest - padding);
+      const autoMaxP = highest + padding;
+
+      // (2026-05-11 v245) Apply user wheel-zoom around the auto-fit
+      //   center. zoom < 1 widens range (zooms OUT — shrinks candles),
+      //   zoom > 1 narrows range (zooms IN — enlarges candles). Center
+      //   stays put so prices don't drift while user scrolls.
+      const fitCenter = (autoMinP + autoMaxP) / 2;
+      const fitHalf   = (autoMaxP - autoMinP) / 2;
+      const halfRange = fitHalf / Math.max(0.01, chartZoom);
+      const minP = Math.max(0, fitCenter - halfRange);
+      const maxP = fitCenter + halfRange;
+      const range = maxP - minP || 0.1;
+
+      // (2026-05-11 v241) Adaptive candle width — see .candle CSS comment.
+      const candleMaxWidth = days.length === 1 ? '28px'
+        : days.length <= 5 ? '24px'
+        : days.length <= 15 ? '14px'
+        : '8px';
+      tradeChartCandles.style.setProperty('--candle-max-width', candleMaxWidth);
+      // (2026-05-11 v242) Grid layout: each candle gets a 1fr column,
+      //   x-axis tick gets the matching column → labels align with bars.
+      tradeChartCandles.style.setProperty('--day-count', String(days.length));
+      if (tradeChartXAxis) tradeChartXAxis.style.setProperty('--day-count', String(days.length));
+
+      // (2026-05-11 v248) Cluster sparse-data candles toward the center.
+      //   Operator: '막대가 서로 너무 떨어져 있다.' With the default 1fr
+      //   columns spanning the full chart width, two candles end up at
+      //   25% / 75% horizontally — the gap between them is half the
+      //   entire chart. Solution: shrink the candle area to a fixed
+      //   centered width based on day count, so the candles cluster
+      //   together. max() preserves the y-axis label gutter and the
+      //   left padding when the viewport is narrow (mobile).
+      //   halfClusterPx = half the desired candle-area width in pixels.
+      //   null = use default full-width layout.
+      const halfClusterPx = days.length === 1 ? 50
+        : days.length === 2 ? 130
+        : days.length <= 5  ? 230
+        : days.length <= 10 ? 330
+        : null;
+      const applyHInset = (el) => {
+        if (!el) return;
+        if (halfClusterPx === null) {
+          el.style.left = '';
+          el.style.right = '';
+        } else {
+          el.style.left  = `max(20px, calc(50% - ${halfClusterPx}px))`;
+          el.style.right = `max(56px, calc(50% - ${halfClusterPx}px))`;
+        }
+      };
+      applyHInset(tradeChartCandles);
+      applyHInset(tradeChartTrail);
+      applyHInset(tradeChartXAxis);
+
+      // (2026-05-11 v244) Track each candle's close position so we can
+      //   draw a trajectory polyline + price tags. closePct here is the
+      //   close price's height percentage relative to the chart area.
+      const candleMeta = [];
+
+      tradeChartCandles.innerHTML = days.map((d, idx) => {
+        // Outer container = the wick range (low → high) on the chart's
+        //   y-axis. CSS ::before draws the thin vertical wick line.
+        const lowPct  = ((d.low  - minP) / range) * 100;
+        const highPct = ((d.high - minP) / range) * 100;
+        // (2026-05-20 v666) 운영자 직관에 맞춰 캔들 색상 로직 변경.
+        //   운영자: '전일 종가 1.00 → 오늘 종가 0.80 인 경우 막대가
+        //   빨간색이어야 한다.' 표준 candlestick 은 intra-day open vs
+        //   close 만 보지만, 운영자 의도는 '전일 대비 트렌드'.
+        //   1순위: intra-day close vs open (분명한 상승/하락 우선)
+        //   2순위: doji (open ≈ close) 인 경우엔 전일 종가와 비교
+        const prevClose = idx > 0 ? days[idx - 1].close : null;
+        let isUp;
+        if (d.close > d.open + 1e-9) {
+          isUp = true;
+        } else if (d.close < d.open - 1e-9) {
+          isUp = false;
+        } else if (prevClose !== null) {
+          // intra-day 변동 없음 (open ≈ close) → 전일 close 와 비교
+          isUp = d.close >= prevClose;
+        } else {
+          isUp = true;  // 첫 일자 (전일 데이터 없음) — 기본 GREEN
+        }
+
+        // (2026-05-11 v261) Single-trade-day handling — operator: '막대가
+        //   1 높이에 있어야하지만, 1보다 낮은 높이를 가지고 있다.'
+        //   When high == low (only one trade in the day, e.g. a single
+        //   trade at exactly 1.00 on the peg), the old logic inflated
+        //   the wick to a 2% min-height for visibility and positioned
+        //   the body at 50% of THAT wick → body floated ~1% (≈3px)
+        //   above the actual price line. Visual: small green bar
+        //   hovering just above the 1.00 dashed peg line.
+        //   Fix: when there's no real low-high range, drop the wick
+        //   entirely (height: 0) and use inline negative-px bottom on
+        //   the body so it straddles the price level — bottom edge
+        //   1.5px below price, top edge 1.5px above. Body's CSS
+        //   min-height: 3px keeps it visible.
+        const dayRange = d.high - d.low;
+        const isSingleTrade = !(dayRange > 0.000001);
+        const wickHeightPct = isSingleTrade
+          ? 0
+          : Math.max(2, highPct - lowPct);
+
+        // Inner .candle-body = the open-close body, positioned within
+        //   the wick range (i.e. percentages here are relative to the
+        //   wick's pixel height, not the chart's).
+        const bodyMin  = Math.min(d.open, d.close);
+        const bodyMax  = Math.max(d.open, d.close);
+        let bodyBottomPct, bodyHeightPct;
+        if (!isSingleTrade) {
+          bodyBottomPct = ((bodyMin - d.low) / dayRange) * 100;
+          bodyHeightPct = ((bodyMax - bodyMin) / dayRange) * 100;
+        } else {
+          bodyBottomPct = 0;  // unused — overridden by inline style below
+          bodyHeightPct = 0;
+        }
+        const bodyStyle = isSingleTrade
+          // Center the 3px body on the price line: bottom: -1.5px shifts
+          //   the body's bottom edge half-its-height below the candle
+          //   container bottom (which sits exactly at lowPct% = the
+          //   single trade's price). min-height: 3px from .candle-body
+          //   CSS keeps the body visible.
+          ? `bottom:-1.5px; height:3px;`
+          : `bottom:${bodyBottomPct}%; height:${bodyHeightPct}%;`;
+
+        const closePct = ((d.close - minP) / range) * 100;
+        // x-position: center of this column in the candle grid.
+        const xPct = (idx + 0.5) * (100 / days.length);
+        candleMeta.push({ xPct, closePct, isUp });
+
+        // (2026-05-11 v265) Per-candle price tag removed — operator: '막대
+        //   차트 위에 있는 1.00 표기를 제거해줘.' The dashed trajectory
+        //   line + y-axis ticks + hover tooltip (`title` attr below)
+        //   already convey close prices, and the floating tag cluttered
+        //   the chart when candles sat near the peg line.
+        const tip = `${d.date} · O ${d.open.toFixed(2)} H ${d.high.toFixed(2)} L ${d.low.toFixed(2)} C ${d.close.toFixed(2)} · ${d.count} ${d.count === 1 ? 'trade' : 'trades'}`;
+        // (2026-05-11 v262) Wrap in .candle-col so the absolute-positioned
+        //   .candle inside resolves bottom/height against the column's
+        //   actual rendered HEIGHT (= chart's vertical range) instead of
+        //   the column's width (margin-percentage's wrong-axis default).
+        return `<div class="candle-col">
+          <div class="candle ${isUp ? '' : 'red'}" style="height:${wickHeightPct}%; bottom:${lowPct}%;" title="${tip}">
+            <div class="candle-body" style="${bodyStyle}"></div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // (2026-05-11 v244) Trajectory polyline connecting candle closes.
+      //   SVG viewBox 0 0 100 100 with preserveAspectRatio:none lets us
+      //   use percentage-based coordinates and the line stretches to fit
+      //   the chart-area without recomputing on resize.
+      if (tradeChartTrail && candleMeta.length >= 2) {
+        // SVG y-axis is top-down (0 = top), so we invert: y = 100 - closePct.
+        const points = candleMeta.map(m => `${m.xPct.toFixed(2)},${(100 - m.closePct).toFixed(2)}`).join(' ');
+        tradeChartTrail.setAttribute('viewBox', '0 0 100 100');
+        tradeChartTrail.innerHTML = `<polyline points="${points}" vector-effect="non-scaling-stroke"></polyline>`;
+      } else if (tradeChartTrail) {
+        tradeChartTrail.innerHTML = '';
+      }
+
+      // (2026-05-08 v2) Y-axis price scale.
+      //   3 evenly-spaced ticks (min, mid, max) + dashed peg line at
+      //   1.00 USDT when in range. Was 5 ticks but the 25%/75% labels
+      //   sat too close to the peg label whenever the visible range
+      //   was asymmetric around 1.00 (e.g. min 0.48 max 3.09 → 25% =
+      //   1.14, only ~5% above the peg position 19.9%) → labels
+      //   visually overlapped. 3 ticks + peg gives plenty of breathing
+      //   room. Regular ticks within 8% of the peg position are
+      //   suppressed so only the peg tick is drawn there.
+      if (tradeChartYAxis) {
+        const parts = [];
+        const baseTickPositions = [0, 50, 100]; // min, mid, max
+        const hasPeg = (minP <= 1.0 && maxP >= 1.0);
+        const pegPct = hasPeg ? ((1.0 - minP) / range) * 100 : -1;
+
+        baseTickPositions.forEach((bottomPct) => {
+          const p = minP + range * (bottomPct / 100);
+          // Skip regular tick if peg tick lands within 8% of it
+          if (hasPeg && Math.abs(bottomPct - pegPct) < 8) return;
+          // Horizontal guide line at the inner tick (50%) only
+          if (bottomPct === 50) {
+            parts.push(`<div class="chart-y-line" style="bottom:${bottomPct}%"></div>`);
+          }
+          parts.push(`<div class="chart-y-tick" style="bottom:${bottomPct}%">${p.toFixed(2)}</div>`);
+        });
+
+        // Peg reference (1.00 USDT) — dashed purple line + special tick
+        if (hasPeg) {
+          parts.push(`<div class="chart-y-line peg" style="bottom:${pegPct}%"></div>`);
+          parts.push(`<div class="chart-y-tick peg" style="bottom:${pegPct}%">1.00</div>`);
+        }
+        tradeChartYAxis.innerHTML = parts.join('');
+      }
+
+      // (2026-05-08 v3) X-axis date labels — one MM-DD per day candle
+      //   (sampled if more than 5 days). Each label corresponds to a
+      //   candle in the days array, so labels naturally align with
+      //   candle positions.
+      // (2026-05-11 v242) One x-axis label per candle (1-to-1 column
+      //   mapping with the grid). For dense charts (>10 days) only
+      //   render labels for every Nth column so they don't overlap;
+      //   intermediate columns get a non-breaking placeholder so the
+      //   grid still aligns. Labels are <div> per column so the same
+      //   grid-template-columns can position them under their bars.
+      if (tradeChartXAxis) {
+        const fmtDate = (key) => (key.length >= 10 ? key.slice(5) : key);
+        // Show every Nth label so they don't overlap on dense charts.
+        const stride = days.length <= 10 ? 1
+          : days.length <= 20 ? 2
+          : Math.ceil(days.length / 10);
+        tradeChartXAxis.innerHTML = days.map((d, i) => {
+          const showLabel = (i % stride === 0) || (i === days.length - 1);
+          const text = showLabel ? fmtDate(d.date) : '';
+          return `<div class="chart-x-tick"${showLabel ? '' : ' style="background:transparent;visibility:hidden"'}>${text || '&nbsp;'}</div>`;
+        }).join('');
+      }
+    };
+
+    // (2026-05-11 v245) Wheel-zoom + dblclick reset.
+    //   - Mouse wheel inside chart-area zooms the y-axis range. Scroll
+    //     UP = zoom IN (smaller visible range, larger bars). Scroll DOWN
+    //     = zoom OUT (larger visible range, smaller bars — lets user see
+    //     prices above/below the auto-fit window).
+    //   - Double-click resets zoom to 1.0 (auto-fit).
+    //   - preventDefault stops the page from scrolling while the cursor
+    //     is over the chart.
+    const tradeChartZoomHint = document.getElementById('tradeChartZoomHint');
+    const tradeChartZoomVal = document.getElementById('tradeChartZoomVal');
+    const updateZoomHint = () => {
+      if (!tradeChartZoomHint) return;
+      if (Math.abs(chartZoom - 1.0) < 0.001) {
+        tradeChartZoomHint.style.display = 'none';
+      } else {
+        tradeChartZoomHint.style.display = '';
+        if (tradeChartZoomVal) tradeChartZoomVal.textContent = `${chartZoom.toFixed(2)}×`;
+      }
+    };
+    if (tradeChartArea) {
+      tradeChartArea.addEventListener('wheel', (e) => {
+        if (!lastChartTrades || !lastChartTrades.length) return;
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+        chartZoom = Math.max(0.05, Math.min(20, chartZoom * factor));
+        renderTradeChart(lastChartTrades);
+        updateZoomHint();
+      }, { passive: false });
+
+      tradeChartArea.addEventListener('dblclick', () => {
+        if (chartZoom === 1.0) return;
+        chartZoom = 1.0;
+        if (lastChartTrades && lastChartTrades.length) {
+          renderTradeChart(lastChartTrades);
+        }
+        updateZoomHint();
+      });
+    }
+
+    let lastSpreadFromBook = null;
+
+    const refreshTrades = async () => {
+      try {
+        const data = await fetchJson(`/api/trades?asset_id=${encodeURIComponent(ASSET_ID_ORDERS)}&limit=200`);
+        const trades = Array.isArray(data?.trades) ? data.trades : [];
+
+        // Recent Trades list (latest 3 — operator wants compact view).
+        //   Each row is colored by tick direction vs the chronologically
+        //   previous trade (newest-first array → prev = arr[i+1]).
+        if (tradeRecentEl) {
+          if (!trades.length) {
+            tradeRecentEl.innerHTML = `<div class="text-center text-muted" style="padding:24px 0;">${tTrade('최근 거래 없음.', 'No recent trades.')}</div>`;
+          } else {
+            const recent = trades.slice(0, 3);
+            tradeRecentEl.innerHTML = recent.map((t, i) => {
+              const prevPrice = trades[i + 1] ? Number(trades[i + 1].price || 0) : null;
+              return renderTradeRow(t, prevPrice);
+            }).join('');
+          }
+        }
+
+        // 24h window — used by header stats only
+        const now = Date.now();
+        const day = 24 * 60 * 60 * 1000;
+        const trades24h = trades.filter(t => {
+          const ts = new Date(t.created_at).getTime();
+          return Number.isFinite(ts) && (now - ts) < day;
+        });
+
+        const vol24h = trades24h.reduce((s, t) => s + Number(t.amount || 0), 0);
+        const prices24h = trades24h.map(t => Number(t.price || 0)).filter(p => p > 0);
+        const high24h = prices24h.length ? Math.max(...prices24h) : 0;
+        const lastPrice = trades.length ? Number(trades[0].price || 0) : 0;
+        const oldest24h = trades24h.length ? Number(trades24h[trades24h.length - 1].price || 0) : 0;
+        const change24h = (oldest24h > 0 && lastPrice > 0)
+          ? ((lastPrice - oldest24h) / oldest24h * 100)
+          : 0;
+
+        // Header stats
+        setTextById('tradePrice',  lastPrice > 0 ? `${fmtNum(lastPrice, 2)} USDT` : '— USDT');
+        setTextById('tradeHigh',   high24h   > 0 ? `${fmtNum(high24h, 2)} USDT`   : '— USDT');
+        setTextById('tradeChange', `${change24h >= 0 ? '+' : ''}${fmtNum(change24h, 2)}%`);
+        setTextById('tradeVolume', `${fmtNum(vol24h, 0)} STO`);
+        if (tradeChartLast) {
+          tradeChartLast.textContent = lastPrice > 0
+            ? `${tTrade('직전', 'Last')}: ${fmtNum(lastPrice, 2)} USDT`
+            : `${tTrade('직전', 'Last')}: — USDT`;
+        }
+
+        // Peg-view stats (volume + count) — Spread is set by orderbook refresh
+        setTextById('peg24hVol',    vol24h > 0 ? `${fmtNum(vol24h, 0)} STO` : '— STO');
+        setTextById('peg24hTrades', String(trades24h.length));
+        if (lastSpreadFromBook !== null) {
+          setTextById('pegSpread', `${fmtNum(lastSpreadFromBook, 2)} USDT`);
+        }
+
+        // (2026-06-17 v910 trade2) 차트는 SOL/USDT 캔들이 그린다(아래 SOL 전용 IIFE).
+        //   체결(USDT) 기반 renderTradeChart 차트 호출 제거 — 헤더 stats / Recent Trades
+        //   는 위에서 그대로 유지(USDT 기준). 원복: 아래 주석 3줄 해제 + SOL IIFE 제거.
+        // const chartCutoff = now - 30 * day;
+        // const tradesForChart = trades.filter(t => { const ts = new Date(t.created_at).getTime(); return Number.isFinite(ts) && ts >= chartCutoff; });
+        // renderTradeChart(tradesForChart);
+      } catch (e) {
+        console.warn('[trade] trades refresh failed:', e?.message || e);
+      }
+    };
+
+    // Mirror the spread from the order-book panel into the Peg-view
+    // tile after each book refresh. (refreshOrderBook is const; we
+    // can't override it, so we just poll the rendered text after.)
+    const mirrorSpreadToPeg = () => {
+      const txt = orderbookSpreadEl?.textContent || '';
+      const m = /([\d\.]+)\s*USDT/.exec(txt);
+      lastSpreadFromBook = m ? Number(m[1]) : null;
+      if (lastSpreadFromBook !== null && !Number.isNaN(lastSpreadFromBook)) {
+        setTextById('pegSpread', `${fmtNum(lastSpreadFromBook, 2)} USDT`);
+      }
+    };
+
+    // (2026-05-08) Polling cadence — 8s was too slow per operator
+    //   ('8초 주기는 너무 늦는거 아닌가? 거래가 있으면 즉시 반영
+    //    되어야하는게 아닌가?'). Dropped to 2s for near-real-time UX.
+    //   Combined with the optimistic immediate-refresh on order
+    //   placement / cancel / match, this means the user sees their
+    //   own actions instantly, and other users' trades show up
+    //   within 2 seconds.
+    //
+    //   For TRUE real-time push (sub-second), PHP shared hosting
+    //   would need WebSocket (not natively supported) or Server-Sent
+    //   Events (works but ties up a PHP-FPM worker for the connection
+    //   duration). Polling at 2s is the right balance for current
+    //   load: ~30 req/min per user × 3 endpoints, well within
+    //   shared-hosting headroom.
+    //
+    //   When tab is hidden, polling pauses (Page Visibility API) —
+    //   no point hammering the API for an invisible tab.
+    const POLL_INTERVAL_MS = 2000;
+    let pollTimer = null;
+    // (v663) 잔고 폴링은 10초 주기 (USDT/STO 변화는 자기 거래 후 즉시 강제
+    //   호출되고, 외부 요인 (AMM 의 내 주문 체결 등) 도 빈번하지 않으므로
+    //   2초마다 호출하면 불필요한 API 부하).
+    let balanceTickCount = 0;
+    const tickAll = async () => {
+      await refreshOrderBook();
+      mirrorSpreadToPeg();
+      await refreshMyOrders();
+      await refreshTrades();
+      // 매 5 tick (= 10초) 마다 잔고도 polling 으로 갱신.
+      if (++balanceTickCount >= 5) {
+        balanceTickCount = 0;
+        refreshBalance();
+      }
+    };
+    const startPolling = () => {
+      if (pollTimer) return;
+      tickAll();
+      pollTimer = setInterval(tickAll, POLL_INTERVAL_MS);
+    };
+    const stopPolling = () => {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopPolling();
+      else startPolling();
+    });
+    startPolling();
+
+    // ============================================================
+    // (2026-06-17 v910 trade2) SOL/USDT 시세 SVG 캔들 차트.
+    //   운영자 결정: 촛대 = SOL/USDT 시세 그대로(직관적). STO 가치(1 USDT = 1÷SOL)는
+    //   상단 박스에 숫자로 병기. 거래(USDT 1:1)와 무관 — 차트는 '참고 시세'.
+    //   데이터: GET /api/public/sol-candles (서버가 Binance→CoinGecko 프록시 + 파일 캐싱).
+    //   60초 주기 폴링(서버 캐시 TTL 과 맞물려 외부 호출 최소). 탭 숨김 시 정지.
+    //   SOL API 전부 죽어도 candles=[] → 차트만 비고 거래는 무관(fx 점검 결론).
+    // ============================================================
+    (() => {
+      const SVGNS = 'http://www.w3.org/2000/svg';
+      const svg = document.getElementById('solCandleSvg');
+      if (!svg) return;
+      const emptyEl = document.querySelector('#tradeChartArea .chart-empty-overlay');
+      const stoSolEl = document.getElementById('stoSolValue');
+      const priceBadge = document.getElementById('solPriceBadge');
+      const infoEl   = document.getElementById('solChartInfo');
+      const lastEl   = document.getElementById('tradeChartLast');
+      // (2026-06-17 v918) '기준가' 라벨 i18n — 영문 페이지에서 한국어 노출 방지(운영자 6/17).
+      //   tTrade(ko,en) 로 현재 언어에 맞게 설정. 정적 HTML 기본값은 영문 '1 SilicaSTO'.
+      const _baseLabelEl = document.getElementById('stoBaseLabel');
+      if (_baseLabelEl && typeof tTrade === 'function') {
+        _baseLabelEl.textContent = tTrade('1 SilicaSTO 기준가', '1 SilicaSTO Base');
+      }
+
+      let currentInterval = '1h';
+      let solTimer = null;
+      let lastCandles = [];
+
+      const fmtP = (n) => {
+        if (!Number.isFinite(n)) return '—';
+        return n >= 100 ? n.toFixed(2) : (n >= 1 ? n.toFixed(3) : n.toFixed(5));
+      };
+      const fmtTimeLabel = (t, interval) => {
+        const d = new Date((Number(t) || 0) * 1000);
+        const p = (x) => String(x).padStart(2, '0');
+        if (interval === '1d' || interval === '4h') return `${p(d.getMonth() + 1)}/${p(d.getDate())}`;
+        return `${p(d.getHours())}:${p(d.getMinutes())}`;
+      };
+
+      const draw = (rawCandles, interval) => {
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        if (!rawCandles || rawCandles.length < 2) {
+          if (emptyEl) emptyEl.style.display = '';
+          return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        // (2026-06-17 v914) 운영자: 차트 = 'SOL 시세'가 아니라 '1 STO 의 SOL 가치'.
+        //   STO 기준가는 1 USDT 고정이므로 1 STO = 1 ÷ SOL시세 (SOL). SOL 캔들을 역수로
+        //   변환하고 고가↔저가를 스왑(1/low 가 최고, 1/high 가 최저). SOL 이 오르면
+        //   STO 의 SOL 가치는 하락(역방향) — 캔들 색도 자연히 반대로 표시됨.
+        const candles = rawCandles.map((c) => ({
+          t: c.t,
+          o: 1 / Number(c.o), c: 1 / Number(c.c),
+          h: 1 / Number(c.l), l: 1 / Number(c.h),
+        }));
+
+        const W = svg.clientWidth || (svg.parentElement && svg.parentElement.clientWidth) || 600;
+        const H = svg.clientHeight || (svg.parentElement && svg.parentElement.clientHeight) || 340;
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        const padL = 8, padR = 58, padT = 14, padB = 22;
+        const plotW = Math.max(10, W - padL - padR);
+        const plotH = Math.max(10, H - padT - padB);
+
+        let maxP = -Infinity, minP = Infinity;
+        candles.forEach((c) => { if (c.h > maxP) maxP = c.h; if (c.l < minP) minP = c.l; });
+        const spanRaw = (maxP - minP) || (maxP * 0.02) || 1;
+        maxP += spanRaw * 0.08;
+        minP = Math.max(0, minP - spanRaw * 0.08);
+        const range = (maxP - minP) || 1;
+
+        const n = candles.length;
+        const xAt = (i) => padL + (n <= 1 ? plotW / 2 : plotW * (i / (n - 1)));
+        const yAt = (pp) => padT + plotH * (1 - (pp - minP) / range);
+        const colW = Math.max(2, Math.min(14, (plotW / n) * 0.6));
+
+        // y축 그리드 + 가격 라벨 (5단계)
+        for (let s = 0; s <= 4; s++) {
+          const pp = minP + range * (s / 4);
+          const yy = yAt(pp);
+          const ln = document.createElementNS(SVGNS, 'line');
+          ln.setAttribute('x1', padL); ln.setAttribute('x2', padL + plotW);
+          ln.setAttribute('y1', yy); ln.setAttribute('y2', yy);
+          ln.setAttribute('stroke', 'rgba(15,23,42,0.06)'); ln.setAttribute('stroke-width', '1');
+          svg.appendChild(ln);
+          const tx = document.createElementNS(SVGNS, 'text');
+          tx.setAttribute('x', padL + plotW + 4); tx.setAttribute('y', yy + 3);
+          tx.setAttribute('font-size', '10'); tx.setAttribute('fill', '#64748B');
+          tx.setAttribute('font-family', "'Space Grotesk', monospace");
+          tx.textContent = fmtP(pp);
+          svg.appendChild(tx);
+        }
+
+        // 캔들 (wick + body)
+        candles.forEach((c, i) => {
+          const cx = xAt(i);
+          const up = Number(c.c) >= Number(c.o);
+          const color = up ? '#059669' : '#DC2626';
+          const wick = document.createElementNS(SVGNS, 'line');
+          wick.setAttribute('x1', cx); wick.setAttribute('x2', cx);
+          wick.setAttribute('y1', yAt(c.h)); wick.setAttribute('y2', yAt(c.l));
+          wick.setAttribute('stroke', color); wick.setAttribute('stroke-width', '1.5');
+          svg.appendChild(wick);
+          const top = yAt(Math.max(c.o, c.c));
+          const bot = yAt(Math.min(c.o, c.c));
+          const rect = document.createElementNS(SVGNS, 'rect');
+          rect.setAttribute('x', cx - colW / 2); rect.setAttribute('y', top);
+          rect.setAttribute('width', colW); rect.setAttribute('height', Math.max(1, bot - top));
+          rect.setAttribute('fill', color); rect.setAttribute('rx', '1');
+          svg.appendChild(rect);
+        });
+
+        // x축 라벨 (시작/중간/끝)
+        [0, Math.floor(n / 2), n - 1].forEach((i, k) => {
+          const tx = document.createElementNS(SVGNS, 'text');
+          tx.setAttribute('x', xAt(i)); tx.setAttribute('y', H - 6);
+          tx.setAttribute('font-size', '10'); tx.setAttribute('fill', '#64748B');
+          tx.setAttribute('text-anchor', k === 0 ? 'start' : (k === 2 ? 'end' : 'middle'));
+          tx.setAttribute('font-family', "'Space Grotesk', monospace");
+          tx.textContent = fmtTimeLabel(candles[i].t, interval);
+          svg.appendChild(tx);
+        });
+      };
+
+      const refresh = async () => {
+        try {
+          const data = await fetchJson(`/api/public/sol-candles?interval=${encodeURIComponent(currentInterval)}`);
+          const candles = Array.isArray(data?.candles) ? data.candles : [];
+          lastCandles = candles;
+          draw(candles, currentInterval);
+          const last = candles.length ? Number(candles[candles.length - 1].c) : Number(data?.last_price || 0);
+          if (last > 0) {
+            // (2026-06-17 v914) 좌측 큰 숫자 = 차트와 동일 단위(1 STO 의 SOL 가치).
+            //   우측 'SOL $…' 는 SOL 시세 참고용. STO 기준가는 1.00 USDT 고정.
+            const stoInSol = 1 / last;
+            if (priceBadge) priceBadge.textContent = `${stoInSol.toFixed(5)} SOL`;
+            const refEl = document.getElementById('solUsdtRef');
+            if (refEl) refEl.textContent = `$${fmtP(last)}`;
+            if (lastEl) lastEl.textContent = `1 STO ≈ ${stoInSol.toFixed(5)} SOL`;
+          }
+          if (infoEl) {
+            const src = data?.source ? String(data.source) : (candles.length ? 'cache' : '—');
+            infoEl.textContent = candles.length
+              ? `${src} · ${currentInterval}`
+              : (typeof tTrade === 'function' ? tTrade('시세 없음', 'no data') : 'no data');
+          }
+        } catch (e) {
+          console.warn('[trade2] SOL candles refresh failed:', e?.message || e);
+          draw([], currentInterval);
+          if (infoEl) infoEl.textContent = (typeof tTrade === 'function' ? tTrade('시세 연결 실패', 'feed error') : 'feed error');
+        }
+      };
+
+      // interval 탭 (15m/1H/4H/1D)
+      document.querySelectorAll('[data-sol-interval]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[data-sol-interval]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentInterval = btn.getAttribute('data-sol-interval') || '1h';
+          refresh();
+        });
+      });
+
+      // 차트 영역 리사이즈(세로 드래그 포함) 시 재렌더 — ResizeObserver.
+      let rT = null;
+      const reDraw = () => { clearTimeout(rT); rT = setTimeout(() => draw(lastCandles, currentInterval), 150); };
+      if (window.ResizeObserver && svg.parentElement) {
+        try { new ResizeObserver(reDraw).observe(svg.parentElement); } catch (_) {}
+      } else {
+        window.addEventListener('resize', reDraw);
+      }
+
+      const startSol = () => { if (!solTimer) { refresh(); solTimer = setInterval(refresh, 60000); } };
+      const stopSol  = () => { if (solTimer) { clearInterval(solTimer); solTimer = null; } };
+      document.addEventListener('visibilitychange', () => { if (document.hidden) stopSol(); else startSol(); });
+      startSol();
+    })();
+  });
+</script>
+</body>
+</html>

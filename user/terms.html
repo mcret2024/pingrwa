@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- (2026-05-12 v308) Operator: '이 페이지에 머물고 있으면 예전 컨텐츠가
+       나온다 충돌이 있는 것 같다.' HTML 자체가 정적 캐시되어 dynamic
+       shell 로 바뀐 새 버전이 사용자에게 도달하지 못하던 문제. meta
+       cache-control 헤더로 브라우저/CDN 캐시 강제 무효화. 또한 인라인
+       fetch 결과를 i18n MutationObserver 가 다시 번역해버리는 충돌 방지
+       위해 body container 에 data-no-i18n="1" 부여 (아래). -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Terms · SilicaChain</title>
+  <link rel="shortcut icon" href="assets/images/favicon.png">
+  <link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+  <!-- (2026-05-12 v306) Operator: '이용약관 한국어로 변환이 적용 되지 않았다.
+       이용약관 관리자에서 수정 할 수 있도록 해줘. 영어와 한국어 별도 기재.'
+       Terms 본문은 이제 백엔드 legal_terms 테이블에 저장되고, 어드민이
+       /admin/terms.html 에서 KO/EN 별도 편집한다. 이 페이지는 단순 shell —
+       페이지 로드시 GET /api/terms?lang=... 호출해 body_html 을 주입한다.
+       (기존 정적 EN 본문 467줄 제거. terms-en.html 도 제거됨 — 단일 페이지가
+        lang 토글에 반응해 양쪽을 다 처리.) -->
+  <script>
+    (function () {
+      try {
+        var key = 'rwa_lang_user_v1';
+        var raw = String(localStorage.getItem(key) || 'en').trim().toLowerCase();
+        var lang = /^(ko|en)$/.test(raw) ? raw : 'en';
+        var de = document.documentElement;
+        de.lang = lang;
+        de.setAttribute('data-rwa-lang', lang);
+        de.setAttribute('data-rwa-i18n-ready', '1');
+        // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+        de.classList.add("rwa-booting-early");
+        window.__RWA_I18N_BOOT_LANG__ = lang;
+      } catch (_) {}
+    })();
+  </script>
+
+  <style>
+    .terms-hero { padding: 28px 0 10px; }
+    .terms-wrap { display: grid; gap: 18px; }
+    .terms-headline {
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.25;
+      margin: 0;
+      color: #111827;
+    }
+    .terms-sub {
+      margin-top: 10px;
+      color: #6b7280;
+      line-height: 1.65;
+    }
+    .terms-meta {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .terms-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(124, 58, 237, .08);
+      border: 1px solid rgba(124, 58, 237, .25);
+      color: #7C3AED;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .terms-section {
+      margin-top: 20px;
+      padding: 0;
+      border-top: 1px solid var(--line, #e5e7eb);
+    }
+    .terms-section .inner {
+      padding: 22px 0;
+    }
+    .terms-section h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .terms-section h3 {
+      margin: 16px 0 8px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #1F2937;
+    }
+    .terms-section p,
+    .terms-section li {
+      line-height: 1.75;
+      color: #374151;
+    }
+    .terms-section ul,
+    .terms-section ol {
+      margin: 10px 0 10px 22px;
+      padding: 0;
+    }
+    .terms-section li { margin-bottom: 4px; }
+    .terms-bottom-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .terms-loading {
+      padding: 60px 0;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .terms-loading::before {
+      content: '';
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(124, 58, 237, .25);
+      border-top-color: #7C3AED;
+      border-radius: 50%;
+      animation: termsSpin .9s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes termsSpin { to { transform: rotate(360deg); } }
+    @media (max-width: 720px) {
+      .terms-headline { font-size: 24px; }
+    }
+  </style>
+</head>
+<body data-page="terms">
+
+<div id="siteHeaderMount"></div>
+<div id="toast" class="pill hidden"
+     style="position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:999; max-width:min(520px, calc(100% - 28px));"></div>
+
+<main>
+  <section class="section terms-hero">
+    <div class="container">
+      <div class="card">
+        <div class="pad">
+          <div class="terms-wrap">
+            <!-- data-no-i18n: 백엔드 API 가 이미 현재 lang 에 맞는 본문을
+                 반환하므로, i18n.js MutationObserver 가 인입된 단어를 다시
+                 다른 언어로 치환하는 충돌(예: KO 본문 안의 'Token' → '토큰'
+                 부분 매치)을 차단. -->
+            <div data-no-i18n="1" translate="no">
+              <h1 class="terms-headline" id="termsTitle">—</h1>
+              <div class="terms-sub" id="termsSubtitle"></div>
+              <div class="terms-meta">
+                <span class="terms-chip" id="termsChipDate" hidden></span>
+                <span class="terms-chip" id="termsChipService">SilicaChain</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="terms-article">
+        <div class="card">
+          <div class="pad">
+            <!-- data-no-i18n: 위 헤더 블록과 동일 — API 응답을 i18n.js
+                 가 재번역하지 못하게 차단. -->
+            <div id="termsBody" data-no-i18n="1" translate="no">
+              <div class="terms-loading" id="termsLoadingMsg">Loading…</div>
+            </div>
+            <div class="terms-bottom-actions" id="termsBottomActions" hidden>
+              <a class="btn primary" href="index.html" id="termsBackHome">Home</a>
+              <a class="btn" href="assets.html" id="termsViewAssets">View Assets</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="siteFooterMount"></div>
+
+<script>
+  // Dynamic terms loader — fetches body from /api/terms based on current lang.
+  // Runs after the header mount (which itself triggers i18n + page-script load),
+  // so we wait for DOMContentLoaded + a small RAF tick to be safe.
+  (function () {
+    const langDetect = () => {
+      try { return (window.RwaI18n?.getLang?.() || document.documentElement.getAttribute('data-rwa-lang') || 'en').toLowerCase(); }
+      catch { return 'en'; }
+    };
+
+    const setText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val ?? '';
+    };
+    const setHtml = (id, html) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html ?? '';
+    };
+    const showEl = (id, show) => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = !show;
+    };
+
+    const apiBaseFromCore = () => {
+      try {
+        const v = localStorage.getItem('rwa_api_base_v1');
+        if (v) return String(v).replace(/\/+$/, '');
+      } catch {}
+      return '';
+    };
+
+    const fetchTerms = async () => {
+      const lang = langDetect() === 'ko' ? 'ko' : 'en';
+      const url = `${apiBaseFromCore()}/api/terms?lang=${encodeURIComponent(lang)}`;
+      try {
+        const res = await fetch(url, { method: 'GET', cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) {
+          throw new Error(data?.message || `HTTP ${res.status}`);
+        }
+        return { lang, ...data };
+      } catch (e) {
+        return { lang, _error: e?.message || String(e) };
+      }
+    };
+
+    const render = (data) => {
+      const lang = data.lang || 'en';
+      // Title + subtitle
+      setText('termsTitle', data.title || (lang === 'ko' ? '이용약관' : 'Terms of Service'));
+      setHtml('termsSubtitle', data.subtitle || '');
+      // Effective date chip
+      const dateChip = document.getElementById('termsChipDate');
+      if (dateChip) {
+        const d = String(data.effective_date || '').slice(0, 10);
+        if (d) {
+          dateChip.textContent = (lang === 'ko' ? '시행일: ' : 'Effective Date: ') + d;
+          dateChip.hidden = false;
+        } else {
+          dateChip.hidden = true;
+        }
+      }
+      // Body
+      const body = String(data.body_html || '').trim();
+      if (!body) {
+        setHtml('termsBody', `<div class="terms-loading">${
+          lang === 'ko'
+            ? '약관 내용이 아직 등록되지 않았습니다.'
+            : 'Terms content has not been registered yet.'
+        }</div>`);
+      } else {
+        setHtml('termsBody', body);
+      }
+      // Bottom actions — translate label
+      const back = document.getElementById('termsBackHome');
+      const va = document.getElementById('termsViewAssets');
+      if (lang === 'ko') {
+        if (back) back.textContent = '홈';
+        if (va) va.textContent = '자산 보기';
+      } else {
+        if (back) back.textContent = 'Home';
+        if (va) va.textContent = 'View Assets';
+      }
+      showEl('termsBottomActions', true);
+    };
+
+    const renderError = (msg) => {
+      const lang = langDetect();
+      setHtml('termsBody', `<div class="terms-loading" style="color:#dc2626">${
+        lang === 'ko' ? '약관을 불러오지 못했습니다.' : 'Failed to load terms.'
+      } <small style="display:block;margin-top:6px;color:#9ca3af">${msg}</small></div>`);
+    };
+
+    const start = async () => {
+      // Small delay so the header mount can rewrite #siteHeaderMount + apply
+      // language toggles before we read langDetect(); not strictly required
+      // since lang is also persisted to localStorage at page-script boot.
+      const data = await fetchTerms();
+      if (data?._error) {
+        renderError(data._error);
+        return;
+      }
+      render(data);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start, { once: true });
+    } else {
+      start();
+    }
+  })();
+</script>
+
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+</body>
+</html>

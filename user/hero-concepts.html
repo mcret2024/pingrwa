@@ -1,0 +1,1396 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hero 컨셉 5종 비교 · SilicaChain</title>
+<link rel="shortcut icon" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+<style>
+  body[data-page="hero-concepts"] { background: #FFFFFF; color: var(--text); min-height: 100vh; }
+  .concept-page-header {
+    text-align: center;
+    padding: 40px 24px 16px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+  }
+  .concept-page-header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1.5px;
+    margin: 0 0 8px;
+  }
+  .concept-page-header p { font-size: 14px; opacity: 0.95; margin: 0; }
+  .concept-block {
+    border-bottom: 4px solid var(--logo-violet);
+    padding: 0 0 60px;
+    margin-bottom: 0;
+  }
+  .concept-block:last-child { border-bottom: none; }
+  .concept-tag {
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .concept-tag .num {
+    background: #FFFFFF;
+    color: var(--logo-violet);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+  }
+  .concept-tag .desc { font-size: 14px; flex: 1; opacity: 0.95; font-weight: 500; }
+
+  /* === Concept 공통 === */
+  .ch-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px;
+    background: #FFFFFF;
+    border: 2px solid var(--logo-green);
+    border-radius: 100px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--logo-green);
+    width: fit-content;
+    font-weight: 800;
+  }
+  .ch-pill::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--logo-green);
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .ch-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 4.5vw, 64px);
+    line-height: 0.96;
+    letter-spacing: 1.5px;
+    margin: 0;
+    text-transform: uppercase;
+    color: var(--platinum);
+  }
+  .ch-title em {
+    font-family: 'Unbounded', sans-serif;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 0.78em;
+    letter-spacing: -2px;
+    color: var(--logo-violet);
+  }
+  .ch-sub { font-size: 15px; color: var(--steel); line-height: 1.65; margin: 0; }
+  .ch-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .ch-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border: 2px solid;
+    transition: all .15s;
+  }
+  .ch-btn.primary {
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    border-color: var(--logo-violet);
+    box-shadow: 0 4px 0 0 var(--logo-violet-dark);
+  }
+  .ch-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 0 0 var(--logo-violet-dark); }
+  .ch-btn.secondary {
+    background: #FFFFFF;
+    color: var(--logo-violet);
+    border-color: var(--logo-violet);
+  }
+  .ch-btn.secondary:hover { background: var(--logo-violet); color: #FFFFFF; }
+
+  .ch-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* === Concept A: Classic Card (현재 스타일) === */
+  .ca-hero {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .ca-text { display: flex; flex-direction: column; gap: 16px; }
+  .ca-photo-card {
+    position: relative;
+    aspect-ratio: 4/3;
+    border: 3px solid var(--logo-violet);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 0 0 var(--logo-violet-dark);
+  }
+  .ca-purity {
+    position: absolute; top: 16px; left: 16px;
+    width: 110px; height: 110px;
+    background: var(--logo-violet);
+    border: 4px solid #FFFFFF;
+    border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #FFFFFF;
+    box-shadow: 0 6px 0 0 var(--logo-violet-dark);
+  }
+  .ca-purity .lbl { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; opacity: .95; }
+  .ca-purity .v { font-family: 'Unbounded'; font-weight: 900; font-size: 26px; letter-spacing: -1px; }
+  .ca-purity .u { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; opacity: .9; }
+
+  /* === Concept B: Full-Bleed Hero (임팩트 배경) === */
+  .cb-hero {
+    position: relative;
+    height: 580px;
+    overflow: hidden;
+  }
+  .cb-bg {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: #1E293B;
+  }
+  .cb-overlay {
+    position: absolute; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+  }
+  .cb-content {
+    position: relative; z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 100px 32px;
+    text-align: center;
+    color: #FFFFFF;
+  }
+  .cb-content h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 6.5vw, 96px);
+    line-height: 0.96;
+    letter-spacing: 1.5px;
+    margin: 16px 0 16px;
+    color: #FFFFFF;
+    text-transform: uppercase;
+  }
+  .cb-content h1 em {
+    font-family: 'Unbounded';
+    font-style: normal;
+    font-weight: 900;
+    font-size: 0.78em;
+    letter-spacing: -2px;
+    color: #FFFFFF;
+    background: var(--logo-violet);
+    padding: 0 16px;
+  }
+  .cb-content p { font-size: 17px; opacity: 0.9; margin: 0 0 32px; }
+  .cb-stats {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    z-index: 3;
+  }
+  .cb-stat-cell {
+    padding: 20px 24px;
+    border-right: 1px solid rgba(15, 23, 42, 0.10);
+    text-align: center;
+  }
+  .cb-stat-cell:last-child { border-right: none; }
+  .cb-stat-cell .l { font-family: 'Space Grotesk'; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+  .cb-stat-cell .v { font-family: 'Unbounded'; font-weight: 900; font-size: 24px; letter-spacing: -1px; }
+  .cb-stat-cell:nth-child(1) .l { color: var(--logo-violet); }
+  .cb-stat-cell:nth-child(1) .v { color: var(--logo-violet); }
+  .cb-stat-cell:nth-child(2) .l { color: var(--logo-red); }
+  .cb-stat-cell:nth-child(2) .v { color: var(--logo-red); }
+  .cb-stat-cell:nth-child(3) .l { color: var(--logo-blue); }
+  .cb-stat-cell:nth-child(3) .v { color: var(--logo-blue); }
+  .cb-stat-cell:nth-child(4) .l { color: var(--logo-orange); }
+  .cb-stat-cell:nth-child(4) .v { color: var(--logo-orange); }
+  .cb-eyebrow {
+    display: inline-block;
+    padding: 8px 20px;
+    background: var(--logo-violet);
+    border-radius: 100px;
+    font-family: 'Space Grotesk';
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: #FFFFFF;
+  }
+
+  /* === Concept C: 3-Column (정보형) === */
+  .cc-hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 0.7fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+  .cc-text { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+  .cc-text .ch-title { font-size: clamp(32px, 4vw, 52px); }
+  .cc-photo {
+    aspect-ratio: 4/3;
+    border: 2px solid var(--logo-violet);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 0 0 var(--logo-violet-dark);
+  }
+  .cc-data {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cc-card {
+    background: #FFFFFF;
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 3px 0 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .cc-card .l { font-family: 'Space Grotesk'; font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+  .cc-card .v { font-family: 'Unbounded'; font-weight: 900; font-size: 22px; letter-spacing: -1px; color: var(--platinum); }
+  .cc-card.violet { border-color: var(--logo-violet); box-shadow-color: var(--logo-violet-dark); box-shadow: 0 3px 0 0 var(--logo-violet); }
+  .cc-card.violet .l { color: var(--logo-violet); }
+  .cc-card.red { border-color: var(--logo-red); box-shadow: 0 3px 0 0 var(--logo-red); }
+  .cc-card.red .l { color: var(--logo-red); }
+  .cc-card.blue { border-color: var(--logo-blue); box-shadow: 0 3px 0 0 var(--logo-blue); }
+  .cc-card.blue .l { color: var(--logo-blue); }
+  .cc-card.orange { border-color: var(--logo-orange); box-shadow: 0 3px 0 0 var(--logo-orange); }
+  .cc-card.orange .l { color: var(--logo-orange); }
+
+  /* === Concept D: Floating Cards (모던 잡지) === */
+  .cd-hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  .cd-text { display: flex; flex-direction: column; gap: 16px; }
+  .cd-visual {
+    position: relative;
+    height: 480px;
+  }
+  .cd-photo {
+    position: absolute;
+    top: 0; left: 0;
+    width: 70%; height: 75%;
+    border: 3px solid var(--logo-violet);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 0 0 var(--logo-violet-dark);
+  }
+  .cd-float-card {
+    position: absolute;
+    background: #FFFFFF;
+    border: 2px solid;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 0 0;
+    font-family: 'Space Grotesk';
+    z-index: 2;
+  }
+  .cd-float-card .l { font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+  .cd-float-card .v { font-family: 'Unbounded'; font-weight: 900; font-size: 22px; color: var(--platinum); letter-spacing: -1px; }
+  .cd-float-card.violet { top: 12%; right: 0; border-color: var(--logo-violet); box-shadow: 0 4px 0 0 var(--logo-violet); }
+  .cd-float-card.violet .l { color: var(--logo-violet); }
+  .cd-float-card.red { top: 42%; right: 4%; border-color: var(--logo-red); box-shadow: 0 4px 0 0 var(--logo-red); }
+  .cd-float-card.red .l { color: var(--logo-red); }
+  .cd-float-card.orange { bottom: 8%; right: 10%; border-color: var(--logo-orange); box-shadow: 0 4px 0 0 var(--logo-orange); }
+  .cd-float-card.orange .l { color: var(--logo-orange); }
+  .cd-float-card.blue { bottom: 0; left: 8%; border-color: var(--logo-blue); box-shadow: 0 4px 0 0 var(--logo-blue); }
+  .cd-float-card.blue .l { color: var(--logo-blue); }
+
+  /* === Concept E: Magazine Split (B2B 미니멀) === */
+  .ce-hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 32px;
+  }
+  .ce-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 0;
+    background: #FFFFFF;
+    border: 2px solid #0F172A;
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .ce-text {
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    border-right: 2px solid #0F172A;
+  }
+  .ce-text .ch-title { font-size: clamp(40px, 5vw, 72px); }
+  .ce-photo {
+    position: relative;
+    min-height: 400px;
+  }
+  .ce-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ce-purity {
+    position: absolute;
+    bottom: 24px; left: 24px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 16px 24px;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 4px 0 0 var(--logo-violet-dark);
+  }
+  .ce-purity .l { font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; }
+  .ce-purity .v { font-family: 'Unbounded'; font-weight: 900; font-size: 32px; letter-spacing: -1px; line-height: 1; margin: 4px 0; }
+  .ce-purity .u { font-size: 9px; letter-spacing: 2px; font-weight: 700; opacity: .9; }
+  .ce-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 2px solid #0F172A;
+  }
+  .ce-stats > div {
+    padding: 24px 20px;
+    border-right: 2px solid #0F172A;
+    text-align: center;
+  }
+  .ce-stats > div:last-child { border-right: none; }
+  .ce-stats .l { font-family: 'Space Grotesk'; font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+  .ce-stats .v { font-family: 'Unbounded'; font-weight: 900; font-size: 28px; letter-spacing: -1px; color: var(--platinum); }
+  .ce-stats > div:nth-child(1) .l, .ce-stats > div:nth-child(1) .v { color: var(--logo-violet); }
+  .ce-stats > div:nth-child(2) .l, .ce-stats > div:nth-child(2) .v { color: var(--logo-red); }
+  .ce-stats > div:nth-child(3) .l, .ce-stats > div:nth-child(3) .v { color: var(--logo-blue); }
+  .ce-stats > div:nth-child(4) .l, .ce-stats > div:nth-child(4) .v { color: var(--logo-orange); }
+
+  /* === Concept F: Polaroid Stack (폴라로이드 스택) === */
+  .cf-hero {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 64px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .cf-text { display: flex; flex-direction: column; gap: 16px; }
+  .cf-stack { position: relative; height: 460px; }
+  .cf-polaroid {
+    position: absolute;
+    background: #FFFFFF;
+    padding: 14px 14px 50px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  }
+  .cf-polaroid img { width: 100%; height: 320px; object-fit: cover; display: block; }
+  .cf-polaroid .caption {
+    position: absolute; bottom: 14px; left: 14px; right: 14px;
+    text-align: center;
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 18px;
+    color: var(--platinum);
+  }
+  .cf-polaroid.front { z-index: 3; transform: rotate(-2deg); top: 10px; left: 8%; width: 70%; }
+  .cf-polaroid.mid   { z-index: 2; transform: rotate(4deg); top: 60px; left: 22%; width: 70%; }
+  .cf-polaroid.back  { z-index: 1; transform: rotate(-6deg); top: 100px; left: 0; width: 70%; }
+  .cf-polaroid.front { border-top: 4px solid var(--logo-violet); }
+  .cf-polaroid.mid   { border-top: 4px solid var(--logo-red); }
+  .cf-polaroid.back  { border-top: 4px solid var(--logo-blue); }
+
+  /* === Concept G: Asymmetric Wide (비대칭 가로형) === */
+  .cg-hero {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 0.55fr 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .cg-text { display: flex; flex-direction: column; gap: 16px; }
+  .cg-photo {
+    position: relative;
+    aspect-ratio: 16/9;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 12px 0 0 var(--logo-violet-dark), 0 16px 32px rgba(15, 23, 42, 0.20);
+  }
+  .cg-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cg-stat-strip {
+    position: absolute;
+    bottom: 16px; left: 16px; right: 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .cg-stat {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border-left: 4px solid;
+  }
+  .cg-stat .l { font-family: 'Space Grotesk'; font-size: 9px; letter-spacing: 1.5px; font-weight: 800; text-transform: uppercase; }
+  .cg-stat .v { font-family: 'Unbounded'; font-weight: 900; font-size: 18px; color: var(--platinum); margin-top: 2px; letter-spacing: -0.5px; }
+  .cg-stat:nth-child(1) { border-left-color: var(--logo-violet); }
+  .cg-stat:nth-child(1) .l { color: var(--logo-violet); }
+  .cg-stat:nth-child(2) { border-left-color: var(--logo-red); }
+  .cg-stat:nth-child(2) .l { color: var(--logo-red); }
+  .cg-stat:nth-child(3) { border-left-color: var(--logo-blue); }
+  .cg-stat:nth-child(3) .l { color: var(--logo-blue); }
+  .cg-stat:nth-child(4) { border-left-color: var(--logo-orange); }
+  .cg-stat:nth-child(4) .l { color: var(--logo-orange); }
+
+  /* === Concept H: Window Frame (창문 프레임) === */
+  .ch-hero-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  .ch-text { display: flex; flex-direction: column; gap: 16px; }
+  .ch-window {
+    position: relative;
+    aspect-ratio: 5/4;
+    background: #FFFFFF;
+    border: 3px solid var(--platinum);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 0 0 var(--platinum), 0 16px 32px rgba(15, 23, 42, 0.15);
+  }
+  .ch-window-bar {
+    height: 36px;
+    background: var(--logo-violet);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+    border-bottom: 3px solid var(--platinum);
+  }
+  .ch-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #FFFFFF; }
+  .ch-dot.r { background: #FF5F57; }
+  .ch-dot.y { background: #FEBC2E; }
+  .ch-dot.g { background: #28C840; }
+  .ch-window-title {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-left: auto;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .ch-window-img {
+    width: 100%;
+    height: calc(100% - 36px);
+    overflow: hidden;
+    position: relative;
+  }
+  .ch-window-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ch-window-purity {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 12px 18px;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 4px 0 0 var(--logo-violet-dark);
+    font-family: 'Space Grotesk';
+  }
+  .ch-window-purity .l { font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; }
+  .ch-window-purity .v { font-family: 'Unbounded'; font-weight: 900; font-size: 26px; letter-spacing: -1px; line-height: 1; }
+
+  /* === Concept I: Stats Around Photo (사진 둘러싼 데이터) === */
+  .ci-hero {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px;
+  }
+  .ci-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    grid-template-rows: auto auto auto;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .ci-text-row {
+    grid-column: 1 / 4;
+    text-align: center;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .ci-text-row .ch-cta { justify-content: center; }
+  .ci-photo {
+    grid-column: 2;
+    grid-row: 2 / 3;
+    aspect-ratio: 4/3;
+    border: 3px solid var(--logo-violet);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 0 0 var(--logo-violet-dark);
+  }
+  .ci-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ci-side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: center;
+  }
+  .ci-side.left { grid-column: 1; grid-row: 2; }
+  .ci-side.right { grid-column: 3; grid-row: 2; }
+  .ci-card {
+    background: #FFFFFF;
+    border: 2px solid;
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+    box-shadow: 0 4px 0 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .ci-card .l { font-family: 'Space Grotesk'; font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+  .ci-card .v { font-family: 'Unbounded'; font-weight: 900; font-size: 24px; letter-spacing: -1px; color: var(--platinum); }
+  .ci-side.left .ci-card:nth-child(1) { border-color: var(--logo-violet); box-shadow: 0 4px 0 0 var(--logo-violet); }
+  .ci-side.left .ci-card:nth-child(1) .l { color: var(--logo-violet); }
+  .ci-side.left .ci-card:nth-child(2) { border-color: var(--logo-red); box-shadow: 0 4px 0 0 var(--logo-red); }
+  .ci-side.left .ci-card:nth-child(2) .l { color: var(--logo-red); }
+  .ci-side.right .ci-card:nth-child(1) { border-color: var(--logo-blue); box-shadow: 0 4px 0 0 var(--logo-blue); }
+  .ci-side.right .ci-card:nth-child(1) .l { color: var(--logo-blue); }
+  .ci-side.right .ci-card:nth-child(2) { border-color: var(--logo-orange); box-shadow: 0 4px 0 0 var(--logo-orange); }
+  .ci-side.right .ci-card:nth-child(2) .l { color: var(--logo-orange); }
+
+  /* === Concept J: Token + Mine Combo (토큰 + 광산 조합) === */
+  .cj-hero {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  .cj-text { display: flex; flex-direction: column; gap: 16px; }
+  .cj-visual {
+    position: relative;
+    aspect-ratio: 1/1;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .cj-photo {
+    position: absolute;
+    top: 0; left: 0;
+    width: 75%; height: 60%;
+    border: 3px solid var(--logo-violet);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 0 0 var(--logo-violet-dark);
+    z-index: 1;
+  }
+  .cj-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cj-token-card {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 60%; height: 50%;
+    background: #FFFFFF;
+    border: 3px solid var(--logo-blue);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 0 0 var(--logo-blue-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 2;
+  }
+  .cj-token-card img { width: 100%; height: auto; display: block; }
+  .cj-purity-badge {
+    position: absolute;
+    top: 16px; right: 0;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 12px 16px;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 4px 0 0 var(--logo-violet-dark);
+    font-family: 'Space Grotesk';
+    z-index: 3;
+  }
+  .cj-purity-badge .l { font-size: 9px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; opacity: .95; }
+  .cj-purity-badge .v { font-family: 'Unbounded'; font-weight: 900; font-size: 22px; letter-spacing: -1px; line-height: 1; }
+
+  /* === Concept G1: Cinematic Overlay (사진 + 어두운 좌측 그라데이션 오버레이) === */
+  .cg1-hero { max-width: 1400px; margin: 0 auto; padding: 48px 32px; }
+  .cg1-stage {
+    position: relative;
+    aspect-ratio: 21/9;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 12px 0 0 var(--logo-violet-dark);
+  }
+  .cg1-stage img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cg1-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(15,23,42,.85) 0%, rgba(15,23,42,.55) 50%, transparent 80%);
+  }
+  .cg1-content {
+    position: absolute; top: 50%; left: 40px; transform: translateY(-50%);
+    color: #FFFFFF;
+    max-width: 50%;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .cg1-content h1 {
+    font-family: 'Bebas Neue';
+    font-size: clamp(36px, 4.5vw, 60px);
+    line-height: 0.96;
+    letter-spacing: 1.5px;
+    margin: 0;
+    color: #FFFFFF;
+    text-transform: uppercase;
+  }
+  .cg1-content h1 b { color: #F87171; font-weight: inherit; }
+  .cg1-content h1 i { color: #93C5FD; font-style: normal; }
+  .cg1-content h1 em { font-family: 'Unbounded'; font-style: normal; font-weight: 900; font-size: 0.78em; letter-spacing: -2px; color: #C4B5FD; }
+  .cg1-content p { font-size: 14px; opacity: 0.95; margin: 0 0 4px; }
+  .cg1-stats-row {
+    position: absolute; bottom: 16px; right: 16px;
+    display: flex; gap: 8px;
+  }
+  .cg1-stats-row .pill {
+    background: rgba(255,255,255,.96);
+    border-radius: 10px;
+    padding: 8px 12px;
+    border-left: 4px solid;
+    font-family: 'Space Grotesk';
+  }
+  .cg1-stats-row .pill .l { font-size: 9px; letter-spacing: 1.5px; font-weight: 800; text-transform: uppercase; }
+  .cg1-stats-row .pill .v { font-family: 'Unbounded'; font-weight: 900; font-size: 16px; color: var(--platinum); margin-top: 2px; letter-spacing: -.5px; }
+  .cg1-stats-row .pill:nth-child(1) { border-left-color: var(--logo-violet); }
+  .cg1-stats-row .pill:nth-child(1) .l { color: var(--logo-violet); }
+  .cg1-stats-row .pill:nth-child(2) { border-left-color: var(--logo-red); }
+  .cg1-stats-row .pill:nth-child(2) .l { color: var(--logo-red); }
+  .cg1-stats-row .pill:nth-child(3) { border-left-color: var(--logo-blue); }
+  .cg1-stats-row .pill:nth-child(3) .l { color: var(--logo-blue); }
+  .cg1-stats-row .pill:nth-child(4) { border-left-color: var(--logo-orange); }
+  .cg1-stats-row .pill:nth-child(4) .l { color: var(--logo-orange); }
+
+  /* === Concept G2: 5-Color Corners (사진 4코너에 5색 L자 마커) === */
+  .cg2-hero { max-width: 1400px; margin: 0 auto; padding: 48px 32px; display: grid; grid-template-columns: 0.55fr 1fr; gap: 32px; align-items: center; }
+  .cg2-text { display: flex; flex-direction: column; gap: 16px; }
+  .cg2-photo {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: visible;
+  }
+  .cg2-photo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px; }
+  .cg2-corner {
+    position: absolute;
+    width: 60px; height: 60px;
+    border-style: solid;
+    border-color: transparent;
+  }
+  .cg2-corner.tl { top: -10px; left: -10px; border-top: 6px solid var(--logo-violet); border-left: 6px solid var(--logo-violet); border-top-left-radius: 16px; }
+  .cg2-corner.tr { top: -10px; right: -10px; border-top: 6px solid var(--logo-red); border-right: 6px solid var(--logo-red); border-top-right-radius: 16px; }
+  .cg2-corner.bl { bottom: -10px; left: -10px; border-bottom: 6px solid var(--logo-blue); border-left: 6px solid var(--logo-blue); border-bottom-left-radius: 16px; }
+  .cg2-corner.br { bottom: -10px; right: -10px; border-bottom: 6px solid var(--logo-orange); border-right: 6px solid var(--logo-orange); border-bottom-right-radius: 16px; }
+  .cg2-photo .center-purity {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 16px 24px;
+    border: 4px solid #FFFFFF;
+    border-radius: 100px;
+    font-family: 'Space Grotesk';
+    text-align: center;
+    box-shadow: 0 4px 0 0 var(--logo-violet-dark);
+  }
+  .cg2-photo .center-purity .l { font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; }
+  .cg2-photo .center-purity .v { font-family: 'Unbounded'; font-weight: 900; font-size: 28px; line-height: 1; letter-spacing: -1px; margin-top: 2px; }
+
+  /* === Concept G3: Tilted Polaroid (사진 약간 기울임) === */
+  .cg3-hero { max-width: 1400px; margin: 0 auto; padding: 48px 32px; display: grid; grid-template-columns: 0.55fr 1fr; gap: 48px; align-items: center; }
+  .cg3-text { display: flex; flex-direction: column; gap: 16px; }
+  .cg3-photo-wrap {
+    position: relative;
+    aspect-ratio: 16/10;
+  }
+  .cg3-photo {
+    position: absolute; inset: 0;
+    transform: rotate(-3deg);
+    background: #FFFFFF;
+    padding: 12px 12px 60px;
+    border: 2px solid #0F172A;
+    box-shadow: 0 12px 0 0 var(--logo-violet), 0 16px 32px rgba(15,23,42,.20);
+  }
+  .cg3-photo img { width: 100%; height: calc(100% - 48px); object-fit: cover; display: block; }
+  .cg3-photo-caption {
+    position: absolute; bottom: 18px; left: 14px; right: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 22px;
+    color: var(--platinum);
+  }
+  .cg3-photo-caption .tag {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    color: var(--logo-violet);
+    text-transform: uppercase;
+  }
+
+  /* === Concept G4: Triple Photo Grid (큰 사진 + 작은 2장 stack) === */
+  .cg4-hero { max-width: 1400px; margin: 0 auto; padding: 48px 32px; display: grid; grid-template-columns: 0.55fr 1fr; gap: 32px; align-items: center; }
+  .cg4-text { display: flex; flex-direction: column; gap: 16px; }
+  .cg4-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    aspect-ratio: 16/10;
+  }
+  .cg4-main {
+    grid-row: 1 / 3;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 3px solid var(--logo-violet);
+    box-shadow: 0 8px 0 0 var(--logo-violet-dark);
+    position: relative;
+  }
+  .cg4-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cg4-main .badge-purity {
+    position: absolute; top: 12px; left: 12px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 8px 14px;
+    border: 2px solid #FFFFFF;
+    border-radius: 8px;
+    font-family: 'Space Grotesk';
+    font-size: 10px;
+    font-weight: 800;
+    box-shadow: 0 3px 0 0 var(--logo-violet-dark);
+  }
+  .cg4-main .badge-purity .v { font-family: 'Unbounded'; font-weight: 900; font-size: 18px; letter-spacing: -1px; }
+  .cg4-sub {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 3px solid;
+    position: relative;
+  }
+  .cg4-sub.first { border-color: var(--logo-red); box-shadow: 0 6px 0 0 var(--logo-red-dark); }
+  .cg4-sub.second { border-color: var(--logo-orange); box-shadow: 0 6px 0 0 var(--logo-orange-dark); }
+  .cg4-sub img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cg4-sub .label {
+    position: absolute; bottom: 6px; left: 6px;
+    background: #FFFFFF;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-family: 'Space Grotesk';
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .cg4-sub.first .label { color: var(--logo-red); border: 1.5px solid var(--logo-red); }
+  .cg4-sub.second .label { color: var(--logo-orange); border: 1.5px solid var(--logo-orange); }
+
+  /* === Concept G5: Floating Stats Side (stat 카드를 사진 외부 우측 stack) === */
+  .cg5-hero { max-width: 1400px; margin: 0 auto; padding: 48px 32px; display: grid; grid-template-columns: 0.5fr 1fr 0.25fr; gap: 24px; align-items: center; }
+  .cg5-text { display: flex; flex-direction: column; gap: 16px; }
+  .cg5-photo {
+    aspect-ratio: 16/10;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid var(--logo-violet);
+    box-shadow: 0 10px 0 0 var(--logo-violet-dark);
+    position: relative;
+  }
+  .cg5-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cg5-photo .center-tag {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 8px 14px;
+    border: 2px solid #FFFFFF;
+    border-radius: 8px;
+    font-family: 'Space Grotesk';
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 0 var(--logo-violet-dark);
+  }
+  .cg5-stack { display: flex; flex-direction: column; gap: 12px; }
+  .cg5-stat-card {
+    background: #FFFFFF;
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 0 0;
+    text-align: center;
+  }
+  .cg5-stat-card .l { font-family: 'Space Grotesk'; font-size: 9px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+  .cg5-stat-card .v { font-family: 'Unbounded'; font-weight: 900; font-size: 20px; color: var(--platinum); letter-spacing: -1px; }
+  .cg5-stat-card.violet { border-color: var(--logo-violet); box-shadow: 0 4px 0 0 var(--logo-violet); }
+  .cg5-stat-card.violet .l { color: var(--logo-violet); }
+  .cg5-stat-card.red { border-color: var(--logo-red); box-shadow: 0 4px 0 0 var(--logo-red); }
+  .cg5-stat-card.red .l { color: var(--logo-red); }
+  .cg5-stat-card.blue { border-color: var(--logo-blue); box-shadow: 0 4px 0 0 var(--logo-blue); }
+  .cg5-stat-card.blue .l { color: var(--logo-blue); }
+  .cg5-stat-card.orange { border-color: var(--logo-orange); box-shadow: 0 4px 0 0 var(--logo-orange); }
+  .cg5-stat-card.orange .l { color: var(--logo-orange); }
+
+  @media (max-width: 1000px) {
+    .ca-hero, .cc-hero, .cd-hero, .ce-grid,
+    .cf-hero, .cg-hero, .ch-hero-wrap, .cj-hero,
+    .cg2-hero, .cg3-hero, .cg4-hero, .cg5-hero { grid-template-columns: 1fr; }
+    .ci-grid { grid-template-columns: 1fr; }
+    .ci-side.left, .ci-side.right { grid-column: 1; grid-row: auto; flex-direction: row; }
+    .ci-photo { grid-column: 1; }
+    .ce-text { border-right: none; border-bottom: 2px solid #0F172A; }
+    .ce-photo { min-height: 320px; }
+    .cd-visual { height: 380px; }
+    .cd-photo { width: 100%; height: 60%; }
+    .cf-stack { height: 380px; }
+    .cg5-stack { flex-direction: row; }
+    .cg1-content { max-width: 70%; left: 24px; }
+    .cg1-stats-row { display: none; }
+    .cg1-stage { aspect-ratio: 16/9; }
+  }
+
+  .pick-bar {
+    position: fixed;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--logo-violet);
+    color: #FFFFFF;
+    padding: 14px 24px;
+    border-radius: 100px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.20);
+    font-family: 'Space Grotesk';
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 1px;
+    z-index: 100;
+  }
+  .pick-bar strong { font-family: 'Unbounded'; font-weight: 900; }
+</style>
+</head>
+<body data-page="hero-concepts">
+
+<div class="concept-page-header">
+  <h1>HERO 컨셉 5종 비교</h1>
+  <p>아래 5가지 디자인 중 하나를 선택해주세요. 번호를 알려주시면 landing.html에 통합하겠습니다.</p>
+</div>
+
+<!-- ==================== CONCEPT A: Classic Card ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">A</span>
+    <span class="desc">Classic Card — 좌 텍스트 + 우 광산 사진 카드 (보라 원 오버레이)</span>
+  </div>
+  <div class="ca-hero">
+    <div class="ca-text">
+      <div class="ch-pill">● 솔라나 데브넷 라이브 · 단일 RWA</div>
+      <h1 class="ch-title">실물자산이<br>채굴되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산에 투자하세요.<br>매월 USDT 고정이자 + 연 1회 광산 수익 배당.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+        <a class="ch-btn secondary" href="#">자산 정보</a>
+      </div>
+    </div>
+    <div class="ca-photo-card">
+      <img class="ch-photo" src="assets/images/silica/mine-aerial.webp"
+           onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      <div class="ca-purity">
+        <div class="lbl">SiO₂</div>
+        <div class="v">97.04</div>
+        <div class="u">PERCENT</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT B: Full-Bleed Hero ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">B</span>
+    <span class="desc">Full-Bleed Hero — 광산 사진 풀와이드 배경 + 가운데 텍스트 + 하단 4-셀 데이터 strip</span>
+  </div>
+  <div class="cb-hero">
+    <div class="cb-bg" style="background-image:url('assets/images/silica/mine-aerial.webp'),url('assets/images/silica/silica_mine.png')"></div>
+    <div class="cb-overlay"></div>
+    <div class="cb-content">
+      <span class="cb-eyebrow">◆ 광업권 79907호 · 한국</span>
+      <h1>실물자산이 채굴되는<br><em>안정 수익.</em></h1>
+      <p>한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 광산 수익 배당.</p>
+      <div class="ch-cta" style="justify-content:center">
+        <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+        <a class="ch-btn secondary" href="#" style="background:rgba(255,255,255,.10);color:#FFF;border-color:#FFF">IR 자료 보기</a>
+      </div>
+    </div>
+    <div class="cb-stats">
+      <div class="cb-stat-cell"><div class="l">// SiO₂ Purity</div><div class="v">97.04%</div></div>
+      <div class="cb-stat-cell"><div class="l">// Reserves</div><div class="v">30.68M t</div></div>
+      <div class="cb-stat-cell"><div class="l">// Area</div><div class="v">271 ha</div></div>
+      <div class="cb-stat-cell"><div class="l">// Recovery</div><div class="v">70%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT C: 3-Column (정보형) ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">C</span>
+    <span class="desc">3-Column Layout — 좌 텍스트 / 중앙 큰 사진 / 우 4개 데이터 카드 세로 stack</span>
+  </div>
+  <div class="cc-hero">
+    <div class="cc-text">
+      <div class="ch-pill">● 라이브</div>
+      <h1 class="ch-title">실물자산이<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271ha 고순도 실리카 광산. 매월 USDT 고정이자.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">투자하기 →</a>
+      </div>
+    </div>
+    <div class="cc-photo">
+      <img class="ch-photo" src="assets/images/silica/mine-aerial.webp"
+           onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+    </div>
+    <div class="cc-data">
+      <div class="cc-card violet" style="box-shadow:0 3px 0 0 var(--logo-violet)"><div class="l">SiO₂ Purity</div><div class="v">97.04%</div></div>
+      <div class="cc-card red"><div class="l">Reserves</div><div class="v">30.68M t</div></div>
+      <div class="cc-card blue"><div class="l">Area</div><div class="v">271 ha</div></div>
+      <div class="cc-card orange"><div class="l">Recovery</div><div class="v">70%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT D: Floating Cards (모던 잡지) ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">D</span>
+    <span class="desc">Floating Cards — 광산 사진 좌상단 + 4색 데이터 카드가 떠 있는 모던 잡지 스타일</span>
+  </div>
+  <div class="cd-hero">
+    <div class="cd-text">
+      <div class="ch-pill">● 솔라나 데브넷 라이브</div>
+      <h1 class="ch-title">실물자산이<br>채굴되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산에 투자하세요.<br>매월 USDT 고정이자 + 연 1회 광산 수익 배당.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+        <a class="ch-btn secondary" href="#">자산 정보</a>
+      </div>
+    </div>
+    <div class="cd-visual">
+      <div class="cd-photo">
+        <img class="ch-photo" src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      </div>
+      <div class="cd-float-card violet"><div class="l">SiO₂ Purity</div><div class="v">97.04%</div></div>
+      <div class="cd-float-card red"><div class="l">Reserves</div><div class="v">30.68M t</div></div>
+      <div class="cd-float-card orange"><div class="l">Area</div><div class="v">271 ha</div></div>
+      <div class="cd-float-card blue"><div class="l">Recovery</div><div class="v">70%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT E: Magazine Split (B2B 미니멀) ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">E</span>
+    <span class="desc">Magazine Split — 두꺼운 검정 보더 잡지 스타일 + 사진 위 보라 데이터 박스 + 하단 4-셀 stats</span>
+  </div>
+  <div class="ce-hero">
+    <div class="ce-grid">
+      <div class="ce-text">
+        <div class="ch-pill">● 라이브 · 광업권 79907호</div>
+        <h1 class="ch-title">실물자산이<br>채굴되는<br><em>안정 수익.</em></h1>
+        <p class="ch-sub">한국 271헥타르 고순도 실리카 광산에 투자하세요.<br>매월 USDT 고정이자 + 연 1회 광산 수익 배당.</p>
+        <div class="ch-cta">
+          <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+          <a class="ch-btn secondary" href="#">자산 정보</a>
+        </div>
+      </div>
+      <div class="ce-photo">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+        <div class="ce-purity">
+          <div class="l">SiO₂ Purity</div>
+          <div class="v">97.04%</div>
+          <div class="u">반도체급</div>
+        </div>
+      </div>
+    </div>
+    <div class="ce-stats">
+      <div><div class="l">// Purity</div><div class="v">97.04%</div></div>
+      <div><div class="l">// Reserves</div><div class="v">30.68M</div></div>
+      <div><div class="l">// Area</div><div class="v">271ha</div></div>
+      <div><div class="l">// Recovery</div><div class="v">70%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT F: Polaroid Stack ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">F</span>
+    <span class="desc">Polaroid Stack — 폴라로이드 사진 3장 회전 stack (캐주얼 + 빈티지 매력)</span>
+  </div>
+  <div class="cf-hero">
+    <div class="cf-text">
+      <div class="ch-pill">● 솔라나 데브넷 라이브</div>
+      <h1 class="ch-title">실물자산이<br>채굴되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산.<br>매월 USDT 고정이자 + 연 1회 광산 수익 배당.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+        <a class="ch-btn secondary" href="#">자산 정보</a>
+      </div>
+    </div>
+    <div class="cf-stack">
+      <div class="cf-polaroid back">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+        <div class="caption">271 ha · KR</div>
+      </div>
+      <div class="cf-polaroid mid">
+        <img src="assets/images/silica/silica_mine.png">
+        <div class="caption">30.68M tons</div>
+      </div>
+      <div class="cf-polaroid front">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+        <div class="caption">SiO₂ 97.04%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT G: Asymmetric Wide ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">G</span>
+    <span class="desc">Asymmetric Wide — 좌 텍스트 작게(35%) + 우측 큰 16:9 사진(65%) + 사진 위 4-셀 stat strip</span>
+  </div>
+  <div class="cg-hero">
+    <div class="cg-text">
+      <div class="ch-pill">● 라이브</div>
+      <h1 class="ch-title">실물자산이<br>채굴되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산.<br>매월 USDT 고정이자.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">투자하기 →</a>
+        <a class="ch-btn secondary" href="#">정보</a>
+      </div>
+    </div>
+    <div class="cg-photo">
+      <img src="assets/images/silica/mine-aerial.webp"
+           onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      <div class="cg-stat-strip">
+        <div class="cg-stat"><div class="l">SiO₂</div><div class="v">97.04%</div></div>
+        <div class="cg-stat"><div class="l">Reserves</div><div class="v">30.68M</div></div>
+        <div class="cg-stat"><div class="l">Area</div><div class="v">271ha</div></div>
+        <div class="cg-stat"><div class="l">Recovery</div><div class="v">70%</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT H: Window Frame ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">H</span>
+    <span class="desc">Window Frame — 사진을 macOS/브라우저 창문 프레임으로 감싸기 (테크 + 미니멀)</span>
+  </div>
+  <div class="ch-hero-wrap">
+    <div class="ch-text">
+      <div class="ch-pill">● 솔라나 데브넷 라이브</div>
+      <h1 class="ch-title">실물자산이<br>채굴되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산에 투자하세요.<br>매월 USDT 고정이자 + 연 1회 광산 수익 배당.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+        <a class="ch-btn secondary" href="#">자산 정보</a>
+      </div>
+    </div>
+    <div class="ch-window">
+      <div class="ch-window-bar">
+        <span class="ch-dot r"></span>
+        <span class="ch-dot y"></span>
+        <span class="ch-dot g"></span>
+        <span class="ch-window-title">silicachain.io · 광업권 79907호</span>
+      </div>
+      <div class="ch-window-img">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+        <div class="ch-window-purity">
+          <div class="l">SiO₂ Purity</div>
+          <div class="v">97.04%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT I: Stats Around Photo ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">I</span>
+    <span class="desc">Stats Around Photo — 위쪽 텍스트 + 가운데 사진 + 좌우 4개 데이터 카드 (대칭 액자)</span>
+  </div>
+  <div class="ci-hero">
+    <div class="ci-grid">
+      <div class="ci-text-row">
+        <div class="ch-pill">● 솔라나 데브넷 라이브 · 광업권 79907호</div>
+        <h1 class="ch-title" style="text-align:center">실물자산이 채굴되는 <em>안정 수익.</em></h1>
+        <p class="ch-sub" style="text-align:center">한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자.</p>
+        <div class="ch-cta">
+          <a class="ch-btn primary" href="#">투자하기 →</a>
+          <a class="ch-btn secondary" href="#">자산 정보</a>
+        </div>
+      </div>
+      <div class="ci-side left">
+        <div class="ci-card"><div class="l">SiO₂</div><div class="v">97.04%</div></div>
+        <div class="ci-card"><div class="l">Reserves</div><div class="v">30.68M</div></div>
+      </div>
+      <div class="ci-photo">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      </div>
+      <div class="ci-side right">
+        <div class="ci-card"><div class="l">Area</div><div class="v">271ha</div></div>
+        <div class="ci-card"><div class="l">Recovery</div><div class="v">70%</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT J: Token + Mine Combo ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">J</span>
+    <span class="desc">Token + Mine Combo — 광산 사진 + 토큰 분배 GIF 카드 조합 (이중 visual + 보라 데이터 배지)</span>
+  </div>
+  <div class="cj-hero">
+    <div class="cj-text">
+      <div class="ch-pill">● 솔라나 데브넷 라이브</div>
+      <h1 class="ch-title">실물자산이<br>채굴되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산.<br>100억 토큰 분배 + 월 USDT 이자.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+        <a class="ch-btn secondary" href="#">자산 정보</a>
+      </div>
+    </div>
+    <div class="cj-visual">
+      <div class="cj-photo">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      </div>
+      <div class="cj-token-card">
+        <img src="assets/images/silica/100-billion.gif" alt="Token Distribution">
+      </div>
+      <div class="cj-purity-badge">
+        <div class="l">SiO₂</div>
+        <div class="v">97.04%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT G1: Cinematic Overlay ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">G1</span>
+    <span class="desc">Cinematic Overlay — 21:9 시네마 사진 + 좌측 어두운 그라데이션 오버레이 + 우하단 stat pills</span>
+  </div>
+  <div class="cg1-hero">
+    <div class="cg1-stage">
+      <img src="assets/images/silica/mine-aerial.webp"
+           onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      <div class="cg1-overlay"></div>
+      <div class="cg1-content">
+        <div class="ch-pill">● 솔라나 데브넷 라이브 · 광업권 79907호</div>
+        <h1><b>실물자산</b>이 <i>채굴</i>되는<br><em>안정 수익.</em></h1>
+        <p>한국 271헥타르 고순도 실리카 광산. 매월 USDT 고정이자 + 연 1회 광산 수익 배당.</p>
+        <div class="ch-cta">
+          <a class="ch-btn primary" href="#">지금 투자하기 →</a>
+          <a class="ch-btn secondary" href="#" style="background:rgba(255,255,255,.10);color:#FFF;border-color:#FFF">자산 정보</a>
+        </div>
+      </div>
+      <div class="cg1-stats-row">
+        <div class="pill"><div class="l">SiO₂</div><div class="v">97.04%</div></div>
+        <div class="pill"><div class="l">Reserves</div><div class="v">30.68M</div></div>
+        <div class="pill"><div class="l">Area</div><div class="v">271ha</div></div>
+        <div class="pill"><div class="l">Recovery</div><div class="v">70%</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT G2: 5-Color Corners ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">G2</span>
+    <span class="desc">5-Color Corners — 사진 4코너에 5색 L자 마커 + 가운데 보라 SiO₂ 알약 (모던/테크)</span>
+  </div>
+  <div class="cg2-hero">
+    <div class="cg2-text">
+      <div class="ch-pill">● 라이브</div>
+      <h1 class="ch-title"><b>실물자산</b>이<br><i>채굴</i>되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산.<br>매월 USDT 고정이자 + 연 1회 배당.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">투자하기 →</a>
+        <a class="ch-btn secondary" href="#">자산 정보</a>
+      </div>
+    </div>
+    <div class="cg2-photo">
+      <img src="assets/images/silica/mine-aerial.webp"
+           onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      <div class="cg2-corner tl"></div>
+      <div class="cg2-corner tr"></div>
+      <div class="cg2-corner bl"></div>
+      <div class="cg2-corner br"></div>
+      <div class="center-purity">
+        <div class="l">SiO₂ Purity</div>
+        <div class="v">97.04%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT G3: Tilted Polaroid ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">G3</span>
+    <span class="desc">Tilted Polaroid — 사진 -3도 기울임 + 검정 보더 + 보라 입체 그림자 + 손글씨 캡션</span>
+  </div>
+  <div class="cg3-hero">
+    <div class="cg3-text">
+      <div class="ch-pill">● 라이브</div>
+      <h1 class="ch-title"><b>실물자산</b>이<br><i>채굴</i>되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산.<br>매월 USDT 고정이자.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">투자하기 →</a>
+        <a class="ch-btn secondary" href="#">정보</a>
+      </div>
+    </div>
+    <div class="cg3-photo-wrap">
+      <div class="cg3-photo">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+        <div class="cg3-photo-caption">
+          <span>광업권 79907호 · KR</span>
+          <span class="tag">SiO₂ 97.04%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT G4: Triple Photo Grid ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">G4</span>
+    <span class="desc">Triple Photo Grid — 큰 메인 사진 + 작은 보조 사진 2장 (다른 각도/줌) + 5색 보더</span>
+  </div>
+  <div class="cg4-hero">
+    <div class="cg4-text">
+      <div class="ch-pill">● 라이브</div>
+      <h1 class="ch-title"><b>실물자산</b>이<br><i>채굴</i>되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산.<br>매월 USDT 고정이자 + 연 1회 배당.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">투자하기 →</a>
+        <a class="ch-btn secondary" href="#">자산 정보</a>
+      </div>
+    </div>
+    <div class="cg4-grid">
+      <div class="cg4-main">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+        <div class="badge-purity">SiO₂ <span class="v">97.04%</span></div>
+      </div>
+      <div class="cg4-sub first">
+        <img src="assets/images/silica/silica_mine.png">
+        <div class="label">Reserves 30.68M</div>
+      </div>
+      <div class="cg4-sub second">
+        <img src="assets/images/silica/mine-aerial.webp"
+             onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+        <div class="label">Area 271ha</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONCEPT G5: Floating Stats Side ==================== -->
+<div class="concept-block">
+  <div class="concept-tag">
+    <span class="num">G5</span>
+    <span class="desc">Floating Stats Side — 좌 텍스트 / 중 사진 / 우측에 4개 5색 stat 카드 세로 stack (대시보드)</span>
+  </div>
+  <div class="cg5-hero">
+    <div class="cg5-text">
+      <div class="ch-pill">● 라이브</div>
+      <h1 class="ch-title"><b>실물자산</b>이<br><i>채굴</i>되는<br><em>안정 수익.</em></h1>
+      <p class="ch-sub">한국 271헥타르 고순도 실리카 광산.</p>
+      <div class="ch-cta">
+        <a class="ch-btn primary" href="#">투자하기 →</a>
+      </div>
+    </div>
+    <div class="cg5-photo">
+      <img src="assets/images/silica/mine-aerial.webp"
+           onerror="this.onerror=null;this.src='assets/images/silica/silica_mine.png'">
+      <div class="center-tag">◆ 광업권 79907호 · KR</div>
+    </div>
+    <div class="cg5-stack">
+      <div class="cg5-stat-card violet"><div class="l">SiO₂</div><div class="v">97.04%</div></div>
+      <div class="cg5-stat-card red"><div class="l">Reserves</div><div class="v">30.68M</div></div>
+      <div class="cg5-stat-card blue"><div class="l">Area</div><div class="v">271ha</div></div>
+      <div class="cg5-stat-card orange"><div class="l">Recovery</div><div class="v">70%</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="pick-bar">
+  💡 G 변형 (<strong>G1 / G2 / G3 / G4 / G5</strong>) 또는 기존 <strong>A~J</strong> 중 선택
+</div>
+
+</body>
+</html>

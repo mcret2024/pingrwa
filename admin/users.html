@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>유저 관리 · SilicaChain</title>
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <link rel="shortcut icon" href="img/favicon.png">
+  <style>
+    .admin-shell{max-width:1280px;margin:0 auto;padding:22px 16px}
+    .admin-grid{display:grid;grid-template-columns:260px 1fr;gap:14px;margin-top:14px}
+    @media (max-width:900px){.admin-grid{grid-template-columns:1fr}}
+    .admin-menu{display:flex;flex-direction:column;gap:10px}
+    .admin-menu a{width:100%!important;display:flex!important;justify-content:flex-start!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+    .admin-menu a.active{background:var(--accent-light); border:1px solid var(--amber-border); color:var(--accent-dark)}
+    .page-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:14px}
+    @media (max-width:1100px){.page-grid{grid-template-columns:1fr}}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .rowpick{cursor:pointer}
+    .rowpick:hover td{background:rgba(255,255,255,.04)}
+    .rowpick.active td{background:#fde68a !important;color:#111827 !important;font-weight:800}
+    .rowpick.active td .mono,.rowpick.active td .small-note,.rowpick.active td a,.rowpick.active td strong,.rowpick.active td span{color:#111827 !important}
+    .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    @media (max-width:700px){.detail-grid{grid-template-columns:1fr}}
+    .status-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;font-weight:800}
+    .status-chip.good{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35);color:#15803d}
+    .status-chip.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35);color:#b45309}
+    .status-chip.bad{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#b91c1c}
+    .status-chip.neutral{background:rgba(148,163,184,.16);border-color:rgba(148,163,184,.45);color:#475569}
+    /* (2026-05-18 v579) 유저 목록의 KYC 4-state 칩 — 일반 status-chip 보다
+       살짝 컴팩트하게 (이름 옆 inline 표시). */
+    .kyc-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:999px;border:1px solid;font-size:10px;font-weight:800;letter-spacing:0.3px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+    .kyc-chip.approved{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.40);color:#047857}
+    .kyc-chip.pending {background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.40);color:#b45309}
+    .kyc-chip.rejected{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.40);color:#b91c1c}
+    .kyc-chip.unverified{background:rgba(148,163,184,.14);border-color:rgba(148,163,184,.40);color:#475569}
+
+    /* (2026-05-18 v542 → v544) 버튼 옆 물음표 + hover 툴팁.
+       v542 는 ::after pseudo 로 CSS 만 사용했으나 부모 패널의 overflow 제약
+       으로 좁은 컨테이너에서 좌측이 잘림 (운영자 보고). v544 는 hover 시
+       <body> 에 동적으로 띄우는 floating panel 로 전환 — 어떤 부모의
+       overflow 도 무시한다. 위치는 viewport 기준 fixed 좌표로 계산. */
+    .btn-help-wrap { display: inline-flex; align-items: center; gap: 6px; }
+    .btn-help {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+      color: var(--muted); font-size: 11px; font-weight: 700;
+      cursor: help; user-select: none;
+      transition: all 0.15s;
+    }
+    .btn-help:hover, .btn-help:focus { background: rgba(124,58,237,0.15); border-color: var(--aurora-1, #7c3aed); color: var(--aurora-1, #7c3aed); outline: none; }
+
+    /* 단일 floating tooltip element — body 에 한 번만 생성되고 재사용 */
+    .floating-tooltip {
+      position: fixed; top: 0; left: 0;
+      background: var(--panel, #fff); border: 1px solid var(--border-strong, #cbd5e1);
+      padding: 10px 12px; border-radius: 8px;
+      white-space: pre-line; text-align: left;
+      font-size: 12px; font-weight: 400; line-height: 1.55;
+      width: 300px; max-width: calc(100vw - 32px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+      color: var(--text, #111827);
+      z-index: 99999;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.12s;
+    }
+    .floating-tooltip.visible { opacity: 1; }
+
+    /* (2026-05-18 v555) 사용중지 확인 모달 — type-to-confirm 패턴.
+       운영자가 '사용중지' 텍스트를 정확히 입력해야 Confirm 버튼 활성. */
+    .suspend-confirm-modal { position: fixed; inset: 0; z-index: 9999; display: none; align-items: flex-start; justify-content: center; padding: 12vh 16px 0; }
+    .suspend-confirm-modal.show { display: flex; }
+    .suspend-confirm-backdrop { position: absolute; inset: 0; background: rgba(2, 6, 23, 0.72); backdrop-filter: blur(8px); }
+    .suspend-confirm-panel {
+      position: relative;
+      width: 100%; max-width: 480px;
+      background: linear-gradient(135deg, #1a1f3a 0%, #2a1a4a 100%);
+      border: 1px solid rgba(239, 68, 68, 0.40);
+      border-radius: 18px;
+      padding: 26px 26px 22px;
+      color: #f8fafc;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.55), 0 0 0 1px rgba(239,68,68,0.10);
+    }
+    .suspend-confirm-panel::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #dc2626, #f97316, #dc2626);
+      border-radius: 18px 18px 0 0;
+    }
+    .suspend-confirm-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 56px; height: 56px; margin: 0 auto 12px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 2px solid rgba(239, 68, 68, 0.40);
+      border-radius: 50%;
+      font-size: 28px;
+    }
+    .suspend-confirm-title {
+      font-family: 'Bebas Neue', 'Oswald', sans-serif;
+      font-size: 26px; letter-spacing: 1px;
+      text-align: center; margin: 0 0 8px; color: #fecaca;
+    }
+    .suspend-confirm-target {
+      font-size: 12px; color: #94a3b8;
+      text-align: center; margin: 0 0 16px;
+      font-family: 'Space Grotesk', 'Inter', monospace;
+      word-break: break-all;
+    }
+    .suspend-confirm-bullets {
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.22);
+      border-radius: 10px;
+      font-size: 13px; line-height: 1.7; color: #f1f5f9;
+    }
+    .suspend-confirm-bullets li { margin-left: 18px; }
+    .suspend-confirm-prompt { font-size: 13px; color: #cbd5e1; margin-bottom: 8px; }
+    .suspend-confirm-prompt strong {
+      color: #fca5a5;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+    }
+    /* (2026-05-18 v558) 입력란 색상 — silica-admin.css 의 input 기본 스타일이
+       text color 를 어두운 색으로 강제해서 dark 모달 배경 위에서 안 보이는
+       문제. specificity 강화 + !important 로 확실히 적용. */
+    .suspend-confirm-panel input.suspend-confirm-input {
+      width: 100% !important;
+      padding: 11px 14px !important;
+      background: #ffffff !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+      border-radius: 10px !important;
+      color: #0f172a !important;
+      font-family: 'Space Grotesk', 'Inter', sans-serif !important;
+      font-size: 15px !important;
+      letter-spacing: 0.5px !important;
+      margin-bottom: 8px !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s, box-shadow 0.15s !important;
+      caret-color: #0f172a !important;
+    }
+    .suspend-confirm-panel input.suspend-confirm-input::placeholder {
+      color: #94a3b8 !important;
+      opacity: 1 !important;
+    }
+    .suspend-confirm-panel input.suspend-confirm-input:focus {
+      outline: none !important;
+      border-color: #dc2626 !important;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    }
+    .suspend-confirm-panel input.suspend-confirm-input.match {
+      border-color: #16a34a !important;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15) !important;
+    }
+    .suspend-confirm-hint { font-size: 11px; color: #94a3b8; margin-bottom: 16px; min-height: 14px; }
+    .suspend-confirm-hint.ok { color: #6ee7b7; }
+    .suspend-confirm-actions { display: flex; gap: 8px; flex-direction: column; }
+    .suspend-confirm-btn-danger {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #fff; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+    }
+    .suspend-confirm-btn-danger:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(220,38,38,0.40); }
+    .suspend-confirm-btn-danger:disabled { opacity: 0.40; cursor: not-allowed; }
+    .suspend-confirm-btn-cancel {
+      width: 100%; padding: 11px;
+      background: transparent; color: #cbd5e1;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      font-weight: 600; font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .suspend-confirm-btn-cancel:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.30); }
+  </style>
+</head>
+<body>
+<div id="toast" class="pill hidden"></div>
+<div id="adminHeaderMount"></div>
+<div class="admin-shell">
+  <div class="admin-grid">
+    <div class="card">
+      <div class="pad admin-menu">
+        <div class="muted">관리 메뉴</div>
+        <a class="btn block" href="dashboard.html">대시보드</a>
+        <a class="btn block" href="assets.html">부동산 자산 등록/관리</a>
+        <a class="btn block" href="docs.html">문서 관리</a>
+        <a class="btn block" href="sales.html">매각 관리</a>
+        <a class="btn block" href="staking.html">스테이킹 설정</a>
+        <a class="btn block active" href="users.html">유저 관리</a>
+        <a class="btn block" href="emails.html">단체 메일 발송</a>
+        <a class="btn block" href="accounting.html">회계 통계</a>
+        <a class="btn block" href="referrals.html">추천인 관리</a>
+        <a class="btn block" href="deposits.html">입금 승인 관리</a>
+        <a class="btn block" href="withdrawals.html">출금 신청</a>
+        <a class="btn block" href="token-withdrawals.html">토큰 출금 관리</a>
+        <a class="btn block" href="transactions.html">입출금 내역</a>
+        <a class="btn block" href="contracts.html">전자계약 관리</a>
+        <a class="btn block" href="settings.html">환경설정</a>
+        <a class="btn block" href="fx-live.html">실시간 환율</a>
+      </div>
+    </div>
+
+    <div class="page-grid">
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="align-items:flex-end">
+            <div>
+              <div style="font-weight:950;font-size:16px">유저 목록</div>
+            </div>
+            <div class="tagrow">
+              <!-- (2026-05-18 v570) didit "검토중" 인데 우리 DB 에 'Y' 로
+                   잘못 승인된 케이스 정정용 일괄 감사. 클릭 시 모든 kyc_yn='Y'
+                   행을 didit 에 재조회 → mismatch 만 모달로 표시 → 각 행
+                   리셋 버튼 노출. -->
+              <button id="kycAuditBtn" class="btn small" type="button" title="모든 KYC 인증완료 유저를 didit 와 재대조하여, didit 가 아직 검토중이거나 거절한 케이스를 찾아 롤백할 수 있게 합니다.">KYC 동기화 감사</button>
+              <button id="usrRefreshBtn" class="btn small" type="button">새로고침</button>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="split">
+            <div class="field">
+              <label for="usrSearch">검색(지갑주소)</label>
+              <input id="usrSearch" class="input" placeholder="So..." />
+            </div>
+            <div class="field">
+              <label>요약</label>
+              <div class="notice"><span id="usrSummary">-</span></div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="table-wrap">
+<table class="table">
+              <thead>
+                <tr>
+                  <th>유저</th>
+                  <th class="right">USDT</th>
+                  <!-- (2026-05-21 v693) 운영자 요청 — '총 토큰' 이 모호.
+                       balance_token + staked_token (SilicaSTO 만) 합계임을
+                       명확히 하기 위해 '총 STO' 로 변경. -->
+                  <th class="right">총 STO</th>
+                  <!-- (2026-05-21 v736) Silica 컬럼 신규 — 별도 holdings.silica_balance
+                       + token_withdraw_requests asset='Silica' 의 출금 대기. -->
+                  <th class="right">Silica</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody id="usrRows">
+                <tr><td colspan="5" class="muted center">-</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="align-items:flex-end">
+            <div>
+              <div style="font-weight:950;font-size:16px">선택 유저 상세</div>
+              <div class="muted" id="usrHint" style="margin-top:6px">목록에서 유저를 선택하세요.</div>
+            </div>
+          </div>
+          <div class="detail-grid" style="margin-top:10px">
+            <!-- 지갑주소 셀 제거됨 (2026-05-05) — 같은 값이 #usrHint(타이틀 바로 아래)에 이미 표시됨.
+                 또한 긴 Solana 주소가 그리드 다른 컬럼을 침범하던 레이아웃 문제도 함께 해소. -->
+            <div class="notice"><strong>이름</strong><br><span id="usrName">-</span></div>
+            <!-- (2026-05-21 v720) 운영자 요청 — 각 자산 카드내에 출금 대기 amount 표시.
+                 #usrUsdtPending 등은 0 일 때 small-note 로 부드럽게 숨김 (-).
+                 또한 '출금 요청 / 토큰 출금 요청' 카드를 클릭하면 detail 팝업. -->
+            <div class="notice">
+              <strong>USDT</strong><br><span id="usrUsdtNow">-</span>
+              <div class="small-note" id="usrUsdtPendingLine" style="margin-top:4px;color:#1e40af;font-weight:600;display:none">출금 대기: <span id="usrUsdtPending">0</span> USDT</div>
+            </div>
+            <div class="notice">
+              <strong>SilicaSTO 보유</strong><br><span id="usrStoBalance">-</span>
+              <div class="small-note" id="usrStoPendingLine" style="margin-top:4px;color:#1e40af;font-weight:600;display:none">출금 대기: <span id="usrStoPending">0</span> STO</div>
+            </div>
+            <div class="notice"><strong>SilicaSTO 스테이킹</strong><br><span id="usrStoStaked">-</span></div>
+            <div class="notice">
+              <strong>Silica 보유</strong><br><span id="usrSilicaBalance">-</span>
+              <div class="small-note" id="usrSilicaPendingLine" style="margin-top:4px;color:#1e40af;font-weight:600;display:none">출금 대기: <span id="usrSilicaPending">0</span> Silica</div>
+            </div>
+            <div class="notice"><strong>미체결주문</strong><br><span id="usrOpenOrders">-</span></div>
+            <!-- (v720) 클릭하면 출금 요청 detail 팝업 — cursor pointer + hover 효과 -->
+            <div class="notice" id="usrPendingWithdrawsCard" style="cursor:pointer;transition:background .12s ease;border-style:dashed" title="클릭하여 상세 보기">
+              <strong>출금 요청 (USDT)</strong><br><span id="usrPendingWithdraws">-</span>
+            </div>
+            <div class="notice" id="usrPendingTokenWithdrawsCard" style="cursor:pointer;transition:background .12s ease;border-style:dashed" title="클릭하여 상세 보기">
+              <strong>출금 요청 (토큰)</strong><br><span id="usrPendingTokenWithdraws">-</span>
+            </div>
+            <div class="notice"><strong>KYC</strong><br><span id="usrKyc">-</span></div>
+            <div class="notice"><strong>가입일</strong><br><span id="usrCreatedAt">-</span></div>
+          </div>
+
+          <div class="notice" style="margin-top:12px">
+            <strong>현재 제재 상태</strong><br>
+            <div id="usrStatusBox" style="margin-top:8px">-</div>
+          </div>
+
+          <div class="field" style="margin-top:12px">
+            <label for="usrReason">사유</label>
+            <textarea id="usrReason" class="input" rows="3" placeholder="예: 이상거래 탐지, 서류 확인 필요, 보안 조치 등"></textarea>
+          </div>
+
+          <!-- (2026-06-07 v875) KYC 강제 처리 버튼 — admin 권한으로 didit
+               응답과 무관하게 강제 인증/취소. 사유 (#usrReason) 필수.
+               감사 로그 (silica_audit_log) 자동 기록. -->
+          <div class="row" style="margin-top:12px;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px dashed var(--border)">
+            <div style="width:100%;font-weight:800;font-size:13px;color:#0F172A;margin-bottom:4px">KYC 강제 처리</div>
+            <span class="btn-help-wrap">
+              <button id="usrKycForceApproveBtn" class="btn small primary" type="button">강제 KYC 인증완료</button>
+              <span class="btn-help" tabindex="0" data-tip="【KYC 강제 인증완료】
+• didit 검증을 우회하고 admin 권한으로 KYC 인증을 완료 처리
+• kyc_yn='Y', kyc_status='admin_force_approved' 로 저장
+• 사유 텍스트가 함께 저장되며 silica_audit_log 에 기록
+• 운영자 책임 하 사용 — 예외적/긴급 케이스 전용">?</span>
+            </span>
+            <span class="btn-help-wrap">
+              <button id="usrKycForceRevokeBtn" class="btn small danger" type="button">강제 KYC 취소</button>
+              <span class="btn-help" tabindex="0" data-tip="【KYC 강제 취소】
+• 인증 완료 상태를 강제로 해제 (didit 와 무관)
+• kyc_yn='N', kyc_status='admin_force_revoked' 로 저장
+• 출금 / 투자 / 거래 등 KYC 필요 기능이 즉시 차단됨
+• 사유 텍스트가 함께 저장되며 audit 추적 가능">?</span>
+            </span>
+          </div>
+
+          <div class="row" style="margin-top:12px;gap:10px;flex-wrap:wrap">
+            <span class="btn-help-wrap">
+              <button id="usrSuspendBtn" class="btn small danger" type="button">사용중지</button>
+              <span class="btn-help" tabindex="0" data-tip="【사용중지 — 강한 제재】
+• 로그인·거래·출금이 모두 차단됩니다
+• 미체결 주문(매수/매도)이 자동 취소되고 에스크로 USDT/토큰을 사용자에게 환불
+• 모든 스테이킹이 강제 해제되어 balance 로 이동
+• 사유 텍스트가 함께 저장되며 audit 추적 가능
+
+복귀 시 취소된 주문과 해제된 스테이킹은 자동 복원되지 않습니다.">?</span>
+            </span>
+            <span class="btn-help-wrap">
+              <button id="usrUnsuspendBtn" class="btn small" type="button">사용중지 해제</button>
+              <span class="btn-help" tabindex="0" data-tip="【사용중지 해제】
+• 로그인·거래·출금 차단을 해제합니다 (플래그만 클리어)
+• 자금 이동 없음
+• 이전에 취소된 주문이나 해제된 스테이킹은 복원되지 않습니다 — 사용자가 직접 재주문/재스테이킹해야 함">?</span>
+            </span>
+            <span class="btn-help-wrap">
+              <button id="usrWithdrawSuspendBtn" class="btn small danger" type="button">출금중지</button>
+              <span class="btn-help" tabindex="0" data-tip="【출금중지 — 부분 제재】
+• 출금만 차단됩니다 (거래·스테이킹·로그인은 정상)
+• 자금 이동 없음 — 상태 플래그만 설정
+• 사유 텍스트가 함께 저장되며 audit 추적 가능
+
+KYC 미인증 / 의심 거래 등 출금만 보류하고 싶을 때 사용합니다.">?</span>
+            </span>
+            <span class="btn-help-wrap">
+              <button id="usrWithdrawUnsuspendBtn" class="btn small" type="button">출금중지 해제</button>
+              <span class="btn-help" tabindex="0" data-tip="【출금중지 해제】
+• 출금 차단을 해제합니다 (플래그만 클리어)
+• 자금 이동 없음
+• 정상 출금이 가능해집니다">?</span>
+            </span>
+          </div>
+
+          <!--
+            (2026-05-06) Holdings 진단/복구 도구 — 데브넷 단계의 데이터 drift 디버그용.
+            진단: 현재 holdings 상태 + funding_records 합계 비교 (읽기 전용)
+            (2026-05-18 v544) 운영자: '무결성 복구 (비파괴) 버튼은 제거해줘'.
+            (2026-05-21 v723) 운영자 요청 — 평소 자주 사용하지 않으므로 기본
+            접힘 (details/summary) 처리. 필요할 때만 클릭하여 펼침.
+          -->
+          <div class="hr"></div>
+          <details style="margin-top:4px">
+            <summary style="cursor:pointer;font-weight:900;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0;user-select:none">
+              <span>Holdings 진단</span>
+              <span class="muted" style="font-weight:400;font-size:11px">schema invariant + 회계 정합성 (클릭하여 펼치기)</span>
+            </summary>
+            <div id="usrHoldingsDiagBox" style="margin-top:8px;font-size:12px;color:var(--muted)">유저를 선택하면 진단이 자동으로 실행됩니다.</div>
+            <div class="row" style="margin-top:8px;gap:10px;flex-wrap:wrap">
+              <button id="usrHoldingsDiagBtn" class="btn small" type="button">다시 진단</button>
+            </div>
+          </details>
+
+          <div class="hr"></div>
+          <div style="font-weight:900;font-size:15px">보유 내역</div>
+          <div style="overflow:auto;margin-top:10px">
+            <div class="table-wrap">
+            <!-- (2026-05-21 v691) 운영자 요청: '매각반환' 컬럼 제거. -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>자산</th>
+                  <th class="right">보유</th>
+                  <th class="right">스테이킹</th>
+                  <th class="right">클레임됨</th>
+                </tr>
+              </thead>
+              <tbody id="usrHoldings">
+                <tr><td colspan="4" class="muted center">-</td></tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- (2026-05-21 v720) 출금 요청 detail 팝업 — '출금 요청 (USDT)' 또는
+     '출금 요청 (토큰)' 카드 클릭 시 표시. 백엔드의 pending_withdraw_details
+     배열을 표로 나열 (id, 자산, 금액, 상태, 신청시간, 수령주소). -->
+<div id="pendingWithdrawDetailModal" role="dialog" aria-modal="true"
+     style="position:fixed; inset:0; z-index:10030; display:none; align-items:flex-start; justify-content:center; padding:60px 16px; background:rgba(15,23,42,.55); backdrop-filter:blur(6px)">
+  <div class="card" style="position:relative; width:min(720px, calc(100% - 28px)); border-radius:18px; border:1px solid #e5e7eb; background:#ffffff; color:#111827; box-shadow:0 20px 60px rgba(15,23,42,.30)">
+    <div class="pad">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div id="pwdDetailTitle" style="font-weight:950;font-size:16px;color:#0f172a">출금 요청 상세</div>
+        <button type="button" id="pwdDetailClose" aria-label="Close"
+                style="background:transparent;border:none;color:#6b7280;font-size:22px;line-height:1;cursor:pointer;padding:2px 8px">×</button>
+      </div>
+      <div class="small-note" id="pwdDetailHint" style="margin-top:6px;color:#475569">선택된 유저의 대기/처리중 출금 요청 목록입니다.</div>
+      <div class="hr"></div>
+      <div style="overflow:auto;max-height:60vh">
+        <table class="table" style="margin:0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>종류</th>
+              <th class="right">금액</th>
+              <th>상태</th>
+              <th>수령주소</th>
+              <th>신청시간</th>
+            </tr>
+          </thead>
+          <tbody id="pwdDetailBody">
+            <tr><td colspan="6" class="muted center">데이터 없음</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button id="pwdDetailCloseBtn" class="btn" type="button">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- (2026-05-18 v555) 사용중지 확인 모달 — 운영자가 실수로 버튼 누르는 것을
+     방지. 정확히 '사용중지' 문구를 입력해야 Confirm 활성. -->
+<div id="suspendConfirmModal" class="suspend-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="suspendConfirmTitle">
+  <div class="suspend-confirm-backdrop"></div>
+  <div class="suspend-confirm-panel">
+    <div class="suspend-confirm-icon">⚠️</div>
+    <h2 id="suspendConfirmTitle" class="suspend-confirm-title">사용중지 확인</h2>
+    <div class="suspend-confirm-target">대상: <span id="suspendConfirmAddr">—</span></div>
+    <ul class="suspend-confirm-bullets">
+      <li>로그인·거래·출금이 모두 차단됩니다</li>
+      <li>미체결 주문 자동 취소 + 에스크로 환불</li>
+      <li>스테이킹 강제 해제 → balance 로 이동</li>
+      <li>대기 중 출금 신청 자동 취소 + 환불 (USDT/토큰)</li>
+      <li>해제 시에도 취소된 주문/스테이킹/출금은 자동 복원 안 됨</li>
+    </ul>
+    <div class="suspend-confirm-prompt">
+      계속 진행하려면 아래 입력란에 정확히 <strong>사용중지</strong> 를 입력하세요.
+    </div>
+    <input id="suspendConfirmInput" class="suspend-confirm-input" type="text" autocomplete="off" spellcheck="false" placeholder="사용중지" />
+    <div id="suspendConfirmHint" class="suspend-confirm-hint">텍스트가 정확히 일치해야 활성화됩니다.</div>
+    <div class="suspend-confirm-actions">
+      <button id="suspendConfirmOkBtn" class="suspend-confirm-btn-danger" type="button" disabled>사용중지 실행</button>
+      <button id="suspendConfirmCancelBtn" class="suspend-confirm-btn-cancel" type="button">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- (2026-05-18 v570) KYC 동기화 감사 결과 모달. didit "검토중" 인데 우리는
+     'Y' 로 잘못 승인된 케이스를 표로 보여주고, 각 행마다 "롤백" 버튼으로
+     즉시 정정. 신중한 작업이므로 다중 확인 없이 단일 클릭으로 작동.
+     실수가 우려되면 사용자가 모달을 닫고 다른 행에 영향 없음. -->
+<div id="kycAuditModal" class="suspend-confirm-modal" role="dialog" aria-modal="true" style="align-items:flex-start; padding:6vh 16px 0">
+  <div class="suspend-confirm-backdrop"></div>
+  <div class="suspend-confirm-panel" style="max-width:880px; padding:22px">
+    <h2 class="suspend-confirm-title" style="text-align:left; margin-bottom:4px">KYC 동기화 감사</h2>
+    <div class="suspend-confirm-target" style="text-align:left; margin-bottom:12px">
+      didit 와 우리 DB 의 KYC 상태를 비교합니다. 결과가 다른 사용자가 표시됩니다.
+    </div>
+    <div id="kycAuditStatus" style="font-size:13px; margin-bottom:10px; color:#cbd5e1">대기 중...</div>
+    <!-- (2026-05-18 v578) 운영자 보고: '배경과 텍스트 컬러가 겹쳐서 텍스트가
+         잘 안 보인다.' suspend-confirm-panel 의 다크 그라데이션 배경 위에
+         admin .table 의 기본 진한 텍스트가 안 보이던 문제. 테이블 영역만
+         라이트 카드로 격리 → 표준 데이터 테이블 가독성 회복. -->
+    <div id="kycAuditTableWrap" style="max-height:50vh; overflow:auto; background:#ffffff; color:#0f172a; border:1px solid rgba(255,255,255,0.20); border-radius:8px">
+      <table class="table" style="margin:0; color:#0f172a">
+        <thead style="position:sticky; top:0; background:#f1f5f9; z-index:1">
+          <tr>
+            <th style="color:#0f172a; font-weight:700">유저</th>
+            <th style="color:#0f172a; font-weight:700">이름</th>
+            <th style="color:#0f172a; font-weight:700">didit 세션</th>
+            <th style="color:#0f172a; font-weight:700">didit 개별</th>
+            <th style="color:#0f172a; font-weight:700">액션</th>
+          </tr>
+        </thead>
+        <tbody id="kycAuditRows">
+          <tr><td colspan="5" style="padding:20px; text-align:center; color:#64748b">감사 실행 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="suspend-confirm-actions" style="justify-content:flex-end; margin-top:14px">
+      <button id="kycAuditCloseBtn" class="suspend-confirm-btn-cancel" type="button">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/users.js?v=20260607v876-kyc-reason-prompt"></script>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{window.AdminHeader.loadHeader()})
+</script>
+<script>
+/* (2026-05-18 v544) Floating tooltip — body 에 단일 element 생성, hover 시
+   각 .btn-help[data-tip] 의 위치를 계산해 띄운다. position: fixed 라 부모
+   overflow 와 무관하게 항상 보인다. 화면 우/하단 경계를 넘으면 자동으로
+   안쪽으로 끌어당긴다. */
+(function () {
+  'use strict';
+  var tip = null;
+  function ensureEl() {
+    if (tip) return tip;
+    tip = document.createElement('div');
+    tip.className = 'floating-tooltip';
+    tip.setAttribute('role', 'tooltip');
+    document.body.appendChild(tip);
+    return tip;
+  }
+  function position(el) {
+    var t = ensureEl();
+    var rect = el.getBoundingClientRect();
+    var tipRect = t.getBoundingClientRect();
+    var gap = 8;
+    var margin = 12;
+    // 기본 위치 — 아이콘 위, 가로는 아이콘 중심에 정렬.
+    var top = rect.top - tipRect.height - gap;
+    var left = rect.left + rect.width / 2 - tipRect.width / 2;
+    // 위쪽 공간 부족하면 아래로.
+    if (top < margin) top = rect.bottom + gap;
+    // 좌/우 경계 보정.
+    var maxLeft = window.innerWidth - tipRect.width - margin;
+    if (left < margin) left = margin;
+    if (left > maxLeft) left = maxLeft;
+    t.style.top = top + 'px';
+    t.style.left = left + 'px';
+  }
+  function show(el) {
+    var text = el.getAttribute('data-tip') || '';
+    var t = ensureEl();
+    t.textContent = text;
+    // 텍스트 채우고 한 프레임 뒤에 측정 → 정확한 width/height 로 위치 계산.
+    t.classList.add('visible');
+    requestAnimationFrame(function () { position(el); });
+  }
+  function hide() {
+    if (tip) tip.classList.remove('visible');
+  }
+  document.addEventListener('mouseover', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('.btn-help[data-tip]') : null;
+    if (el) show(el);
+  });
+  document.addEventListener('mouseout', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('.btn-help[data-tip]') : null;
+    if (el) hide();
+  });
+  document.addEventListener('focusin', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('.btn-help[data-tip]') : null;
+    if (el) show(el);
+  });
+  document.addEventListener('focusout', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('.btn-help[data-tip]') : null;
+    if (el) hide();
+  });
+  window.addEventListener('scroll', hide, true);
+  window.addEventListener('resize', hide);
+})();
+</script>
+</body>
+</html>

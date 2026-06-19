@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- (2026-05-22 v789) Cache-control — 모바일 브라우저가 옛 HTML 캐시 받아
+     v780 의 USDT 폰트 축소 / fmtBalAbbrev 가 반영 안 되는 문제 차단.
+     landing v754 / assets v788 동일 패턴. -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Home · SilicaChain</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
+<link rel="stylesheet" href="assets/css/silica-user.css?v=20260617v915-fouc">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-header.html?v=20260617v924-nav-trade">
+<link rel="preload" as="fetch" crossorigin="anonymous" href="/assets/includes/site-footer.html?v=20260617v924-nav-trade">
+
+<script>
+  (function () {
+    try {
+      var key = "rwa_lang_user_v1";
+      var raw = String(localStorage.getItem(key) || "en").trim().toLowerCase();
+      var lang = raw === "ko" ? "ko" : "en";
+      var de = document.documentElement;
+      de.lang = lang;
+      de.setAttribute("data-rwa-lang", lang);
+      de.setAttribute("data-rwa-i18n-ready", "1");
+      // (2026-06-17 v921) FOUC fix 일괄 — 로더 먼저(html.rwa-booting-early). app.js 가 해제.
+      de.classList.add("rwa-booting-early");
+      window.__RWA_I18N_BOOT_LANG__ = lang;
+    } catch (_) {}
+  })();
+
+  // 주의: 이전에 있던 "stale wallet 자동 정리" 인라인 스크립트는 제거함.
+  // Phantom 은 페이지 로드 직후 isConnected=false 상태로 시작하기 때문에,
+  // localStorage 의 세션을 무차별 삭제해버려 페이지 이동 시마다 로그아웃되는 버그가 있었음.
+  // 정상적인 세션 복구는 core.js 의 silent re-connect (onlyIfTrusted) 가 담당.
+</script>
+<style>
+  .dash {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px;
+    position: relative; z-index: 1;
+  }
+  .dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .dash-greeting {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 5vw, 56px);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  /* (v605) gradient text → 단색. */
+  .dash-greeting em {
+    font-family: 'Unbounded', sans-serif;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 0.7em;
+    letter-spacing: -2px;
+    color: var(--logo-violet);
+  }
+  .dash-sub { color: var(--ice); margin-top: 8px; font-size: 16px; font-weight: 600; }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 1000px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 1000px) { .dash-grid { grid-template-columns: 1fr; } }
+
+  .panel-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .panel-title h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .panel-title a {
+    color: var(--aurora-3);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* Earnings chart placeholder */
+  /* (v605) chart gradient → 단색 배경. */
+  .chart-placeholder {
+    height: 240px;
+    background: #FAF5FF;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-line {
+    position: absolute;
+    bottom: 30px; left: 0; right: 0;
+    height: 50%;
+    background: #E9D5FF;
+    clip-path: polygon(
+      0% 70%, 8% 60%, 16% 65%, 25% 50%, 33% 55%, 42% 35%, 50% 45%,
+      58% 30%, 66% 35%, 75% 20%, 83% 25%, 91% 15%, 100% 18%,
+      100% 100%, 0% 100%
+    );
+  }
+  /* (v605) gradient → 단색 violet. */
+  .chart-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--logo-violet);
+    -webkit-mask: linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0);
+    clip-path: polygon(
+      0% 70%, 8% 60%, 16% 65%, 25% 50%, 33% 55%, 42% 35%, 50% 45%,
+      58% 30%, 66% 35%, 75% 20%, 83% 25%, 91% 15%, 100% 18%,
+      100% 22%, 91% 19%, 83% 29%, 75% 24%, 66% 39%, 58% 34%, 50% 49%,
+      42% 39%, 33% 59%, 25% 54%, 16% 69%, 8% 64%, 0% 74%
+    );
+  }
+  .chart-axis {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    color: var(--steel-dim);
+    letter-spacing: 1px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .holdings-list { display: flex; flex-direction: column; gap: 12px; }
+  .holding {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+  }
+  .holding-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--platinum);
+    flex-shrink: 0;
+  }
+  /* (v605) gradient → 단색 로고 컬러. */
+  .holding-icon.usdt { background: #26A17B; color: #FFFFFF; }
+  .holding-icon.sto { background: var(--logo-violet); color: #FFFFFF; }
+  .holding-icon.silica { background: var(--logo-blue); color: #FFFFFF; }
+  .holding-info { flex: 1; }
+  .holding-name { font-weight: 600; margin-bottom: 4px; }
+  .holding-ticker { font-family: 'Space Grotesk', sans-serif; font-size: 11px; color: var(--steel); letter-spacing: 1px; }
+  .holding-balance {
+    text-align: right;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .holding-value { color: var(--steel); font-size: 12px; margin-top: 2px; }
+
+  .upcoming-list { display: flex; flex-direction: column; gap: 12px; }
+  .upcoming {
+    padding: 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+  }
+  .upcoming-date {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--aurora-3);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .upcoming-title { font-weight: 600; margin-bottom: 4px; }
+  .upcoming-amount {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    color: var(--success);
+  }
+
+  .activity-table { font-size: 13px; }
+
+  /* ═══════════════════════════════════════════════ */
+  /* Concept E — Asymmetric Split Dashboard          */
+  /* ═══════════════════════════════════════════════ */
+  :root {
+    --logo-red:    #E53935;
+    --logo-orange: #F57C00;
+    --logo-green:  #2E7D32;
+    --logo-blue:   #1976D2;
+    --logo-violet: #8E24AA;
+  }
+
+  .dashE { max-width: 1400px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
+
+  .dashE-actions {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  /* 대시보드 액션 버튼 강제 표시 — 어떤 외부 CSS 도 숨길 수 없도록 */
+  #dashHeaderActions {
+    display: flex !important;
+    visibility: visible !important;
+  }
+  #dashConnectBtn,
+  #dashInvestBtn,
+  #dashStakeBtn {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  .dashE-greet {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 1px; color: #0F172A; margin: 0;
+  }
+  /* (v605) gradient text → 단색. */
+  .dashE-greet em {
+    font-family: 'Unbounded'; font-style: normal; font-weight: 800;
+    color: var(--logo-violet);
+  }
+
+  .split-shell {
+    display: grid; grid-template-columns: 1fr 380px; gap: 0;
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.10);
+    margin-bottom: 32px;
+  }
+  @media (max-width: 1000px) { .split-shell { grid-template-columns: 1fr; } }
+
+  /* (2026-05-19 v590) 운영자 디자인 원칙 — Total Portfolio Value 카드
+     그라데이션/흐린색 모두 제거 → 단색. before/after radial glow 도 비활성. */
+  .split-left {
+    padding: 48px;
+    background: #0F172A;
+    color: #FFFFFF; position: relative; overflow: hidden; min-height: 480px;
+  }
+  .split-left::before, .split-left::after { content: none; }
+
+  .split-eyebrow {
+    font-family: 'Space Grotesk', sans-serif; font-size: 11px; letter-spacing: 4px;
+    color: var(--logo-violet); text-transform: uppercase; font-weight: 700;
+    margin-bottom: 28px; position: relative;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .split-eyebrow::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--logo-violet); box-shadow: 0 0 12px var(--logo-violet);
+    animation: splitPulse 2s infinite;
+  }
+  @keyframes splitPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* (v590) 텍스트 그라데이션 clip → 단색 흰색. */
+  .split-mega {
+    font-family: 'Unbounded', sans-serif; font-weight: 900;
+    font-size: clamp(36px, 5.2vw, 68px); line-height: 1.05; letter-spacing: -2px;
+    margin: 0 0 16px; position: relative;
+    color: #FFFFFF;
+    word-break: break-word; overflow-wrap: anywhere;
+  }
+  .split-mega .small,
+  .split-mega small {
+    font-size: 0.42em; color: #94A3B8; font-weight: 400; margin-left: 2px;
+  }
+  /* (2026-05-22 v780→v789) 운영자 보고: 'USDT 텍스트 여전히 너무 크다.'
+     v780 의 0.38em 도 부족해 보임 + 캐시 문제로 미적용 가능성.
+     v789: !important 명시 + 사이즈 0.38 → 0.32em (더 작게) + cache buster
+     갱신 (silica-data-bind.js?v=789, cache-control meta 추가). */
+  .split-mega .ccy {
+    font-size: 0.32em !important;
+    color: #94A3B8 !important;
+    font-weight: 500 !important;
+    margin-left: 10px !important;
+    letter-spacing: 2px !important;
+    vertical-align: 0.25em !important;
+    display: inline-block !important;
+  }
+  .split-cap {
+    font-family: 'Space Grotesk'; font-size: 14px; color: #94A3B8;
+    margin-bottom: 56px; position: relative; letter-spacing: 0.5px;
+  }
+  .split-cap strong { color: #FFFFFF; font-weight: 600; }
+
+  .split-trio {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    padding-top: 32px; border-top: 1px solid rgba(255, 255, 255, 0.10); position: relative;
+  }
+  .split-trio-cell {
+    padding-right: 24px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .split-trio-cell:last-child { border-right: none; padding-right: 0; }
+  .split-trio-cell + .split-trio-cell { padding-left: 24px; }
+  .split-trio-cell .lbl {
+    font-family: 'Space Grotesk'; font-size: 10px; letter-spacing: 2px;
+    color: #64748B; text-transform: uppercase; margin-bottom: 8px; font-weight: 700;
+  }
+  .split-trio-cell .val {
+    font-family: 'Unbounded'; font-weight: 800; font-size: 28px;
+    letter-spacing: -1px; color: #FFFFFF; line-height: 1;
+  }
+  /* (v609) 운영자: '소수점 폰트가 정수와 동일' → 정수 폰트의 42% 로 축소.
+     fmtBalHtml 이 <small>.xx</small> 로 감싸 노출. */
+  .split-trio-cell .val small,
+  .split-trio-cell .val .small {
+    font-size: 0.42em; color: #94A3B8; font-weight: 400;
+    margin-left: 2px; letter-spacing: 0;
+  }
+  .split-trio-cell .sub {
+    font-family: 'Space Grotesk'; font-size: 11px; color: #64748B;
+    margin-top: 6px; letter-spacing: 0.5px;
+  }
+  .split-trio-cell.violet .val { color: #C084FC; }
+  .split-trio-cell.green .val { color: #34D399; }
+  .split-trio-cell.cyan .val { color: #22D3EE; }
+
+  .split-right {
+    padding: 32px; background: #FFFFFF;
+    border-left: 1px solid #E2E8F0;
+    display: flex; flex-direction: column;
+  }
+  .split-right-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #0F172A;
+  }
+  .split-right-head h3 {
+    font-family: 'Bebas Neue'; font-size: 22px; letter-spacing: 1px; margin: 0; color: #0F172A;
+  }
+  .split-right-head a {
+    font-family: 'Space Grotesk'; font-size: 11px; letter-spacing: 1px;
+    color: var(--logo-violet); text-decoration: none; text-transform: uppercase; font-weight: 700;
+  }
+  .split-right-head a:hover { text-decoration: underline; }
+
+  .feed-list {
+    flex: 1; display: flex; flex-direction: column; gap: 4px; min-height: 320px;
+  }
+  .feed-item {
+    padding: 14px 0; border-bottom: 1px solid #F1F5F9; font-family: 'Space Grotesk';
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-item .when {
+    font-size: 10px; color: #94A3B8; letter-spacing: 1.5px;
+    margin-bottom: 4px; text-transform: uppercase; font-weight: 700;
+  }
+  .feed-item .what {
+    font-weight: 600; color: #0F172A; font-size: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .feed-item .amt {
+    font-family: 'Unbounded'; font-weight: 700; color: #10B981; font-size: 13px;
+  }
+  .feed-empty {
+    text-align: center; padding: 60px 24px; color: #94A3B8;
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; gap: 12px;
+  }
+  .feed-empty .icon { font-size: 36px; color: #CBD5E1; margin-bottom: 8px; }
+  .feed-empty .title {
+    font-family: 'Bebas Neue'; font-size: 18px; color: #475569; letter-spacing: 1px;
+  }
+  .feed-empty .sub { font-size: 12px; color: #94A3B8; line-height: 1.6; }
+
+  .lower-row {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 32px;
+  }
+  @media (max-width: 1000px) { .lower-row { grid-template-columns: 1fr; } }
+
+  .panelE {
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px;
+    padding: 28px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  }
+  .panelE-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #E2E8F0;
+  }
+  .panelE-head h3 {
+    font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 1px; margin: 0; color: #0F172A;
+  }
+  .panelE-head a {
+    color: var(--logo-violet); text-decoration: none;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  }
+
+  /* Token Holdings — 한 행씩 나열 (카드 없음, 얇은 디바이더만, 토큰 로고 포함) */
+  .holdingsE-list { display: flex; flex-direction: column; }
+  .holdingE {
+    display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: center;
+    padding: 12px 4px;
+    border-bottom: 1px solid #E2E8F0;
+    transition: background 0.15s;
+  }
+  .holdingE:last-child { border-bottom: none; }
+  .holdingE:hover { background: rgba(139, 92, 246, 0.04); }
+  .holdingE-logo {
+    width: 32px; height: 32px;
+    display: block; flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: contain;
+    background: #FFFFFF;
+  }
+  .holdingE-info { line-height: 1.3; min-width: 0; }
+  .holdingE-name { font-weight: 700; font-size: 15px; color: #0F172A; }
+  .holdingE-tic {
+    font-family: 'Space Grotesk'; font-size: 11px; color: #64748B;
+    letter-spacing: 1px; margin-top: 2px;
+  }
+  .holdingE-bal {
+    text-align: right; font-family: 'Unbounded'; font-weight: 700; font-size: 18px; color: #0F172A;
+  }
+  .holdingE-conv {
+    font-family: 'Space Grotesk'; font-size: 11px; color: #64748B;
+    margin-top: 2px; text-align: right;
+  }
+
+  .kycE-panel { text-align: center; }
+  .kycE-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: #E2E8F0; border: 2px solid #CBD5E1;
+    display: flex; align-items: center; justify-content: center;
+    margin: 8px auto 16px; font-size: 30px; color: #94A3B8;
+  }
+  .kycE-status {
+    font-family: 'Bebas Neue'; font-size: 22px; letter-spacing: 1px;
+    color: #475569; margin-bottom: 8px;
+  }
+  .kycE-detail {
+    font-family: 'Space Grotesk'; font-size: 12px; color: #94A3B8;
+    line-height: 1.6; margin-bottom: 20px;
+  }
+  /* (2026-05-19 v588) 디자인 원칙 — 그라데이션/흐린색 → 원단색.
+     box-shadow 도 단순화. */
+  .kycE-cta {
+    display: inline-block; padding: 10px 24px;
+    background: #8E24AA;
+    color: #FFFFFF; text-decoration: none; border-radius: 8px;
+    font-family: 'Oswald'; font-weight: 700; font-size: 12px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .kycE-cta:hover { background: #6A1B9A; }
+  /* 거절 상태에서는 빨강 단색 — silica-data-bind.js 가 state 별 분기하지
+     않아도 CSS 셀렉터로 처리. data-kyc-state 속성을 ctaEl 에 설정함. */
+  .kycE-cta[data-kyc-state="rejected"] { background: #DC2626; }
+  .kycE-cta[data-kyc-state="rejected"]:hover { background: #B91C1C; }
+
+  /* (2026-05-21 v742) 모바일 레이아웃 깨짐 fix.
+     - .split-mega 의 long number + small decimal 이 모바일 폭 (≤600px) 에서
+       awkward wrapping (예: '5' 가 newline) 발생 → font-size 추가 축소 +
+       small 을 inline-block + nowrap 으로 한 줄 강제.
+     - .split-trio-cell 의 28px val 도 모바일에서 overflow → 20px 축소 +
+       horizontal scroll 보호.
+     - .holdingE bal (token holdings 우측 잔액) 18px 가 long 숫자에서
+       이름 컬럼과 충돌 → 14px 축소 + min-width 보장. */
+  @media (max-width: 600px) {
+    /* (v770) 운영자 요청:
+       1) 'TOTAL PORTFOLIO VALUE 카드 좌우 여백 없도록 완전히 좌우 꽉 채워라.'
+       2) 'STO 토큰, 이자, SILICA HELD 를 하나의 열이 아닌 각각 열(행)로 배치
+          (모바일에서만).'
+       이전 v766 의 3-컬럼 압축 fix 폐기 → vertical stack 재설계.
+       구현:
+       - .split-shell 에 negative margin 으로 .dashE padding 16px 탈출
+         (margin-left/right: calc(-1 × rail) → card 가 viewport edge 까지)
+       - .split-shell border-radius 0 (edge-to-edge 시각 일관)
+       - .split-trio grid-template-columns 1fr (단일 컬럼)
+       - trio-cell 사이 horizontal divider (border-bottom)
+       - 각 cell 의 val font 회복 (24px) — 가로 폭이 넉넉하니 큰 표시 가능
+    */
+
+    /* Mobile rail variable */
+    body[data-page="index"] { --mobile-rail: 16px; }
+
+    /* Page container — 32px → 16px (다른 카드들 rail 정렬)
+       (2026-05-24 v821) 운영자 요청: 모바일에서 헤더와 본문 사이 여백 제거.
+       padding-top: 0 → 헤더 mount 와 첫 카드 (split-shell, edge-to-edge) 가
+       시각적으로 flush 되어 깔끔. 좌우 rail (16px) + bottom (16px) 은 유지. */
+    .dashE { padding: 0 var(--mobile-rail) 16px !important; }
+    .dash { padding: 0 var(--mobile-rail) 16px !important; }
+
+    /* (v770) Portfolio 카드 edge-to-edge — .dashE 의 16px padding 탈출 */
+    .split-shell {
+      margin-left: calc(-1 * var(--mobile-rail)) !important;
+      margin-right: calc(-1 * var(--mobile-rail)) !important;
+      border-radius: 0 !important;
+      margin-bottom: 24px !important;
+    }
+    .split-left {
+      padding: 24px var(--mobile-rail) !important;
+      min-height: auto;
+    }
+    .split-right { padding: 18px var(--mobile-rail) !important; }
+    .split-mega {
+      font-size: 36px !important;
+      letter-spacing: -1.5px;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+    .split-mega small,
+    .split-mega .small {
+      font-size: 0.5em;
+      display: inline;
+      white-space: nowrap;
+    }
+    .split-cap { margin-bottom: 20px; font-size: 12px; }
+
+    /* (v770) Trio — 3-column → 1-column vertical stack */
+    .split-trio {
+      grid-template-columns: 1fr !important;
+      gap: 0 !important;
+      padding-top: 16px !important;
+    }
+    .split-trio-cell {
+      padding: 14px 0 !important;
+      border-right: none !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+      min-width: 0;
+    }
+    .split-trio-cell:last-child {
+      border-bottom: none !important;
+      padding-bottom: 0 !important;
+    }
+    .split-trio-cell:first-child {
+      padding-top: 0 !important;
+    }
+    /* 가로 폭 충분하니 padding-left/right 0 적용 (between rule 비활성) */
+    .split-trio-cell + .split-trio-cell { padding-left: 0 !important; }
+    .split-trio-cell .lbl {
+      font-size: 11px !important;
+      letter-spacing: 1.5px !important;
+      margin-bottom: 8px;
+    }
+    .split-trio-cell .val {
+      font-size: 24px !important;
+      letter-spacing: -0.5px;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .split-trio-cell .val small,
+    .split-trio-cell .val .small { font-size: 0.55em !important; }
+    .split-trio-cell .sub {
+      font-size: 12px !important;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+
+    /* TOKEN HOLDINGS — 잔액 우측 폰트 축소 + 명칭 컬럼 충돌 방지. */
+    .holdingE { grid-template-columns: 28px minmax(0,1fr) auto; gap: 10px; padding: 10px 4px; }
+    .holdingE-logo { width: 28px; height: 28px; }
+    .holdingE-name { font-size: 13px; }
+    .holdingE-tic { font-size: 10px; }
+    .holdingE-bal { font-size: 14px; white-space: nowrap; }
+    .holdingE-conv { font-size: 10px; }
+
+    /* 안전망 */
+    body[data-page="index"] { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body[data-page="index"] *, body[data-page="index"] *::before, body[data-page="index"] *::after { box-sizing: border-box; }
+  }
+</style>
+</head>
+<body data-page="index">
+
+<!-- site-header.html will be auto-mounted by core.js (with #walletBtn) -->
+
+<main>
+
+<div class="dashE">
+
+  <!--
+    (2026-05-11 v251) 'My Dashboard' 제목 제거 — 운영자 요청.
+    Quick-Action Bar 자체는 향후 액션 버튼 (지갑 연결 / 투자 / 스테이킹)
+    재배치를 위해 보존하되, 현재 KPI/Hero 가 곧바로 따라 나오므로
+    중복 헤더를 노출하지 않는다.
+  -->
+  <div class="dashE-actions" style="display:none">
+    <h1 class="dashE-greet">My <em>Dashboard</em></h1>
+  </div>
+
+  <!-- ★ Asymmetric Split Hero ★ -->
+  <div class="split-shell">
+
+    <!-- LEFT: Dark Hero -->
+    <div class="split-left">
+      <div class="split-eyebrow">Total Portfolio Value</div>
+      <div class="split-mega" id="kpiTotalAssets" data-no-i18n="1" translate="no">0.00 USDT</div>
+
+      <div class="split-trio">
+        <div class="split-trio-cell violet">
+          <div class="lbl">Staked STO</div>
+          <div class="val" id="kpiStaked">0</div>
+          <div class="sub" id="kpiStakedUsdt">≈ 0 USDT</div>
+        </div>
+        <div class="split-trio-cell green">
+          <div class="lbl">Interest</div>
+          <div class="val" id="kpiInterest">0.00</div>
+          <div class="sub" id="kpiInterestSub">USDT · 0 cycles</div>
+        </div>
+        <div class="split-trio-cell cyan">
+          <div class="lbl">Silica Held</div>
+          <div class="val" id="kpiSilica">0.00</div>
+          <div class="sub" id="kpiSilicaUsdt">≈ 0 USDT @ 0.05</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Activity Feed -->
+    <div class="split-right">
+      <div class="split-right-head">
+        <h3>Activity Feed</h3>
+        <a href="history.html">View All →</a>
+      </div>
+
+      <div class="feed-list" id="feedList">
+        <div class="feed-empty">
+          <div class="icon">⊕</div>
+          <div class="title">No Activity Yet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lower Row: Holdings + KYC -->
+  <div class="lower-row">
+
+    <!-- Holdings -->
+    <div class="panelE">
+      <div class="panelE-head">
+        <h3>Token Holdings</h3>
+        <a href="portfolio.html">Wallet →</a>
+      </div>
+
+      <div class="holdingsE-list">
+        <div class="holdingE">
+          <img class="holdingE-logo" src="assets/images/token-usdt.svg" alt="USDT" width="32" height="32" data-token-logo="usdt">
+          <div class="holdingE-info">
+            <div class="holdingE-name">USDT</div>
+          </div>
+          <div>
+            <div class="holdingE-bal" id="balUsdt">0.00</div>
+            <div class="holdingE-conv" id="balUsdtKrw">≈ ₩0 KRW</div>
+          </div>
+        </div>
+
+        <div class="holdingE">
+          <img class="holdingE-logo" src="assets/images/token-silicasto.svg" alt="SilicaSTO" width="32" height="32" data-token-logo="silicasto">
+          <div class="holdingE-info">
+            <div class="holdingE-name">SilicaSTO</div>
+          </div>
+          <div>
+            <div class="holdingE-bal" id="balSto">0.00</div>
+            <div class="holdingE-conv" id="balStoUsdt">≈ 0 USDT</div>
+          </div>
+        </div>
+
+        <div class="holdingE">
+          <img class="holdingE-logo" src="assets/images/token-silica.svg" alt="Silica" width="32" height="32" data-token-logo="silica">
+          <div class="holdingE-info">
+            <div class="holdingE-name">Silica</div>
+          </div>
+          <div>
+            <div class="holdingE-bal" id="balSilica">0.00</div>
+            <div class="holdingE-conv" id="balSilicaUsdt">≈ 0 USDT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KYC -->
+    <div class="panelE kycE-panel">
+      <div class="panelE-head" style="justify-content:center;border-bottom:none;padding-bottom:0;margin-bottom:0;">
+        <h3>KYC Verification</h3>
+      </div>
+      <div class="kycE-icon" id="kycIconWrap">🔒</div>
+      <div class="kycE-status" id="kycStatusText">Unverified</div>
+      <div class="kycE-detail" id="kycSubText">
+        KYC verification required<br>before investing.
+      </div>
+      <a href="kyc-ready.html" class="kycE-cta" id="kycCta">Start KYC</a>
+    </div>
+
+  </div>
+
+</div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-bottom">
+    <div>© 2026 SILICA CHAIN HOLDINGS</div>
+    <div>Solana Devnet</div>
+  </div>
+</footer>
+
+<div id="siteFooterMount"></div>
+<script src="assets/js/app.js?v=20260618v927-header-rwa"></script>
+<script src="assets/js/silica-data-bind.js?v=20260608v895-m-only-abbrev"></script>
+</body>
+</html>

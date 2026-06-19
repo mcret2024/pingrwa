@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>추천인 관리 · SilicaChain</title>
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <link rel="shortcut icon" href="img/favicon.png">
+  <style>
+    .admin-shell{max-width:1200px;margin:0 auto;padding:22px 16px}
+    .admin-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .admin-grid{display:grid;grid-template-columns:260px 1fr;gap:14px;margin-top:14px}
+    @media (max-width: 900px){.admin-grid{grid-template-columns:1fr}}
+    .admin-menu a{justify-content:flex-start;text-decoration:none}
+    .admin-menu a.active{background:var(--accent-light); border:1px solid var(--amber-border); color:var(--accent-dark)}
+    .admin-menu{display:flex;flex-direction:column;gap:10px}
+    .admin-menu a{width:100% !important;display:flex !important;justify-content:flex-start !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .admin-menu a.btn.block{width:100% !important;display:flex !important}
+    @media (max-width: 900px){.admin-menu{ gap:8px; }}
+  </style>
+</head>
+<body>
+
+<div id="toast" class="pill hidden"></div>
+
+<div id="adminHeaderMount"></div>
+<div class="admin-shell">
+<div class="admin-grid">
+
+<div class="card">
+<div class="pad admin-menu">
+
+<div class="muted">관리 메뉴</div>
+
+<a class="btn block" href="dashboard.html">대시보드</a>
+<a class="btn block" href="assets.html">부동산 자산 등록/관리</a>
+<a class="btn block" href="docs.html">문서 관리</a>
+<a class="btn block" href="sales.html">매각 관리</a>
+<a class="btn block" href="staking.html">스테이킹 설정</a>
+<a class="btn block" href="users.html">유저 관리</a>
+        <a class="btn block" href="emails.html">단체 메일 발송</a>
+<a class="btn block" href="accounting.html">회계 통계</a>
+<a class="btn block active" href="referrals.html">추천인 관리</a>
+<a class="btn block" href="deposits.html">입금 승인 관리</a>
+<a class="btn block" href="withdrawals.html">출금 신청 (USDT)</a>
+<a class="btn block" href="token-withdrawals.html">토큰 출금 관리</a>
+<a class="btn block" href="transactions.html">입출금 내역</a>
+<a class="btn block" href="contracts.html">전자계약 관리</a>
+<a class="btn block" href="settings.html">환경설정</a>
+<a class="btn block" href="fx-live.html">실시간 환율</a>
+
+</div>
+</div>
+
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <div style="font-weight:950;font-size:16px">추천인 관리</div>
+            <!-- (2026-06-16 v903) 추천인 승인제 제거 — '승인된 주소만' 안내문 제거.
+                 모든 회원이 자동 추천인. Revert: 아래 div 주석 해제.
+            <div class="muted" style="margin-top:6px">추천인으로 승인된 주소만 추천 코드를 발급받아 추천 보상을 받을 수 있습니다.</div>
+            -->
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="notice" style="margin-bottom:14px">
+          <strong>추천인 보상 규칙</strong><br>
+          <!-- (2026-06-16 v904) 본문 강조 strong 줄바꿈 fix — silica-admin.css 의
+               '.notice strong{display:block}' 전역 규칙이 본문 강조까지 블록으로 만들어
+               줄바꿈 발생. 이 본문 2개만 display:inline 으로 오버라이드(제목 strong 은 block 유지). -->
+          추천인은 투자유저의 <strong style="display:inline">스테이킹 이자</strong>가 월별로 배정되는 즉시 <strong id="refRateDisplay" style="display:inline">1%</strong>를 추가 보상으로 받습니다.<br>
+          투자유저가 직접 이자를 클레임하지 않아도 추천 보상은 자동으로 즉시 지급됩니다.<br>
+          투자유저의 수익은 100% 그대로 유지되며, 추천인 보상은 플랫폼에서 별도 지급됩니다.
+          <!-- (2026-06-16 v903) 운영자 요청 — '매각 차익 보상 없음' 문장 제거. Revert: 주석 해제.
+          <br>
+          <span class="muted">매각 차익에 대한 추천인 보상은 없습니다. 오직 스테이킹 이자 배정분에 대해서만 보상이 발생합니다.</span>
+          -->
+        </div>
+
+        <div style="font-weight:900; font-size:14px; margin-bottom:10px">보상률 설정</div>
+        <div class="split">
+          <div class="field">
+            <label for="refBonusRateInput">추천인 보상률 (%)</label>
+            <!-- (2026-05-16 v420) 운영자: 1% 미만 값도 입력 가능하게 (최소 0.01%).
+                 step=0.01 + min=0.01 + inputmode=decimal → 0.01~50% 입력 가능. -->
+            <input id="refBonusRateInput" class="input" type="number" step="0.01" min="0.01" max="50" placeholder="예: 0.5" inputmode="decimal" />
+            <div class="help">스테이킹 이자 배정분의 몇 %를 추천인에게 지급할지 설정합니다. (최소 0.01%, 최대 50%, 기본: 1%)</div>
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button id="refBonusRateSaveBtn" class="btn primary block" type="button">보상률 저장</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- (2026-06-16 v903) 추천인 승인제 제거 — admin 수동 '추천인 추가' 항목 숨김
+             (모든 회원이 자동 추천인이라 불필요). display:none 으로 보존(삭제 아님).
+             Revert: wrapper 의 display:none 제거 + 맨 아래 <div class="hr"></div> 1줄 복원. -->
+        <div style="display:none">
+          <div style="font-weight:900; font-size:14px; margin-bottom:10px">추천인 추가</div>
+          <div class="split">
+            <div class="field">
+              <label for="refApproveAddr">추천인 주소</label>
+              <input id="refApproveAddr" class="input" placeholder="솔라나 지갑 주소를 입력하세요" />
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <button id="refApproveBtn" class="btn primary block" type="button">추천인 추가</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <div style="font-weight:950;font-size:16px">추천인 목록</div>
+            <div class="muted" id="refHint" style="margin-top:6px">-</div>
+          </div>
+          <div class="tagrow">
+            <button id="refRefreshBtn" class="btn small" type="button">새로고침</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; overflow:auto">
+          <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>주소</th>
+                <th>추천코드</th>
+                <th class="right">추천수</th>
+                <th class="right">총 보너스(USDT)</th>
+                <th class="right">상태</th>
+                <th class="right">관리</th>
+              </tr>
+            </thead>
+            <tbody id="refListTbody"></tbody>
+          </table>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- (2026-06-17 v908) 운영자: 추천인 상세를 하단 인라인 → 모달 팝업으로.
+             #refDetailSection 을 오버레이(딤 배경)로, 안에 카드 + ✕닫기 버튼. .hidden 토글 유지. -->
+        <!-- (2026-06-17 v909) 운영자: 팝업이 상단에 붙고 헤더에 상단이 짤리던 문제 fix.
+             ① 수직 중앙: align-items:flex-start 제거 + 카드 margin:auto (긴 내용도 상하 안 짤리고 스크롤)
+             ② z-index 1000→9999 + referrals.js 에서 body 직속 이동 (sticky 헤더 z-index:100 위로). -->
+        <div id="refDetailSection" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; display:flex; justify-content:center; padding:24px 16px; overflow-y:auto;">
+          <div style="background:var(--panel,#ffffff); border:1px solid var(--border,#e5e7eb); border-radius:14px; max-width:760px; width:100%; margin:auto; padding:24px 24px 28px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.35);">
+          <button id="refDetailClose" type="button" class="btn small" style="position:absolute; top:14px; right:14px;">✕ 닫기</button>
+          <div style="font-weight:950;font-size:16px">추천인 상세</div>
+          <div class="muted" id="refDetailHint" style="margin-top:6px">-</div>
+
+          <div style="margin-top:12px">
+            <div style="font-weight:900; font-size:14px; margin-bottom:8px">추천한 유저 목록</div>
+            <div class="table-wrap">
+<table class="table">
+                <thead>
+                  <tr>
+                    <th>투자유저</th>
+                    <th class="right">연결일</th>
+                  </tr>
+                </thead>
+                <tbody id="refDetailLinks"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="margin-top:14px">
+            <div style="font-weight:900; font-size:14px; margin-bottom:8px">보너스 내역</div>
+            <div class="table-wrap">
+<table class="table">
+                <thead>
+                  <tr>
+                    <th>월</th>
+                    <th>자산</th>
+                    <th class="right">투자자 이자(USDT)</th>
+                    <th class="right">보너스율</th>
+                    <th class="right">보너스(USDT)</th>
+                  </tr>
+                </thead>
+                <tbody id="refDetailBonuses"></tbody>
+              </table>
+            </div>
+          </div>
+          </div><!-- (2026-06-17 v908) 모달 카드 닫기 -->
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/referrals.js?v=20260617v909-modal-center"></script>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+window.AdminHeader.loadHeader()
+})
+</script>
+
+</body>
+</html>

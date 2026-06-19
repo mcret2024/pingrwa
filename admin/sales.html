@@ -1,0 +1,540 @@
+<!-- public/admin/sales.html -->
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- (v904) 운영자 요청 — 매각 페이지 UI 차단. URL 직접 입력 접근도 대시보드로 강제 redirect.
+       페이지 코드는 보존 (향후 다른 부동산 자산 운영 시 이 redirect 만 제거하면 복원). -->
+  <meta http-equiv="refresh" content="0; url=dashboard.html">
+  <script>try { window.location.replace('dashboard.html'); } catch (_) {}</script>
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>매각/정산 관리 · SilicaChain</title>
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <link rel="shortcut icon" href="img/favicon.png">
+  <style>
+    .admin-shell{max-width:1200px;margin:0 auto;padding:22px 16px}
+    .admin-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .admin-grid{display:grid;grid-template-columns:260px 1fr;gap:14px;margin-top:14px}
+    @media (max-width: 900px){.admin-grid{grid-template-columns:1fr}}
+    .admin-menu a{justify-content:flex-start;text-decoration:none}
+    .admin-menu a.active{background:var(--accent-light); border:1px solid var(--amber-border); color:var(--accent-dark)}
+    .admin-menu{display:flex;flex-direction:column;gap:10px}
+    .admin-menu a{width:100% !important;display:flex !important;justify-content:flex-start !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .admin-menu a.btn.block{width:100% !important;display:flex !important}
+    .readonly-input[readonly], .readonly-input:disabled{background:#f8fafc;color:#475569}
+    .sale-doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .sale-action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .sale-exec-meta{display:block;margin-top:6px}
+    .sale-ratio-note strong{font-weight:900}
+    .sale-modal-backdrop[hidden]{display:none !important}
+    .sale-modal-backdrop{position:fixed;inset:0;z-index:6000;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+    .sale-modal{width:min(620px,100%);max-height:calc(100vh - 32px);overflow-y:auto;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 24px 60px rgba(15,23,42,.28)}
+    .sale-modal-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .sale-modal-check{margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid #fdba74;background:#fff7ed;line-height:1.55}
+    .sale-modal-warning{margin-top:12px;padding:12px 14px;border-radius:14px;background:#fff7ed;border:1px solid #fdba74;color:#9a3412;line-height:1.55}
+    .sale-modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .label-with-unit{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap}
+    .unit-label-badge{display:none !important;align-items:center;justify-content:center;min-width:56px;padding:3px 10px;border-radius:999px;border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:800;line-height:1;letter-spacing:.02em}
+    .unit-label-badge.fx{min-width:84px}
+    .label-with-unit > .unit-label-badge{display:none !important}
+    .input-unit-wrap{position:relative}
+    .input-unit-wrap > .input{padding-right:92px}
+    .input-unit-wrap.fx > .input{padding-right:128px}
+    .input-unit-badge{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;pointer-events:none;min-width:54px;max-width:120px;padding:3px 10px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#334155;font-size:11px;font-weight:800;line-height:1;white-space:nowrap}
+    .input-unit-wrap.fx .input-unit-badge{min-width:88px}
+    .formula-row{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .formula-tip{position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#475569;font-size:11px;font-weight:900;line-height:1;cursor:help;user-select:none;vertical-align:middle;flex:0 0 auto}
+    .formula-tip:hover,.formula-tip:focus-visible{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;outline:none}
+    .formula-tip[data-tooltip]:hover::after,.formula-tip[data-tooltip]:focus-visible::after{content:attr(data-tooltip);position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:min(340px,80vw);padding:10px 12px;border-radius:12px;background:#0f172a;color:#fff;border:1px solid rgba(148,163,184,.35);box-shadow:0 18px 40px rgba(15,23,42,.32);white-space:pre-line;font-size:12px;font-weight:600;line-height:1.5;text-align:left;z-index:40}
+    .formula-tip[data-tooltip]:hover::before,.formula-tip[data-tooltip]:focus-visible::before{content:"";position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%) rotate(45deg);width:10px;height:10px;background:#0f172a;border-right:1px solid rgba(148,163,184,.35);border-bottom:1px solid rgba(148,163,184,.35);z-index:39}
+    .label-help-inline{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .formula-help{position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;color:#334155;font-size:11px;font-weight:900;line-height:1;cursor:help;vertical-align:middle;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+    .formula-help:hover,.formula-help:focus-visible{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8;outline:none}
+    .formula-help::after,.formula-help::before,.formula-tip::after,.formula-tip::before{content:none !important;display:none !important}
+    .formula-title{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .formula-tooltip-layer[hidden]{display:none !important}
+    .formula-tooltip-layer{position:fixed;left:0;top:0;z-index:9500;pointer-events:none;max-width:min(360px, calc(100vw - 24px));)}
+    .formula-tooltip-bubble{padding:10px 12px;border-radius:12px;background:#0f172a;color:#f8fafc;font-size:12px;font-weight:600;line-height:1.5;text-align:left;white-space:pre-line;border:1px solid rgba(148,163,184,.35)}
+    .formula-tooltip-arrow{position:absolute;width:12px;height:12px;background:#0f172a;border:1px solid rgba(148,163,184,.35);transform:rotate(45deg)}
+    .formula-tooltip-layer[data-placement="top"] .formula-tooltip-arrow{bottom:-6px;border-top:none;border-left:none}
+    .formula-tooltip-layer[data-placement="bottom"] .formula-tooltip-arrow{top:-6px;border-bottom:none;border-right:none}
+    @media (max-width: 900px){.admin-menu{ gap:8px; }.sale-doc-grid{grid-template-columns:1fr}}
+    @media (max-width: 720px){.sale-modal-summary{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div id="toast" class="pill hidden"></div>
+
+<div id="adminHeaderMount"></div>
+
+<!-- (2026-05-15 v393) 운영자: '관리자에서 매각 메뉴와 페이지 숨겨 (다만
+     향후 이 사이트를 기반으로 다른 부동산 사이트를 만들 수 있음으로
+     제거하지마라).' 페이지 본 콘텐츠 hidden + 비활성 안내. 다른 부동산
+     사이트에서 활성화 시 아래 비활성 div 제거 + admin-shell 의 hidden
+     속성만 제거하면 즉시 복원. -->
+<div class="admin-shell" style="max-width:900px;margin:48px auto;padding:40px 16px;text-align:center;">
+  <div class="card"><div class="pad">
+    <div style="font-weight:950;font-size:18px;margin-bottom:8px">매각 기능 비활성</div>
+    <div class="muted" style="line-height:1.6">
+      본 버전에서는 매각 기능이 비활성화되어 있습니다. 향후 자산 매각 또는 다른 부동산 자산을 운영하는 경우 활성화될 수 있습니다.
+    </div>
+  </div></div>
+</div>
+
+<div class="admin-shell" hidden>
+<div class="admin-grid">
+
+<div class="card">
+<div class="pad admin-menu">
+
+<div class="muted">관리 메뉴</div>
+
+<a class="btn block" href="dashboard.html">대시보드</a>
+<a class="btn block" href="assets.html">부동산 자산 등록/관리</a>
+<a class="btn block" href="docs.html">문서 관리</a>
+<a class="btn block active" href="sales.html">매각 관리</a>
+<a class="btn block" href="staking.html">스테이킹 설정</a>
+<a class="btn block" href="users.html">유저 관리</a>
+        <a class="btn block" href="emails.html">단체 메일 발송</a>
+<a class="btn block" href="accounting.html">회계 통계</a>
+<a class="btn block" href="referrals.html">추천인 관리</a>
+<a class="btn block" href="deposits.html">입금 승인 관리</a>
+<a class="btn block" href="withdrawals.html">출금 신청 (USDT)</a>
+<a class="btn block" href="token-withdrawals.html">토큰 출금 관리</a>
+<a class="btn block" href="transactions.html">입출금 내역</a>
+<a class="btn block" href="contracts.html">전자계약 관리</a>
+<a class="btn block" href="settings.html">환경설정</a>
+<a class="btn block" href="fx-live.html">실시간 환율</a>
+
+</div>
+</div>
+
+    <div>
+      <div class="card">
+        <div class="pad">
+
+          <div class="row" style="align-items:flex-end">
+            <div>
+              <div style="font-weight:950;font-size:16px">매각/정산 입력</div>
+              <div class="muted" style="margin-top:6px">
+                자산 생성 시 확정된 정산통화와 플랫폼 유저 총 투자금을 기준으로,
+                실제 취득원가 대비 플랫폼 유저 지분율만큼 플랫폼 유저 할당총액과 토큰당 교환금액이 자동 계산됩니다.
+              </div>
+            </div>
+            <div class="tagrow">
+              <a id="saleDetailLink" class="btn small" href="../user/sale-detail.html?id=APT003" target="_blank" rel="noopener">매각 상세 페이지</a>
+              <button id="saleRefreshBtn" class="btn small" type="button">새로고침</button>
+              <button id="saleSaveBtn" class="btn small primary" type="button">저장</button>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <!-- (2026-05-15 v390) 운영자: '자산 선택 드롭다운이 필요하지 않다
+               (단일 자산). 플랫폼 유저 총 투자금(정산통화) 라인도 불필요 —
+               투자통화와 정산통화가 동일.' 단일 광산 자산이므로 드롭다운
+               은 hidden 으로 두고 (JS 가 value 를 계속 참조), '확정 모금액'
+               과 중복되는 '플랫폼 유저 총 투자금(정산통화)' 라인은 DOM 에서
+               제거. JS 의 fundedLocal 갱신은 element 부재로 자연스럽게 skip
+               (if (els.fundedLocal) 가드). -->
+          <select id="saleAssetSelect" class="input" hidden aria-hidden="true"></select>
+          <div class="notice">
+            <strong>현재 상태</strong><br>
+            <span id="saleAssetStatus">-</span><br>
+            <span class="small-note">정산통화(고정): <strong id="saleSettleCcy">-</strong></span><br>
+            <span class="small-note">확정 모금액(USDT): <strong id="saleFundedUsdt">-</strong></span><br>
+            <span class="small-note sale-exec-meta" id="saleExecutionMeta">-</span>
+          </div>
+
+          <div class="two-col" style="margin-top:12px; gap:14px">
+
+            <div class="card" style="background:#fff; border:1px solid #e5e7eb; box-shadow:0 4px 14px rgba(15,23,42,.05)">
+              <div class="pad">
+
+                <!-- (2026-05-15 v391) 운영자: '입력 통화(고정) + 환율 정보
+                     박스 필요하지 않다.' 모든 통화가 USDT 라서 환율은 항상
+                     1:1 → 정보 가치 없음. DOM 에서 제거 — JS 의 갱신 코드는
+                     모두 if (els.xxx) 가드로 보호되어 element 부재 시 자동
+                     skip. 향후 다중 통화 자산 추가 시 복원 절차는 git history
+                     참조. -->
+
+                <div class="split" style="margin-top:0">
+                  <div class="field">
+                    <label for="saleBuy" class="label-with-unit"><span class="label-help-inline"><span>플랫폼 유저 총 투자금(고정)</span><button type="button" class="formula-help" data-formula-key="principal" data-formula="계산식 정보를 불러오는 중입니다." aria-label="플랫폼 유저 총 투자금 계산식">?</button></span><span id="saleBuyLabelUnit" class="unit-label-badge">-</span></label>
+                    <div class="input-unit-wrap">
+                      <input id="saleBuy" class="input readonly-input" inputmode="numeric" readonly />
+                      <span id="saleBuyUnit" class="input-unit-badge">-</span>
+                    </div>
+                    <div class="help sale-ratio-note">모금 완료 시점에 확정된 값으로 자동 고정됩니다. <strong id="saleBuyRatio">-</strong></div>
+                  </div>
+                  <div class="field">
+                    <label for="saleActualBuy" class="label-with-unit"><span class="label-help-inline"><span>실부동산 실제 매수금액(총 취득원가)</span><button type="button" class="formula-help" data-formula-key="actual" data-formula="계산식 정보를 불러오는 중입니다." aria-label="총 취득원가 계산식">?</button></span><span id="saleActualBuyLabelUnit" class="unit-label-badge">-</span></label>
+                    <div class="input-unit-wrap">
+                      <input id="saleActualBuy" class="input" inputmode="numeric" placeholder="예: 1000000000" />
+                      <span id="saleActualBuyUnit" class="input-unit-badge">-</span>
+                    </div>
+                    <div class="help">부동산 매수금액 + 매수세금 + 취득부대비용 총합</div>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="field">
+                    <label for="saleExternalCapital" class="label-with-unit"><span class="label-help-inline"><span>외부 공동투자/운영자 자금</span><button type="button" class="formula-help" data-formula-key="external" data-formula="계산식 정보를 불러오는 중입니다." aria-label="외부 공동투자 자금 계산식">?</button></span><span id="saleExternalCapitalLabelUnit" class="unit-label-badge">-</span></label>
+                    <div class="input-unit-wrap">
+                      <input id="saleExternalCapital" class="input readonly-input" inputmode="numeric" readonly />
+                      <span id="saleExternalCapitalUnit" class="input-unit-badge">-</span>
+                    </div>
+                    <div class="help sale-ratio-note">총 취득원가 - 플랫폼 유저 총 투자금 · <strong id="saleExternalRatio">-</strong></div>
+                  </div>
+                  <div class="field">
+                    <label for="saleSold" class="label-with-unit"><span class="label-help-inline"><span>총 매각금액</span><button type="button" class="formula-help" data-formula-key="sold" data-formula="계산식 정보를 불러오는 중입니다." aria-label="총 매각금액 안내">?</button></span><span id="saleSoldLabelUnit" class="unit-label-badge">-</span></label>
+                    <div class="input-unit-wrap">
+                      <input id="saleSold" class="input" inputmode="numeric" placeholder="예: 1620000000" />
+                      <span id="saleSoldUnit" class="input-unit-badge">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="field">
+                    <label for="saleTax" class="label-with-unit"><span class="label-help-inline"><span>매각세금</span><button type="button" class="formula-help" data-formula-key="tax" data-formula="계산식 정보를 불러오는 중입니다." aria-label="매각세금 안내">?</button></span><span id="saleTaxLabelUnit" class="unit-label-badge">-</span></label>
+                    <div class="input-unit-wrap">
+                      <input id="saleTax" class="input" inputmode="numeric" placeholder="예: 30000000" />
+                      <span id="saleTaxUnit" class="input-unit-badge">-</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="saleExpenses" class="label-with-unit"><span class="label-help-inline"><span>기타 매각비용</span><button type="button" class="formula-help" data-formula-key="expenses" data-formula="계산식 정보를 불러오는 중입니다." aria-label="기타 매각비용 안내">?</button></span><span id="saleExpensesLabelUnit" class="unit-label-badge">-</span></label>
+                    <div class="input-unit-wrap">
+                      <input id="saleExpenses" class="input" inputmode="numeric" placeholder="예: 120000000" />
+                      <span id="saleExpensesUnit" class="input-unit-badge">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="field">
+                    <label for="saleVault" class="label-with-unit"><span class="label-help-inline"><span>플랫폼 유저 할당총액(USDT, 자동계산)</span><button type="button" class="formula-help" data-formula-key="vault" data-formula="계산식 정보를 불러오는 중입니다." aria-label="플랫폼 유저 할당총액 계산식">?</button></span><span id="saleVaultLabelUnit" class="unit-label-badge">USDT</span></label>
+                    <div class="input-unit-wrap">
+                      <input id="saleVault" class="input readonly-input" inputmode="decimal" readonly />
+                      <span id="saleVaultUnit" class="input-unit-badge">USDT</span>
+                    </div>
+                    <div class="help">매각 실행 시 관리자 수동 환율만 최종 고정됩니다.</div>
+                  </div>
+                  <div class="field">
+                    <label>&nbsp;</label>
+                    <div class="notice" style="margin:0">
+                      <span class="formula-title"><strong>총 차감 비용</strong><button type="button" class="formula-help" data-formula-key="totalCost" data-formula="계산식 정보를 불러오는 중입니다." aria-label="총 차감 비용 계산식">?</button></span><br>
+                      <span id="pvTotalCostInput">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="field">
+                    <label for="saleWindowStart"><span class="label-help-inline"><span>매각일</span><button type="button" class="formula-help" data-formula-key="saleDate" data-formula="계산식 정보를 불러오는 중입니다." aria-label="매각일 기준 안내">?</button></span></label>
+                    <input id="saleWindowStart" class="input" type="date" />
+                    <div id="saleWindowStartHelp" class="help">운영자가 문서 기준으로 확정한 실제 오프라인 매각일을 입력하세요. 14~16일 포함 언제든 선택할 수 있으며, 유저의 매각 자산 교환은 매각 실행일 기준으로 시작됩니다.</div>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="field">
+                    <label for="saleDateFx" class="label-with-unit"><span class="label-help-inline"><span>매각일 기준 환율(참고용 자동 조회)</span><button type="button" class="formula-help" data-formula-key="autoFx" data-formula="계산식 정보를 불러오는 중입니다." aria-label="매각일 기준 자동 조회 환율 안내">?</button></span><span id="saleDateFxLabelUnit" class="unit-label-badge fx">-</span></label>
+                    <div class="input-unit-wrap fx">
+                      <input id="saleDateFx" class="input readonly-input" inputmode="decimal" readonly placeholder="매각일 선택 후 자동 조회" />
+                      <span id="saleDateFxUnit" class="input-unit-badge">-</span>
+                    </div>
+                    <div class="help" id="saleDateFxMeta">내부 환율 이력(fx_quotes) 기준으로 조회되는 참고값입니다.</div>
+                  </div>
+                  <div class="field">
+                    <label for="saleManualFx" class="label-with-unit"><span class="label-help-inline"><span>관리자 수동 환율(필수)</span><button type="button" class="formula-help" data-formula-key="manualFx" data-formula="계산식 정보를 불러오는 중입니다." aria-label="관리자 수동 환율 안내">?</button></span><span id="saleManualFxLabelUnit" class="unit-label-badge fx">-</span></label>
+                    <div class="input-unit-wrap fx">
+                      <input id="saleManualFx" class="input" inputmode="decimal" placeholder="예: 59.72" />
+                      <span id="saleManualFxUnit" class="input-unit-badge">-</span>
+                    </div>
+                    <div class="help">자동 조회 환율은 참고용이며, 입력한 수동 환율만 매각 실행 시 고정됩니다.</div>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="field">
+                    <label>매각 실행</label>
+                    <div class="input" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                      <input id="saleSetAssetToSold" type="checkbox" />
+                      <label for="saleSetAssetToSold" style="cursor:pointer">매각 실행 (실행 후 복구 불가)</label>
+                    </div>
+                    <div class="help" id="saleActionHint">매각일은 실제 오프라인 기준으로 언제든 선택할 수 있습니다. 다만 매각 최종 실행은 14~16일이 아닌 날짜에만 가능하며, 유저의 매각 자산 교환은 매각 실행일 기준으로 시작됩니다.</div>
+                    <div class="sale-action-row">
+                      <button id="saleInlineSaveBtn" class="btn small" type="button">저장</button>
+                      <button id="saleExecuteBtn" class="btn small danger" type="button">매각 실행</button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="card profit-card" style="background:#fff; border:1px solid #e5e7eb; box-shadow:0 4px 14px rgba(15,23,42,.05)">
+              <div class="pad">
+                <div class="row" style="align-items:flex-start">
+                  <div>
+                    <div class="tagrow">
+                      <span class="badge bad">매각</span>
+                      <span class="chip" id="saleMarket">-</span>
+                      <span class="badge neutral" id="pvSettleCcy">-</span>
+                    </div>
+                    <h2 id="saleTitle" style="margin-top:10px">-</h2>
+                    <div class="muted" style="line-height:1.5">
+                      발행량(supply): <strong id="saleSupply">-</strong>
+                    </div>
+                  </div>
+                  <img id="saleImg" alt="자산" style="width:110px;height:72px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);object-fit:cover" />
+                </div>
+
+                <div class="hr"></div>
+
+                <div class="split">
+                  <div class="notice">
+                    <span class="formula-title"><strong>총매각금(정산통화)</strong><button type="button" class="formula-help" data-formula-key="soldTotal" data-formula="계산식 정보를 불러오는 중입니다." aria-label="총매각금 계산식">?</button></span><br>
+                    <span id="pvSoldTotal">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>세금 및 비용(정산통화)</strong><button type="button" class="formula-help" data-formula-key="totalCost" data-formula="계산식 정보를 불러오는 중입니다." aria-label="세금 및 비용 계산식">?</button></span><br>
+                    <span id="pvTotalCost">-</span>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="notice">
+                    <span class="formula-title"><strong>순매각금(정산통화)</strong><button type="button" class="formula-help" data-formula-key="netLocal" data-formula="계산식 정보를 불러오는 중입니다." aria-label="순매각금 계산식">?</button></span><br>
+                    <span id="pvNetLocal">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>취득원가(정산통화)</strong><button type="button" class="formula-help" data-formula-key="projectCost" data-formula="계산식 정보를 불러오는 중입니다." aria-label="취득원가 계산식">?</button></span><br>
+                    <span id="pvProjectCost">-</span>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="notice">
+                    <span class="formula-title"><strong>매각차익금(정산통화)</strong><button type="button" class="formula-help" data-formula-key="pureLocal" data-formula="계산식 정보를 불러오는 중입니다." aria-label="매각차익금 계산식">?</button></span><br>
+                    <span id="pvPureLocal">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>플랫폼 유저 투자금액(USDT)</strong><button type="button" class="formula-help" data-formula-key="fundedUsdt" data-formula="계산식 정보를 불러오는 중입니다." aria-label="플랫폼 유저 투자금액 계산식">?</button></span><br>
+                    <span id="pvFundedUsdt">-</span>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="notice">
+                    <span class="formula-title"><strong>확정환율(모금 확정)</strong><button type="button" class="formula-help" data-formula-key="fundingFx" data-formula="계산식 정보를 불러오는 중입니다." aria-label="확정환율 계산식">?</button></span><br>
+                    <span id="pvFundingFx">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>투자금액 확정환율 환산(정산통화)</strong><button type="button" class="formula-help" data-formula-key="principalLocal" data-formula="계산식 정보를 불러오는 중입니다." aria-label="투자금액 확정환율 환산 계산식">?</button></span><br>
+                    <span id="pvPrincipalLocal">-</span><br>
+                    <span class="small-note" id="pvPrincipalLocalMeta">-</span>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="notice">
+                    <span class="formula-title"><strong>외부자금(정산통화)</strong><button type="button" class="formula-help" data-formula-key="external" data-formula="계산식 정보를 불러오는 중입니다." aria-label="외부자금 계산식">?</button></span><br>
+                    <span id="pvExternalCapital">-</span><br>
+                    <span class="small-note" id="pvExternalCapitalMeta">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>플랫폼 유저 할당총액(정산통화)</strong><button type="button" class="formula-help" data-formula-key="investorLocal" data-formula="계산식 정보를 불러오는 중입니다." aria-label="플랫폼 유저 할당총액 계산식">?</button></span><br>
+                    <span id="pvInvestorLocal">-</span><br>
+                    <span class="small-note" id="pvInvestorLocalMeta">-</span>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="notice">
+                    <span class="formula-title"><strong>외부투자자 할당총액(정산통화)</strong><button type="button" class="formula-help" data-formula-key="externalAllocation" data-formula="계산식 정보를 불러오는 중입니다." aria-label="외부투자자 할당총액 계산식">?</button></span><br>
+                    <span id="pvExternalAllocation">-</span><br>
+                    <span class="small-note" id="pvExternalAllocationMeta">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>총발행 토큰수량</strong><button type="button" class="formula-help" data-formula-key="supply" data-formula="계산식 정보를 불러오는 중입니다." aria-label="총발행 토큰수량 안내">?</button></span><br>
+                    <span id="pvSupplyTokens">-</span>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="notice">
+                    <span class="formula-title"><strong>토큰당 가격(정산통화)</strong><button type="button" class="formula-help" data-formula-key="redeemLocal" data-formula="계산식 정보를 불러오는 중입니다." aria-label="토큰당 가격 계산식">?</button></span><br>
+                    <span id="pvRedeemLocal">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>매각 환율(적용)</strong><button type="button" class="formula-help" data-formula-key="payoutFx" data-formula="계산식 정보를 불러오는 중입니다." aria-label="매각 환율 계산식">?</button></span><br>
+                    <span id="pvPayoutFx">-</span>
+                  </div>
+                </div>
+
+                <div class="split" style="margin-top:10px">
+                  <div class="notice">
+                    <span class="formula-title"><strong>토큰당 교환금액(USDT)</strong><button type="button" class="formula-help" data-formula-key="redeemUsdt" data-formula="계산식 정보를 불러오는 중입니다." aria-label="토큰당 교환금액 계산식">?</button></span><br>
+                    <span id="pvRedeemUsdt">-</span>
+                  </div>
+                  <div class="notice">
+                    <span class="formula-title"><strong>매각일</strong><button type="button" class="formula-help" data-formula-key="saleDate" data-formula="계산식 정보를 불러오는 중입니다." aria-label="매각일 안내">?</button></span><br>
+                    <span id="pvSaleDate">-</span>
+                  </div>
+                </div>
+
+                <div class="small-note" style="margin-top:10px">
+                  * 플랫폼 유저 할당총액 = 순매각금 × (투자금액 확정환율 환산 ÷ 취득원가)<br>
+                  * 토큰당 가격 = 플랫폼 유저 할당총액 ÷ 총발행 토큰수량<br>
+                  * 토큰당 교환금액(USDT) = 토큰당 가격 ÷ 매각 환율
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="pad">
+          <div class="row" style="align-items:flex-end">
+            <div>
+              <div style="font-weight:950;font-size:16px">매각 관련 문서</div>
+              <!-- (2026-05-11 v282) 매각 문서(sale / sale_proof)는 이
+                   페이지에서만 등록·관리. 매각 실행 후 유저의
+                   매각 상세 페이지에 자동 노출됩니다. -->
+              <div class="muted" style="margin-top:6px">매각공문 / 매각증빙자료를 등록합니다. 매각 실행 후 유저의 매각 상세 페이지에 자동 노출됩니다.</div>
+            </div>
+            <div class="tagrow">
+              <button id="saleDocRefreshBtn" class="btn small" type="button">새로고침</button>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="sale-doc-grid">
+            <div class="field">
+              <label for="saleDocType">문서 유형</label>
+              <select id="saleDocType" class="input">
+                <option value="sale">매각공문/정산문서</option>
+                <option value="sale_proof">매각증빙자료</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="saleDocTitle">문서명</label>
+              <input id="saleDocTitle" class="input" placeholder="예: 매각정산 보고서" />
+            </div>
+          </div>
+
+          <div class="sale-doc-grid" style="margin-top:10px">
+            <div class="field">
+              <label for="saleDocDate">문서일</label>
+              <input id="saleDocDate" class="input" type="date" />
+            </div>
+            <div class="field">
+              <label for="saleDocFile">파일</label>
+              <input id="saleDocFile" class="input" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" />
+              <div class="help">PDF 또는 이미지 업로드 가능</div>
+            </div>
+          </div>
+
+          <div class="sale-doc-grid" style="margin-top:10px">
+            <div class="field" style="grid-column:1 / -1">
+              <button id="saleDocUploadBtn" class="btn primary block" type="button">업로드</button>
+            </div>
+          </div>
+
+          <div class="row" style="align-items:flex-end; margin-top:12px">
+            <div>
+              <div style="font-weight:950;font-size:16px">등록된 매각 문서</div>
+              <div class="muted" id="saleDocHint" style="margin-top:6px">-</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; overflow:auto">
+            <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>유형</th>
+                  <th>문서</th>
+                  <th class="right">문서일</th>
+                  <th class="right">보기</th>
+                  <th class="right">삭제</th>
+                </tr>
+              </thead>
+              <tbody id="saleDocListTbody">
+                <tr>
+                  <td colspan="5" class="center muted">문서가 없습니다.</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="saleExecuteModal" class="sale-modal-backdrop" hidden>
+  <div class="sale-modal" role="dialog" aria-modal="true" aria-labelledby="saleExecuteModalTitle">
+    <div class="pad">
+      <div class="row" style="align-items:flex-start">
+        <div>
+          <div id="saleExecuteModalTitle" style="font-weight:950;font-size:18px">매각 실행 최종 확인</div>
+          <div class="muted" style="margin-top:6px">아래 내용을 다시 확인하고, 현재 로그인한 관리자 아이디와 비밀번호를 입력해야만 매각이 실행됩니다.</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div id="saleExecuteSummary" class="sale-modal-summary"></div>
+
+      <div id="saleExecuteCheck" class="sale-modal-check" hidden></div>
+
+      <div id="saleExecutePolicyWarning" class="sale-modal-warning">
+        실행 즉시 되돌릴 수 없습니다.<br>
+        매각일 기준 자동 조회 환율은 참고용이며, 입력한 관리자 수동 환율만 최종 고정됩니다. 유저는 플랫폼 유저 할당총액을 기준으로 정산받고, 토큰당 교환금액은 플랫폼 유저 할당총액 ÷ 총발행 토큰수량 ÷ 매각 환율로 계산됩니다. 매각 실행과 동시에 해당 자산의 스테이킹 수량은 전량 언스테이킹되며, 이자 지급 여부는 매각일과 15일 기준 규칙에 따라 판단됩니다. 이전 누적 미수령 이자는 그대로 클레임할 수 있고, 유저의 매각 자산 교환은 매각 실행 완료 시점부터 시작됩니다.
+      </div>
+
+      <div class="split" style="margin-top:12px">
+        <div class="field">
+          <label for="saleConfirmUsername">관리자 아이디</label>
+          <input id="saleConfirmUsername" class="input" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label for="saleConfirmPassword">관리자 비밀번호</label>
+          <input id="saleConfirmPassword" class="input" type="password" autocomplete="current-password" />
+        </div>
+      </div>
+
+      <div class="sale-modal-actions">
+        <button id="saleConfirmCancelBtn" class="btn" type="button">취소</button>
+        <button id="saleConfirmSubmitBtn" class="btn danger" type="button">매각 실행</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/sales.js?v=20260526v850-image-swap"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+window.AdminHeader.loadHeader()
+})
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,2152 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- (2026-05-13 v332) HTML 캐시 차단 — admin 페이지는 운영자만 접근하고
+       매번 최신 코드/데이터가 필요하므로 브라우저 + CDN 캐싱 비활성화. -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>연 배당 실행 · SilicaChain</title>
+  <link rel="shortcut icon" href="img/favicon.png">
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <style>
+    .admin-shell { max-width: 1400px; margin: 0 auto; padding: 24px 32px; position: relative; z-index: 1; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card-aurora {
+      padding: 28px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+    }
+    .card-aurora.accent { border-color: rgba(139, 92, 246, 0.3); position: relative; overflow: hidden; }
+    .card-aurora.accent::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--logo-violet);
+    }
+    .card-head {
+      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px;
+    }
+    .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
+    .card-sub { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: var(--steel); margin-top: 4px; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--aurora-3); margin-bottom: 8px;
+    }
+    .help { display: block; margin-top: 6px; font-size: 12px; color: var(--steel-dim); }
+    .input, input, select, textarea {
+      width: 100%; padding: 12px 14px;
+      background: var(--glass-2); border: 1px solid var(--border);
+      border-radius: var(--r-sm); color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      font-feature-settings: 'tnum' 1;
+    }
+    .input:focus, input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--aurora-3); background: rgba(6, 182, 212, 0.05);
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    .input-suffix {
+      display: flex; background: var(--glass-2);
+      border: 1px solid var(--border); border-radius: var(--r-sm);
+    }
+    .input-suffix input { flex: 1; background: transparent; border: none; padding: 12px 14px; }
+    .input-suffix .suffix {
+      padding: 12px 14px; border-left: 1px solid var(--border);
+      color: var(--aurora-3); font-family: 'Oswald', sans-serif;
+      font-weight: 600; letter-spacing: 1px; font-size: 12px;
+    }
+
+    .calc-box {
+      background: var(--glass-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .calc-row.big { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; font-weight: 700; font-size: 16px; }
+    .calc-row .text-mono { font-family: 'Space Grotesk', monospace; font-feature-settings: 'tnum' 1; }
+    .calc-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--aurora-3);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .scheduled-card {
+      padding: 20px;
+      background: var(--glass-2);
+      border: 1px solid var(--aurora-3);
+      border-radius: var(--r-sm);
+      margin-bottom: 12px;
+    }
+    .scheduled-amount {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      color: var(--aurora-3);
+      margin: 8px 0;
+    }
+
+    .rules-list {
+      list-style: none; padding: 0;
+      font-size: 13px;
+      color: var(--steel);
+    }
+    .rules-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .rules-list li:last-child { border-bottom: none; }
+
+    /* (2026-05-12 v312) Cycle Picker — 월간/분기별/연간 통합. 운영 기간
+       2026–2050 대상. 한 화면에 최대 12셀(월간) · 4셀(분기) · 25셀(연간)
+       만 노출되어 425회차로 확장돼도 UI 복잡도는 일정. picker JS 는
+       동일 파일 하단 DOMContentLoaded 핸들러 안 initCyclePicker() 참조. */
+    .seg-group { display:inline-flex; background:#F1F5F9; border-radius:12px; padding:4px; }
+    .seg-btn {
+      padding:9px 22px; background:transparent; border:none;
+      color:#64748B;
+      font-family:'Oswald',sans-serif; font-weight:600;
+      font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+      cursor:pointer; border-radius:8px; transition:all .15s ease;
+    }
+    .seg-btn:hover { color:#0F172A; }
+    .seg-btn.active {
+      background:#FFFFFF; color:var(--logo-violet);
+      box-shadow:0 1px 3px rgba(15,23,42,0.10); font-weight:800;
+    }
+    .picker-year-nav {
+      display:flex; align-items:center; justify-content:center;
+      gap:18px; margin:14px 0;
+    }
+    .year-nav-btn {
+      width:34px; height:34px; border-radius:50%;
+      background:#F8FAFC; border:1px solid #E5E7EB;
+      cursor:pointer; font-size:13px; color:#475569;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .12s ease;
+    }
+    .year-nav-btn:hover:not(:disabled) {
+      background:var(--logo-violet); color:#fff; border-color:var(--logo-violet);
+    }
+    .year-nav-btn:disabled { opacity:0.35; cursor:not-allowed; }
+    .year-display {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:24px; letter-spacing:1px; color:#0F172A;
+      min-width:70px; text-align:center;
+    }
+    .year-display .y-hint {
+      display:block;
+      font-family:'Space Grotesk',sans-serif;
+      font-size:9px; letter-spacing:1.5px; text-transform:uppercase;
+      color:#94A3B8; font-weight:600; margin-top:2px;
+    }
+    .picker-grid { display:grid; gap:8px; }
+    .picker-grid.monthly   { grid-template-columns:repeat(6,1fr); }
+    .picker-grid.quarterly { grid-template-columns:repeat(4,1fr); }
+    .picker-grid.annual    { grid-template-columns:repeat(5,1fr); }
+    .picker-cell {
+      padding:12px 8px;
+      background:#FFFFFF;
+      border:1.5px solid #E5E7EB;
+      border-radius:10px;
+      cursor:pointer;
+      transition:all .12s ease;
+      text-align:center;
+      font-family:'Space Grotesk',sans-serif;
+    }
+    .picker-cell:hover { border-color:var(--logo-violet); background:#F9FAFB; transform:translateY(-1px); }
+    .picker-cell.selected {
+      background:var(--logo-violet); border-color:var(--logo-violet);
+      color:#FFFFFF; box-shadow:0 6px 16px rgba(124,58,237,0.30);
+    }
+    .picker-cell.today {
+      border-color:#06B6D4; box-shadow:inset 0 0 0 1px #06B6D4;
+    }
+    .picker-cell.today.selected {
+      border-color:#FFFFFF; box-shadow:0 6px 16px rgba(124,58,237,0.30), inset 0 0 0 1px #FFFFFF;
+    }
+    .picker-cell .c-label { font-weight:800; font-size:14px; color:#1F2937; }
+    .picker-cell .c-sub { margin-top:2px; font-size:10px; color:#6B7280; font-family:'Space Grotesk',monospace; }
+    .picker-cell.selected .c-label,
+    .picker-cell.selected .c-sub { color:#FFFFFF; }
+    /* (v326) 과거/현 회차 - 선택 불가 시각화 */
+    .picker-cell.disabled,
+    .picker-cell:disabled {
+      background:#F3F4F6 !important;
+      border-color:#E5E7EB !important;
+      cursor:not-allowed !important;
+      opacity:0.45;
+      box-shadow:none !important;
+    }
+    .picker-cell.disabled:hover,
+    .picker-cell:disabled:hover {
+      transform:none !important;
+      background:#F3F4F6 !important;
+      border-color:#E5E7EB !important;
+    }
+    .picker-cell.disabled .c-label,
+    .picker-cell.disabled .c-sub,
+    .picker-cell:disabled .c-label,
+    .picker-cell:disabled .c-sub { color:#9CA3AF !important; }
+  </style>
+</head>
+<body data-page="dividend">
+
+<div id="toast" class="pill hidden"></div>
+<div id="adminHeaderMount"></div>
+
+<div class="admin-shell">
+
+  <div class="admin-page-header">
+    <div>
+      <h1 class="admin-page-title">연 배당 실행</h1>
+    </div>
+    <span class="badge badge-aurora">NEW · Annual Dividend</span>
+  </div>
+
+  <div class="grid-2">
+
+    <!-- Execution Form -->
+    <div class="card-aurora accent">
+      <div class="card-head">
+        <div>
+          <div class="card-title">새 배당 실행</div>
+          <div class="card-sub">USDT 기준 배당 풀 입력 → Silica 환산 분배</div>
+        </div>
+      </div>
+
+      <!-- (2026-05-12 v309) Operator: '배당 실행은 관리자 지갑이 연결 된
+           상태에서만 가능해야한다.' Wallet-required guard. Backend now
+           rejects with 403 if X-Admin-Wallet header is missing for
+           POST /api/admin/silica/dividend (+update/cancel). This banner +
+           the disabled button below give early UX feedback so the operator
+           doesn't fill the form just to get rejected on submit. -->
+      <!-- (2026-05-12 v321) display:none 으로 시작 — 'hidden' 속성은
+           inline display:flex 에 의해 덮어쓰여 항상 노출되는 버그가 있었음.
+           JS 가 syncWalletGate 에서 style.display 직접 토글. -->
+      <div id="walletWarnBanner" class="wallet-warn-banner"
+           style="display:none; align-items:flex-start; gap:10px; padding:14px 16px; margin-bottom:18px;
+                  background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.35);
+                  border-radius:8px; color:#92400E; font-size:13px; line-height:1.55;">
+        <span style="font-size:18px; line-height:1;">⚠</span>
+        <div style="flex:1">
+          <strong style="display:block; margin-bottom:4px; color:#78350F;">관리자 지갑 연결이 필요합니다</strong>
+          배당 실행은 고가치 작업이므로 Phantom 지갑 연결 상태에서만 실행할 수 있습니다.
+          상단 헤더의 <em style="font-style:normal; font-weight:700;">지갑 연결</em> 버튼을 눌러주세요.
+        </div>
+      </div>
+
+      <!-- (2026-05-12 v320) 운영자: '10일 부터 16일 까지는 관리자가 배당급
+           값을 진입 할 수 없도록 막아야 한다.' Cooling-window banner —
+           shown when GET /api/admin/silica/dividend reports admin_lock.locked.
+           Backend (POST handlers) rejects with 423 too as a final guard. -->
+      <!-- (2026-05-12 v321) display:none 시작 — 위 wallet 배너와 동일한
+           hidden vs inline-display 버그 회피. refreshCooldownGate 가
+           style.display 직접 토글. -->
+      <div id="cooldownBanner"
+           style="display:none; align-items:flex-start; gap:10px; padding:14px 16px; margin-bottom:18px;
+                  background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.35);
+                  border-radius:8px; color:#991B1B; font-size:13px; line-height:1.55;">
+        <span style="font-size:18px; line-height:1;">🔒</span>
+        <div style="flex:1">
+          <strong style="display:block; margin-bottom:4px; color:#7F1D1D;">배당 입력 차단 기간</strong>
+          <span id="cooldownBannerText">배당 입력 차단 윈도우 진행 중 — 스테이킹 lock 전후의 풀 변동을 막기 위해 신규 등록·수정이 차단됩니다. (취소는 비상 레버로 항상 허용)</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="poolAmount">배당 풀 (USDT 가치)</label>
+        <div class="input-suffix">
+          <!-- (2026-05-18 v524) 운영자 요청: 사전 입력값 0 (옛 50000 더미 제거) -->
+          <input id="poolAmount" type="number" step="0.01" min="0" value="0">
+          <span class="suffix">USDT</span>
+        </div>
+        <div class="help">광산 회계 결산 후 분배 가능 금액</div>
+      </div>
+
+      <!-- (2026-05-12 v312) 운영자: '월간, 분기별, 연간 3가지 중 하나를
+           선택. 2050년 까지 장기 프로젝트로 본다면, 선택폭이 상당히 많아야
+           하는데, 심플하게 구현.' 데모 페이지에서 합의된 통합 picker — 주기
+           segmented + 연도 페이지네이션 + 회차 그리드. 운영 기간 2026–2050
+           동안 425회차 (월간 300 + 분기 100 + 연간 25) 를 한 화면에 12셀
+           이하로 노출. 백엔드는 cycle 식별자만 받음 (선택 후 hidden input
+           #payoutCycle 에 셋팅). -->
+      <div class="field">
+        <label>배당 회차 선택</label>
+        <div class="picker-freq-row" style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+          <span style="font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--aurora-3); font-weight:700;">주기</span>
+          <div class="seg-group" id="pickerFreq">
+            <button class="seg-btn active" data-freq="monthly"   type="button">월간</button>
+            <button class="seg-btn"        data-freq="quarterly" type="button">분기별</button>
+            <button class="seg-btn"        data-freq="annual"    type="button">연간</button>
+          </div>
+        </div>
+
+        <div class="picker-year-nav" id="pickerYearNav">
+          <button class="year-nav-btn" id="yearPrevBtn" type="button" title="이전 년도">◀</button>
+          <span class="year-display">
+            <span id="yearDisplay">2026</span>
+            <span class="y-hint" id="yearHint">현재 년도</span>
+          </span>
+          <button class="year-nav-btn" id="yearNextBtn" type="button" title="다음 년도">▶</button>
+        </div>
+
+        <div class="picker-grid monthly" id="pickerGrid"></div>
+
+        <!-- 백엔드 호환용 hidden input — 기존 코드가 #payoutCycle 을 읽으므로 -->
+        <input type="hidden" id="payoutCycle" value="">
+        <!-- (2026-05-12 v322) 운영자: '지급 예정일 선택 캘린더가 있다. 이것은
+             우리가 이전에 논의한 15일 지급과 다른 부분이다.' 캘린더 입력
+             제거. 지급일은 스테이킹 이자 cron 과 같은 매월 15일로 고정 —
+             14~16일 스테이킹 lock 윈도우 안에서 holdings 가 frozen 일 때만
+             정확한 스냅샷이 가능하므로 비표준 날짜는 정책적으로 금지. -->
+        <input type="hidden" id="payoutDate" value="">
+      </div>
+
+      <!-- 자동 계산된 지급일 디스플레이 (read-only) -->
+      <div class="field">
+        <label>지급 예정일</label>
+        <div id="payoutDateDisplay" class="payout-date-display"
+             style="display:flex; align-items:center; gap:10px; padding:14px 16px;
+                    background:linear-gradient(135deg, rgba(124,58,237,0.06), rgba(6,182,212,0.04));
+                    border:1px solid rgba(124,58,237,0.20); border-radius:10px;
+                    font-family:'Space Grotesk', sans-serif;">
+          <span style="font-size:18px; line-height:1;">📅</span>
+          <div style="flex:1">
+            <div id="payoutDateValue" style="font-size:18px; font-weight:800; color:#5B21B6; letter-spacing:0.3px;">
+              회차를 먼저 선택하세요
+            </div>
+            <div id="payoutDateHint" style="font-size:11px; color:#7C3AED; margin-top:3px; letter-spacing:0.5px;"></div>
+          </div>
+        </div>
+        <div class="help">지급일은 매월 15일로 고정</div>
+      </div>
+
+      <div class="field">
+        <label for="priceMode">Silica 시세 모드</label>
+        <select id="priceMode" class="input">
+          <option value="payout_admin" selected>지급일 시점 관리자 설정값 사용</option>
+          <option value="payout_api" disabled>지급일 거래소 API 시세 (상장 후)</option>
+          <option value="execution_lock">지금 시세로 락 (실행 시점 고정)</option>
+        </select>
+        <div class="help">현재 Silica 시세: <span id="currentPrice" class="text-cyan">— USDT</span> <small style="color:var(--steel)">(시세 관리 페이지의 현재 값 — MECCA 연동 시 자동 갱신)</small></div>
+      </div>
+
+      <!-- Calculation -->
+      <div class="calc-box">
+        <div class="calc-eyebrow">◆ 예상 분배 (현 시세 기준)</div>
+        <!-- (v524) 더미 정적 텍스트 제거 — 모두 placeholder 로 초기화. JS 가 입력 변경 시 갱신. -->
+        <div class="calc-row"><span class="text-muted">배당 풀</span><span class="text-mono" id="calcPool">0.00 USDT</span></div>
+        <div class="calc-row"><span class="text-muted">Silica 시세</span><span class="text-mono" id="calcPrice">— USDT</span></div>
+        <div class="calc-row"><span class="text-muted">분배 예상 Silica</span><span class="text-mono text-cyan" id="calcSilicaTotal">0.00</span></div>
+        <div class="calc-row"><span class="text-muted">예상 수령자 (현재 기준)</span><span class="text-mono" id="calcRecipients">—</span></div>
+        <div class="calc-row big"><span>평균 1인당 (예상)</span><span class="text-mono text-cyan" id="calcAvg">—</span></div>
+      </div>
+
+      <!-- (2026-05-12 v313) 운영자: '"실행 규칙" 카드 제거 후 유저 공지 팝업
+           콘텐츠를 실행규칙이 있던 곳으로 이동. 배당 실행과 팝업 콘텐츠
+           별도로 저장 하고 실행.' 팝업 textarea 는 우측 컬럼의 별도 카드로
+           이동했고, 팝업은 자체 Save 버튼으로 즉시 게시. 배당 실행은
+           팝업 입력값을 더 이상 참조하지 않음. -->
+      <button id="dividendExecuteBtn" class="btn primary btn-block btn-lg">배당 실행 (확인 모달 열기)</button>
+      <div class="text-muted text-center" style="font-size: 12px; margin-top: 8px;">실행 후 지급일 이전까지 취소·수정 가능</div>
+    </div>
+
+    <!-- Side: Scheduled + History + Rules -->
+    <div class="flex-col gap-md">
+
+      <!-- Scheduled — (2026-05-12 v309) 더미 카드(6월 15일 D-50 / 50,000
+           USDT) 제거. 실제 예약된 배당이 있으면 백엔드 연동 시 동적으로
+           카드가 생성됨. -->
+      <div class="card-aurora accent">
+        <div class="card-head">
+          <div>
+            <div class="card-title">예정된 배당</div>
+            <div class="card-sub">지급일 이전까지 수정·취소 가능</div>
+          </div>
+        </div>
+
+        <div id="scheduledList">
+          <div class="muted text-center" style="padding:24px 0;font-size:13px">예정된 배당이 없습니다.</div>
+        </div>
+      </div>
+
+      <!-- (2026-05-15 v375) '과거 배당 이력' 카드 제거 — 하단 '관리자 배당
+           액션 로그' 의 dividend_paid 행과 데이터 중복. 액션 로그가 추가로
+           시각 / actor / silica_price 까지 포함하는 상위집합이라 운영자
+           정보 손실 없음. v374 의 paid 행 클릭 → 세부 모달 통합 진입점
+           유지. dividendHistoryRows ID 는 기존 inline JS 와의 호환을 위해
+           hidden placeholder 로 유지 (innerHTML 작업이 null-safe). -->
+      <div id="dividendHistoryRows" hidden></div>
+
+      <!-- (2026-05-15 v373) 배당 지급 세부 모달 — 회차별 사용자 행 + 검색 +
+           50개씩 페이지네이션. 이자 페이지의 패턴과 동일. -->
+      <div id="dividendDetailModal" class="hidden" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:24px;">
+        <div id="dividendDetailBackdrop" style="position:absolute;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(6px);"></div>
+        <div style="position:relative;width:min(960px,calc(100% - 32px));max-height:calc(100vh - 48px);background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,0.30);display:flex;flex-direction:column;overflow:hidden;">
+          <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <h3 id="dividendDetailTitle" style="margin:0;font-size:18px;font-weight:800;">배당 회차 세부</h3>
+            <button id="dividendDetailClose" class="btn small" type="button">✕ 닫기</button>
+          </div>
+          <div style="padding:12px 24px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;">
+            <input id="dividendDetailSearch" type="text" class="input"
+                   placeholder="🔍 지갑 주소 검색 (전체 또는 일부)"
+                   style="flex:1;min-width:240px;font-size:13px;" />
+            <select id="dividendDetailStatus" class="input" style="max-width:160px;font-size:13px;">
+              <option value="">전체 상태</option>
+              <option value="claimed">수령 완료</option>
+              <option value="pending">미수령</option>
+            </select>
+            <button id="dividendDetailSearchClear" class="btn small" type="button" title="검색 초기화">✕</button>
+          </div>
+          <div style="padding:14px 24px 0;flex:1;overflow-y:auto;">
+            <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+              <table class="table" style="font-size:12px;margin:0;">
+                <thead>
+                  <tr>
+                    <th>지갑</th>
+                    <th style="text-align:right;">스테이크 (STO)</th>
+                    <th style="text-align:right;">지분율 (%)</th>
+                    <th style="text-align:right;">분배 USDT</th>
+                    <th style="text-align:right;">Silica 수량</th>
+                    <th>상태</th>
+                    <th>수령 시각</th>
+                  </tr>
+                </thead>
+                <tbody id="dividendDetailBody">
+                  <tr><td colspan="7" class="text-center muted" style="padding:24px 0;">로딩 중…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div id="dividendDetailMeta" class="small-note" style="line-height:1.5;">—</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button id="dividendDetailPrev" class="btn small" type="button" disabled>◀ 이전</button>
+              <span id="dividendDetailPageInfo" class="small-note">1 / 1</span>
+              <button id="dividendDetailNext" class="btn small" type="button" disabled>다음 ▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- (2026-05-12 v313) 운영자: '"실행 규칙" 카드 제거 후 유저 공지 팝업
+           콘텐츠를 실행규칙이 있던 곳으로 이동. 배당 실행과 팝업 콘텐츠
+           별도로 저장 하고 실행.' Rules 정적 안내는 페이지 상단 설명으로
+           충분하므로 제거하고, 그 자리에 팝업 편집 + 즉시 게시 카드 배치.
+           Save 버튼은 POST /api/admin/silica/popups 호출 — 배당 실행과
+           완전히 독립. -->
+      <div class="card-aurora">
+        <div class="card-head">
+          <div>
+            <div class="card-title">유저 공지 팝업</div>
+          </div>
+        </div>
+
+        <!-- (2026-05-12 v314) 자동 연결 배지 — 가장 가까운 예정 배당
+             (earliest upcoming) 과 자동으로 link 된다. 저장 시 linked_id /
+             auto_trigger='dividend_exec' 가 함께 전송되어 배당이 취소되면
+             해당 팝업도 자동 expire. 예정 배당이 없으면 회색 박스로
+             "일반 공지로 게시" 안내. -->
+        <div id="popupLinkInfo" class="popup-link-info"
+             style="display:flex; align-items:center; gap:10px; padding:12px 14px; margin-bottom:16px;
+                    background:rgba(124,58,237,0.06); border:1px solid rgba(124,58,237,0.25);
+                    border-radius:8px; font-size:13px; color:#5B21B6;">
+          <span style="font-size:16px; line-height:1;">🔗</span>
+          <div style="flex:1; line-height:1.5;">
+            <div style="font-weight:700; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7C3AED; margin-bottom:2px;">자동 연결 대상</div>
+            <div id="popupLinkInfoText">예정 배당 조회 중…</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="popupTitle">제목 (KO)</label>
+          <input id="popupTitle" type="text" class="input" placeholder="예) 2026년 2분기 배당 안내">
+        </div>
+
+        <div class="field">
+          <label for="popupTitleEn">제목 (EN) · 선택</label>
+          <input id="popupTitleEn" type="text" class="input" placeholder="e.g.) Q2 2026 Dividend Notice">
+        </div>
+
+        <div class="field">
+          <label for="popupContentKo">본문 (KO)</label>
+          <textarea id="popupContentKo" rows="5" placeholder="예시) 2026년 2분기 배당이 6월 15일에 지급됩니다. 광산 운영 수익을 Silica 토큰으로 분배하며, 지급일 시점 스테이킹 중인 투자자에게만 분배됩니다."></textarea>
+        </div>
+
+        <div class="field">
+          <label for="popupContentEn">본문 (EN) · 선택</label>
+          <textarea id="popupContentEn" rows="4" placeholder="e.g.) The Q2 2026 dividend will be distributed on June 15..."></textarea>
+        </div>
+
+        <!-- (2026-05-18 v532) 운영자: '배너 등록에서 시작 시간 설정은 없었다.
+             시작 시간을 설정 할 수 있게 해줘'. 기존엔 저장 시각의 로컬 시계
+             를 문자열로 만들어 그대로 서버에 보냈고, 백엔드는 그 문자열을
+             UTC 로 해석 → KST(+09:00) 입력 시 ~9시간 미래로 잡혀 user 측
+             SQL 필터 (start_at <= now_utc) 가 제외해 팝업이 안 나오는
+             버그(v531 _diag 로 확인). datetime-local 입력 + new Date(s).
+             toISOString() 변환으로 KST→UTC 정합성 확보. 비워두면 즉시 노출. -->
+        <div class="field">
+          <label for="popupStartAt">노출 시작 시간</label>
+          <input id="popupStartAt" type="datetime-local" class="input">
+          <div class="help">여기 입력한 시각부터 팝업이 사용자에게 노출됩니다 (현재 보고 계신 시간대 기준). 비워두면 저장 즉시 노출.</div>
+        </div>
+
+        <div class="field">
+          <label for="popupEndAt">노출 종료일</label>
+          <input id="popupEndAt" type="date" class="input">
+          <div class="help">선택한 날짜의 23:59 (현재 시간대 기준) 까지 노출됩니다. 비워두면 오늘부터 7일간 노출.</div>
+        </div>
+
+        <button id="popupSaveBtn" class="btn primary btn-block">팝업 저장 (즉시 게시)</button>
+        <div class="text-muted text-center" style="font-size:12px; margin-top:8px;">관리자 → 팝업 관리에서 수정/삭제 가능</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- (2026-05-12 v327) 운영자: '관리자가 언제 얼마나 배당금을 지급 했는지
+       로그가 이 페이지에 필요하다.' silica_audit_log 의 dividend_* 카테고리
+       행을 시간순으로 노출. cron 의 dividend_paid 도 포함되어 '예약 → 수정
+       → 취소 → 지급 완료' 전 과정 추적 가능.
+       (2026-05-13 v335) 우측 컬럼 마지막으로 이동.
+       (2026-05-13 v338) 운영자: '관리자 배당 액션 로그는 하단 독립 카드(열)
+       로 구성해라' → grid-2 밖으로 빼서 풀-width 독립 행으로 배치. 좌·우
+       컬럼 아래에 가로 전체를 차지. -->
+  <div class="card-aurora" style="margin-top: 4px;">
+    <div class="card-head">
+      <div>
+        <div class="card-title">관리자 배당 액션 로그</div>
+        <div class="card-sub">예약·수정·취소·지급 완료 통합 타임라인 (최근 50건)</div>
+      </div>
+    </div>
+    <div id="dividendActionLog" style="max-height:520px; overflow-y:auto;">
+      <div class="muted text-center" style="padding:24px 0;font-size:13px">로그 로딩 중…</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- (2026-05-13 v337) 운영자: '다이얼로그를 디자인 해줘.' window.confirm() 의
+     plain-text 다이얼로그를 Aurora 테마의 커스텀 모달로 교체. 확정 정보 (violet
+     박스) + 예상치 (amber 박스) 시각적 구분, 큰 행 디스플레이, 동작 버튼은
+     하단 우측 정렬. -->
+<div id="divExecModal" class="div-exec-modal" hidden aria-hidden="true">
+  <div class="div-exec-backdrop" data-dialog-action="cancel"></div>
+  <div class="div-exec-panel" role="dialog" aria-modal="true" aria-labelledby="divExecModalTitle">
+    <div class="div-exec-head">
+      <div class="div-exec-eyebrow">◆ DIVIDEND SCHEDULE CONFIRM</div>
+      <h2 id="divExecModalTitle">배당 예약 확인</h2>
+      <button class="div-exec-close" type="button" aria-label="닫기" data-dialog-action="cancel">✕</button>
+    </div>
+
+    <div class="div-exec-body">
+      <!-- 확정 정보 박스 -->
+      <div class="div-exec-section confirmed">
+        <div class="div-exec-section-title">
+          <span class="ic">🔒</span> 확정 정보
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">배당 풀</span>
+          <span class="val" id="divExecPool">— USDT</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">지급일</span>
+          <span class="val" id="divExecDate">—</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">회차</span>
+          <span class="val" id="divExecCycle">—</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">시세 모드</span>
+          <span class="val val-sm" id="divExecPriceMode">—</span>
+        </div>
+      </div>
+
+      <!-- 예상치 박스 -->
+      <div class="div-exec-section estimated" id="divExecEstimateBox">
+        <div class="div-exec-section-title">
+          <span class="ic">📊</span> 예상치 <span id="divExecEstimateBadge" class="badge-recalc">지급일 자동 재계산</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">예상 Silica 분배</span>
+          <span class="val val-cyan" id="divExecSilica">— Silica</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">현재 시세 기준</span>
+          <span class="val val-sm" id="divExecPriceUsed">— USDT</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">예상 수령자</span>
+          <span class="val" id="divExecRecipients">— 명</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">평균 1인당</span>
+          <span class="val val-cyan val-sm" id="divExecAvg">— Silica</span>
+        </div>
+
+        <div class="div-exec-warning" id="divExecWarning">
+          <span class="ic">⚠</span>
+          <span>실제 분배량과 수령자 수는 <strong>지급일(15일) 시스템 실행 시점</strong>의 시세와 staking 상태에 따라 달라질 수 있습니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="div-exec-foot">
+      <button class="div-exec-btn cancel" type="button" data-dialog-action="cancel">취소</button>
+      <button class="div-exec-btn confirm" type="button" data-dialog-action="confirm">
+        <span class="ic">✓</span> 예약 진행
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- (2026-05-13 v339) 운영자: '배당 취소는 어떻게 할 수 있나?' — 예정된
+     배당 행의 [✕ 취소] 버튼이 이 모달을 열고, 사유 입력 후 POST
+     /api/admin/silica/dividend/cancel 호출. cooling window 와 무관하게
+     항상 허용 (비상 레버). -->
+<div id="divCancelModal" class="div-exec-modal" hidden aria-hidden="true">
+  <div class="div-exec-backdrop" data-dialog-action="cancel"></div>
+  <div class="div-exec-panel" role="dialog" aria-modal="true" aria-labelledby="divCancelModalTitle">
+    <div class="div-exec-head">
+      <div class="div-exec-eyebrow" style="color:#DC2626;">◆ DIVIDEND CANCELLATION</div>
+      <h2 id="divCancelModalTitle">배당 예약 취소</h2>
+      <button class="div-exec-close" type="button" aria-label="닫기" data-dialog-action="cancel">✕</button>
+    </div>
+
+    <div class="div-exec-body">
+      <!-- 대상 정보 -->
+      <div class="div-exec-section" style="background:rgba(220,38,38,0.05); border-color:rgba(220,38,38,0.20);">
+        <div class="div-exec-section-title" style="color:#991B1B;">
+          <span class="ic">⚠</span> 취소 대상
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">배당 #</span>
+          <span class="val" id="divCancelTargetId">—</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">풀</span>
+          <span class="val" id="divCancelTargetPool">— USDT</span>
+        </div>
+        <div class="div-exec-row">
+          <span class="lbl">지급 예정일</span>
+          <span class="val" id="divCancelTargetDate">—</span>
+        </div>
+      </div>
+
+      <!-- 사유 입력 -->
+      <div style="margin-top:14px;">
+        <label for="divCancelReason" style="display:block; font-size:11px; font-weight:700;
+               letter-spacing:1.5px; text-transform:uppercase; color:#06B6D4; margin-bottom:6px;">
+          취소 사유 (감사 로그 기록용)
+        </label>
+        <textarea id="divCancelReason" rows="3"
+                  placeholder="예) 풀 금액 정정 필요 — 회계 재검토 후 재예약 예정"
+                  style="width:100%; padding:10px 12px; border:1px solid var(--border);
+                         border-radius:8px; font-family:'Inter', sans-serif; font-size:13px;
+                         background:#FAFBFC; resize:vertical; box-sizing:border-box;"></textarea>
+        <div style="margin-top:6px; font-size:11px; color:var(--steel);">
+          취소 사유는 자동으로 유저 공지 팝업에 포함됩니다 (현재 정책).
+        </div>
+      </div>
+
+      <!-- 연결된 팝업 안내 -->
+      <div class="div-exec-warning" style="margin-top:14px;">
+        <span class="ic">ℹ</span>
+        <span>이 배당과 연결된 안내 팝업이 있으면 함께 만료 처리됩니다.
+              <strong>취소 사유</strong> 가 적힌 새 공지 팝업이 자동 생성됩니다 (7일간 노출).</span>
+      </div>
+    </div>
+
+    <div class="div-exec-foot">
+      <button class="div-exec-btn cancel" type="button" data-dialog-action="cancel">닫기</button>
+      <button class="div-exec-btn confirm" type="button" data-dialog-action="confirm"
+              style="background:linear-gradient(135deg, #DC2626, #B91C1C); box-shadow:0 4px 12px rgba(220,38,38,0.30);">
+        <span class="ic">✕</span> 취소 실행
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* (2026-05-13 v337) 배당 예약 확인 모달 — Aurora theme */
+  .div-exec-modal[hidden] { display: none; }
+  .div-exec-modal {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    animation: divExecFadeIn .15s ease-out;
+  }
+  @keyframes divExecFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .div-exec-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .div-exec-panel {
+    position: relative;
+    width: min(540px, calc(100% - 32px));
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25);
+    border: 1px solid rgba(124, 58, 237, 0.20);
+    animation: divExecSlideIn .25s cubic-bezier(.16, 1, .3, 1);
+  }
+  @keyframes divExecSlideIn { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .div-exec-panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #8E24AA, #06B6D4, #8E24AA);
+  }
+
+  .div-exec-head {
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid #F1F5F9;
+    position: relative;
+  }
+  .div-exec-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #06B6D4;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .div-exec-head h2 {
+    margin: 0; font-size: 20px; font-weight: 900; color: #0F172A;
+    letter-spacing: -0.3px;
+  }
+  .div-exec-close {
+    position: absolute; top: 18px; right: 18px;
+    width: 32px; height: 32px;
+    background: rgba(15, 23, 42, 0.05);
+    border: none; border-radius: 50%;
+    cursor: pointer; font-size: 14px;
+    color: #475569; font-weight: 700;
+    transition: background .15s ease;
+  }
+  .div-exec-close:hover { background: rgba(15, 23, 42, 0.10); }
+
+  .div-exec-body {
+    padding: 18px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .div-exec-section {
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+  .div-exec-section.confirmed {
+    background: rgba(124, 58, 237, 0.05);
+    border: 1px solid rgba(124, 58, 237, 0.18);
+  }
+  .div-exec-section.estimated {
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.20);
+  }
+  .div-exec-section.estimated.locked {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+  .div-exec-section-title {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #5B21B6;
+    margin-bottom: 10px;
+  }
+  .div-exec-section.estimated .div-exec-section-title { color: #92400E; }
+  .div-exec-section.estimated.locked .div-exec-section-title { color: #047857; }
+  .div-exec-section-title .ic { font-size: 14px; }
+  .badge-recalc {
+    margin-left: auto;
+    padding: 2px 8px;
+    background: rgba(245, 158, 11, 0.12);
+    color: #92400E;
+    border-radius: 999px;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    text-transform: none;
+  }
+  .div-exec-section.estimated.locked .badge-recalc {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+  }
+
+  .div-exec-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 6px 0;
+    gap: 12px;
+    border-bottom: 1px dashed rgba(15, 23, 42, 0.06);
+  }
+  .div-exec-row:last-of-type { border-bottom: none; }
+  .div-exec-row .lbl {
+    font-size: 12px; color: #6B7280; font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .div-exec-row .val {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 16px; font-weight: 800;
+    color: #0F172A;
+    text-align: right;
+    word-break: break-all;
+  }
+  .div-exec-row .val.val-sm { font-size: 13px; font-weight: 700; color: #374151; }
+  .div-exec-row .val.val-cyan { color: #0891B2; }
+
+  .div-exec-warning {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(245, 158, 11, 0.10);
+    border: 1px solid rgba(245, 158, 11, 0.30);
+    border-radius: 8px;
+    font-size: 12px;
+    color: #78350F;
+    line-height: 1.6;
+  }
+  .div-exec-warning .ic { font-size: 14px; line-height: 1.4; flex-shrink: 0; }
+  .div-exec-section.estimated.locked .div-exec-warning {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.30);
+    color: #064E3B;
+  }
+
+  .div-exec-foot {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 16px 24px 20px;
+    border-top: 1px solid #F1F5F9;
+    background: #FAFBFC;
+  }
+  .div-exec-btn {
+    padding: 11px 22px;
+    border: none; border-radius: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .div-exec-btn.cancel {
+    background: #F1F5F9;
+    color: #475569;
+  }
+  .div-exec-btn.cancel:hover { background: #E2E8F0; color: #1E293B; }
+  .div-exec-btn.confirm {
+    background: linear-gradient(135deg, #8E24AA, #7C3AED);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.30);
+  }
+  .div-exec-btn.confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.40); }
+  .div-exec-btn.confirm:active { transform: translateY(0); }
+  .div-exec-btn .ic { font-size: 14px; }
+
+  /* 모바일 — 풀스크린 컨테이너 */
+  @media (max-width: 600px) {
+    .div-exec-modal { padding: 0; }
+    .div-exec-panel {
+      width: 100%; max-height: 100vh;
+      border-radius: 0;
+    }
+    .div-exec-body { padding: 16px 18px; }
+    .div-exec-foot { padding: 14px 18px 18px; }
+  }
+</style>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    window.AdminHeader?.loadHeader?.();
+
+    // ─── Cycle Picker (월간 / 분기별 / 연간) ─────────────────
+    // (2026-05-12 v312) #payoutCycle hidden input 에 선택값을 셋팅.
+    //   값 형식: '2026M07' (월간) / '2026Q3' (분기) / '2026A' (연간).
+    //   기존 저장 핸들러는 변경 없이 동일 input 을 그대로 읽음.
+    (function initCyclePicker() {
+      const YEAR_MIN = 2026;
+      const YEAR_MAX = 2050;
+      const TODAY_YEAR = new Date().getFullYear();
+      const TODAY_MONTH = new Date().getMonth() + 1;
+      const QUARTER_MONTHS = { Q1:'1–3월', Q2:'4–6월', Q3:'7–9월', Q4:'10–12월' };
+
+      const state = { freq: 'monthly', year: TODAY_YEAR, selected: null };
+
+      const els = {
+        freq:     document.getElementById('pickerFreq'),
+        yearNav:  document.getElementById('pickerYearNav'),
+        yearDisp: document.getElementById('yearDisplay'),
+        yearHint: document.getElementById('yearHint'),
+        prevBtn:  document.getElementById('yearPrevBtn'),
+        nextBtn:  document.getElementById('yearNextBtn'),
+        grid:     document.getElementById('pickerGrid'),
+        hidden:   document.getElementById('payoutCycle'),
+      };
+      if (!els.freq || !els.grid) return;
+
+      const renderGrid = () => {
+        els.grid.className = 'picker-grid ' + state.freq;
+        let html = '';
+        if (state.freq === 'monthly') {
+          for (let m = 1; m <= 12; m += 1) {
+            const value = `${state.year}M${String(m).padStart(2, '0')}`;
+            const isToday = state.year === TODAY_YEAR && m === TODAY_MONTH;
+            const isSelected = state.selected === value;
+            const disabled = isCycleDisabled(value);
+            const cls = ['picker-cell'];
+            if (isToday) cls.push('today');
+            if (isSelected) cls.push('selected');
+            if (disabled) cls.push('disabled');
+            html += `<button type="button" class="${cls.join(' ')}" data-cycle="${value}"${disabled ? ' disabled' : ''}>
+              <div class="c-label">${m}월</div>
+              <div class="c-sub">${state.year}</div>
+            </button>`;
+          }
+        } else if (state.freq === 'quarterly') {
+          ['Q1','Q2','Q3','Q4'].forEach((q) => {
+            const value = `${state.year}${q}`;
+            const todayQ = Math.ceil(TODAY_MONTH / 3);
+            const isToday = state.year === TODAY_YEAR && q === `Q${todayQ}`;
+            const isSelected = state.selected === value;
+            const disabled = isCycleDisabled(value);
+            const cls = ['picker-cell'];
+            if (isToday) cls.push('today');
+            if (isSelected) cls.push('selected');
+            if (disabled) cls.push('disabled');
+            html += `<button type="button" class="${cls.join(' ')}" data-cycle="${value}"${disabled ? ' disabled' : ''}>
+              <div class="c-label">${q}</div>
+              <div class="c-sub">${QUARTER_MONTHS[q]}</div>
+            </button>`;
+          });
+        } else if (state.freq === 'annual') {
+          for (let y = YEAR_MIN; y <= YEAR_MAX; y += 1) {
+            const value = `${y}A`;
+            const isToday = y === TODAY_YEAR;
+            const isSelected = state.selected === value;
+            const disabled = isCycleDisabled(value);
+            const cls = ['picker-cell'];
+            if (isToday) cls.push('today');
+            if (isSelected) cls.push('selected');
+            if (disabled) cls.push('disabled');
+            html += `<button type="button" class="${cls.join(' ')}" data-cycle="${value}"${disabled ? ' disabled' : ''}>
+              <div class="c-label">${y}</div>
+              <div class="c-sub">회계연도</div>
+            </button>`;
+          }
+        }
+        els.grid.innerHTML = html;
+      };
+
+      const renderYearNav = () => {
+        if (state.freq === 'annual') {
+          els.yearNav.style.display = 'none';
+          return;
+        }
+        els.yearNav.style.display = '';
+        els.yearDisp.textContent = String(state.year);
+        els.yearHint.textContent = (state.year === TODAY_YEAR) ? '현재 년도'
+          : (state.year < TODAY_YEAR ? '과거' : '미래');
+        els.prevBtn.disabled = (state.year <= YEAR_MIN);
+        els.nextBtn.disabled = (state.year >= YEAR_MAX);
+      };
+
+      // (2026-05-12 v322) Cycle 식별자 → 지급일 (15일 고정) 계산.
+      //   monthly   2026M07 → 2026-07-15
+      //   quarterly 2026Q2  → 2026-06-15  (분기 마지막 달 15일)
+      //   annual    2026A   → 2027-01-15 (회계연도 마감 후 +1개월)
+      const cycleToPayoutDate = (cycle) => {
+        if (!cycle) return '';
+        let m;
+        if ((m = cycle.match(/^(\d{4})M(\d{2})$/))) {
+          return `${m[1]}-${m[2]}-15`;
+        }
+        if ((m = cycle.match(/^(\d{4})Q([1-4])$/))) {
+          const lastMonth = String(Number(m[2]) * 3).padStart(2, '0');
+          return `${m[1]}-${lastMonth}-15`;
+        }
+        if ((m = cycle.match(/^(\d{4})A$/))) {
+          const nextYear = String(Number(m[1]) + 1);
+          return `${nextYear}-01-15`;
+        }
+        return '';
+      };
+
+      // (2026-05-13 v334) 운영자: '5월을 선택 할 수 없다.' 정책 완화 —
+      //   이전엔 "다음 회차부터만" (payoutDate < nextCyclePayout 차단) 이라
+      //   이번 회차(5/15) 도 회색이었음. 이제 "**과거 회차만 차단**"
+      //   (payoutDate < thisCyclePayout) — 이번 회차 포함 이후 선택 가능.
+      //   타이밍 보호는 cooling window (14~16 KST) 가 담당.
+      //
+      // (2026-05-15 v388) 운영자: '5월은 이미 배당금 지급을 완료하였지만,
+      //   캘린더의 5월이 활성화 되어 선택이 가능한 문제가 있다.'
+      //   v334 비교 연산자 `d < _thisCyclePayout` 가 오늘 5/15 시 5월 회차
+      //   (d='2026-05-15') vs _thisCyclePayout='2026-05-15' → false → 활성화.
+      //   추가 가드: `d <= today` 도 차단. 오늘이 지급일이면 그 회차는
+      //   cron 이 이미 처리했거나 처리 중 — 운영자가 다시 예약할 시점 아님.
+      //   날짜 비교만 추가하므로 미래 회차 (6/15 등) 는 그대로 활성.
+      const computeThisCyclePayoutDate = () => {
+        const now = new Date();
+        let curYear = now.getFullYear();
+        let curMonth = now.getMonth() + 1;  // 1-12
+        const day = now.getDate();
+        // silicaCalcThisCyclePayoutDate 미러링
+        if (day > 15) {
+          curMonth++;
+          if (curMonth > 12) { curMonth = 1; curYear++; }
+        }
+        return `${curYear}-${String(curMonth).padStart(2, '0')}-15`;
+      };
+      const _thisCyclePayout = computeThisCyclePayoutDate();
+      // (v388) 오늘 날짜 (로컬 KST 기준 — 운영 서버도 Asia/Seoul 이므로 일치).
+      const _today = (() => {
+        const n = new Date();
+        return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+      })();
+      const isCycleDisabled = (cycle) => {
+        const d = cycleToPayoutDate(cycle);
+        if (!d) return false;
+        if (d < _thisCyclePayout) return true;   // 과거 회차 차단 (백엔드 검증과 1:1)
+        if (d <= _today) return true;             // (v388) 오늘이 지급일이면 차단
+        return false;
+      };
+      const cycleSummaryText = (cycle, date) => {
+        if (!date) return '';
+        let m;
+        if ((m = cycle.match(/^(\d{4})M(\d{2})$/))) {
+          return `${m[1]}년 ${Number(m[2])}월 회차 · 이자와 함께 지급`;
+        }
+        if ((m = cycle.match(/^(\d{4})Q([1-4])$/))) {
+          return `${m[1]}년 Q${m[2]} 분기 마지막 달 15일 · 이자와 함께 지급`;
+        }
+        if ((m = cycle.match(/^(\d{4})A$/))) {
+          return `${m[1]} 회계연도 결산 + 1개월 안전 마진`;
+        }
+        return '';
+      };
+
+      const refresh = () => {
+        renderYearNav();
+        renderGrid();
+        if (els.hidden) els.hidden.value = state.selected || '';
+        // (v322) 회차 → 지급일 자동 계산 + read-only 디스플레이 갱신
+        const valueEl = document.getElementById('payoutDateValue');
+        const hintEl  = document.getElementById('payoutDateHint');
+        const dateInp = document.getElementById('payoutDate');
+        const computed = cycleToPayoutDate(state.selected);
+        if (dateInp) dateInp.value = computed;
+        if (valueEl) {
+          valueEl.textContent = computed || '회차를 먼저 선택하세요';
+        }
+        if (hintEl) {
+          // (v328) 운영자 요청에 따라 fallback 텍스트 비움 — 회차 선택 후에만
+          //   요약 텍스트 (예: "2026년 Q2 분기 마지막 달 15일") 노출.
+          hintEl.textContent = computed ? cycleSummaryText(state.selected, computed) : '';
+        }
+      };
+
+      els.freq.addEventListener('click', (e) => {
+        const btn = e.target.closest('.seg-btn[data-freq]');
+        if (!btn) return;
+        if (btn.dataset.freq === state.freq) return;
+        state.freq = btn.dataset.freq;
+        state.selected = null;
+        state.year = TODAY_YEAR;
+        els.freq.querySelectorAll('.seg-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        refresh();
+      });
+
+      els.prevBtn.addEventListener('click', () => {
+        if (state.year > YEAR_MIN) { state.year -= 1; refresh(); }
+      });
+      els.nextBtn.addEventListener('click', () => {
+        if (state.year < YEAR_MAX) { state.year += 1; refresh(); }
+      });
+
+      els.grid.addEventListener('click', (e) => {
+        const cell = e.target.closest('.picker-cell[data-cycle]');
+        if (!cell) return;
+        // (v326) 비활성 셀 클릭 방지 — 백엔드가 어차피 거부하지만 사전 차단
+        if (cell.classList.contains('disabled') || cell.disabled) return;
+        state.selected = cell.dataset.cycle;
+        refresh();
+      });
+
+      refresh();
+    })();
+
+    // (2026-05-12 v323) 운영자: '나는 mecca로 시세 연동 했지만, 일부 페이지에서
+    //   그것이 다르게 나오거나 비어져 나온다.' 이전에 SILICA_PRICE / RECIPIENT_COUNT
+    //   가 0.05 / 1189 로 하드코드 되어 있었음 — 시세 모드를 MECCA 로 바꿔도
+    //   배당 페이지의 시세 표시 + 계산식이 계속 옛 값(0.05) 으로 보이던 원인.
+    //   public GET /api/silica/price 는 settings.silica_price_usdt 를 반환하므로
+    //   MECCA 동기화 후 값이 즉시 반영됨. 페이지 로드 시 fetch + recipients
+    //   count 도 함께 갱신.
+    let SILICA_PRICE = 0;
+    let RECIPIENT_COUNT = 0;
+
+    const fmt = (n, dec = 2) => Number(n).toLocaleString('ko-KR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+    function updateCalculation() {
+      const pool = parseFloat(document.getElementById('poolAmount')?.value || '0');
+      const priceEl = document.getElementById('calcPrice');
+      const totalEl = document.getElementById('calcSilicaTotal');
+      const recipEl = document.getElementById('calcRecipients');
+      const avgEl   = document.getElementById('calcAvg');
+
+      document.getElementById('calcPool').textContent = `${fmt(pool)} USDT`;
+      if (priceEl) priceEl.textContent = SILICA_PRICE > 0 ? `${fmt(SILICA_PRICE, 6)} USDT` : '— USDT';
+      if (recipEl) recipEl.textContent = RECIPIENT_COUNT > 0 ? `~${RECIPIENT_COUNT.toLocaleString('ko-KR')}명` : '~0명';
+
+      if (SILICA_PRICE > 0) {
+        const silicaTotal = pool / SILICA_PRICE;
+        if (totalEl) totalEl.textContent = fmt(silicaTotal);
+        if (avgEl && RECIPIENT_COUNT > 0) avgEl.textContent = `~${fmt(silicaTotal / RECIPIENT_COUNT, 0)} Silica`;
+        else if (avgEl) avgEl.textContent = '~— Silica';
+      } else {
+        if (totalEl) totalEl.textContent = '—';
+        if (avgEl)   avgEl.textContent = '~— Silica';
+      }
+    }
+
+    // (v324) 백엔드 가격 fetch — /api/silica/price 만 별도 호출 (public).
+    //   staker count 는 아래 refreshCooldownGate 가 같은 GET /api/admin/silica/dividend
+    //   응답에서 추출하므로 중복 호출 안 함.
+    const refreshSilicaPrice = async () => {
+      const api = window.AdminCore?.api;
+      if (typeof api !== 'function') return;
+      try {
+        const r = await api('/api/silica/price', { method: 'GET' });
+        const p = Number(r?.price_usdt || 0);
+        if (p > 0) SILICA_PRICE = p;
+      } catch (_) {}
+      const cur = document.getElementById('currentPrice');
+      if (cur) cur.textContent = SILICA_PRICE > 0 ? `${fmt(SILICA_PRICE, 6)} USDT` : '— USDT';
+      updateCalculation();
+    };
+
+    // (2026-05-12 v327) 배당 액션 로그 — silica_audit_log 의 dividend_*
+    //   카테고리 행. 페이지 로드 시 1회 fetch + 렌더.
+    const ACTION_LABELS = {
+      dividend_create: { icon: '📅', label: '예약 생성', color: '#7C3AED' },
+      dividend_update: { icon: '📝', label: '수정', color: '#0891B2' },
+      dividend_cancel: { icon: '❌', label: '취소', color: '#DC2626' },
+      dividend_paid:   { icon: '✓',  label: '지급 완료', color: '#10B981' },
+    };
+    const formatLogTime = (s) => {
+      if (!s) return '';
+      const d = new Date(String(s).replace(' ', 'T') + 'Z');  // backend = UTC
+      if (isNaN(d.getTime())) return String(s);
+      return d.toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' });
+    };
+    const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    const renderLogRow = (item) => {
+      const meta = ACTION_LABELS[item.action] || { icon: '•', label: item.action, color: '#6B7280' };
+      const nv = item.new_value || {};
+      const md = item.metadata || {};
+      const ex = item.exec_meta || {};
+      // (2026-05-15 v381) 운영자: '단순히 지급완료 표시만 아닌 어떤 회차였는지도
+      //   표기해라.' 모든 액션 로그 행에 회차 (payout_date) 명시. 액션별로
+      //   날짜 소스 다름 (nv / md / ex / prev_value) 이라 fallback 체인.
+      const prev = item.prev_value || {};
+      const cycleDate = String(
+        nv.payout_date || md.payout_date || ex.payout_month || prev.payout_date || ''
+      ).slice(0, 10);
+      let detail = '';
+      // (2026-05-15 v374) dividend_paid 행은 세부 모달과 통합 — 클릭 가능.
+      //   data-attrs 로 execution_id / payout_date / pool 전달.
+      let extraAttrs = '';
+      let extraHint = '';
+      if (item.action === 'dividend_create') {
+        const pool = nv.pool_usdt != null ? `${fmt(nv.pool_usdt)} USDT` : '';
+        const date = nv.payout_date || ex.payout_month || '';
+        const mode = nv.price_mode ? ` · ${nv.price_mode}` : '';
+        detail = `${pool} · 지급일 ${String(date).slice(0,10)}${mode}`;
+      } else if (item.action === 'dividend_update') {
+        const prev = item.prev_value || {};
+        const before = prev.pool_usdt != null ? `${fmt(prev.pool_usdt)} USDT` : '?';
+        const after  = nv.pool_usdt   != null ? `${fmt(nv.pool_usdt)} USDT`   : '?';
+        detail = `${before} → ${after}`;
+      } else if (item.action === 'dividend_cancel') {
+        detail = `사유: ${md.reason || '미기재'}`;
+      } else if (item.action === 'dividend_paid') {
+        const total = nv.silica_total_distributed != null ? `${fmt(nv.silica_total_distributed)} Silica` : '';
+        const recip = nv.recipient_count != null ? ` → ${nv.recipient_count.toLocaleString('ko-KR')}명` : '';
+        const price = nv.silica_price_at_payout != null ? ` @ ${fmt(nv.silica_price_at_payout, 6)} USDT` : '';
+        detail = `${total}${recip}${price}`;
+        // 세부 모달로 연결할 필수 데이터 추출
+        if (item.target_id) {
+          const payoutDate = String(md.payout_date || ex.payout_month || '').slice(0, 10);
+          const pool = nv.pool_usdt != null ? fmt(nv.pool_usdt) : (ex.payout_amount_usdt != null ? fmt(ex.payout_amount_usdt) : '');
+          extraAttrs = `data-action="open-payout-detail" data-execution-id="${item.target_id}" data-payout-date="${escHtml(payoutDate)}" data-pool="${escHtml(pool)}"`;
+          extraHint = ` <span style="color:var(--steel-dim);font-size:10.5px;margin-left:4px;">▶ 클릭 시 사용자별 세부</span>`;
+        }
+      }
+      const clickable = extraAttrs !== '';
+      const rowStyle = clickable
+        ? `display:flex; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s ease;`
+        : `display:flex; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border);`;
+      const hoverHandlers = clickable
+        ? `onmouseover="this.style.background='rgba(124,58,237,0.04)'" onmouseout="this.style.background=''"`
+        : '';
+      // (v381) 회차 chip — payout_date 가 있으면 라벨 옆에 작은 배지로 표시
+      const cycleChip = cycleDate
+        ? ` <span style="display:inline-block; margin-left:6px; padding:1px 8px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.25); border-radius:100px; color:#5B21B6; font-size:10.5px; font-weight:700; font-family:'Space Grotesk',monospace; letter-spacing:0.3px;">📅 ${escHtml(cycleDate)} 회차</span>`
+        : '';
+      return `
+        <div ${extraAttrs} style="${rowStyle}" ${hoverHandlers}>
+          <div style="font-size:18px; line-height:1.2;">${meta.icon}</div>
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <div>
+                <span style="font-weight:800; color:${meta.color}; font-size:13px;">${meta.label}</span>
+                ${item.target_id ? `<span style="color:var(--steel); font-size:12px; margin-left:6px;">#${item.target_id}</span>` : ''}
+                ${cycleChip}
+                ${extraHint}
+              </div>
+              <div style="color:var(--steel-dim); font-size:11px; font-family:'Space Grotesk', monospace;">${escHtml(formatLogTime(item.created_at))}</div>
+            </div>
+            <div style="margin-top:4px; font-size:12.5px; color:#374151;">${escHtml(detail)}</div>
+            <div style="margin-top:2px; font-size:11px; color:var(--steel);">by <span style="font-family:'Space Grotesk',monospace; font-weight:700;">${escHtml(item.actor || '?')}</span></div>
+          </div>
+        </div>`;
+    };
+    const refreshActionLog = async () => {
+      const wrap = document.getElementById('dividendActionLog');
+      if (!wrap) return;
+      const api = window.AdminCore?.api;
+      if (typeof api !== 'function') {
+        wrap.innerHTML = '<div class="muted text-center" style="padding:24px 0;font-size:13px">관리자 API 로드 대기 중…</div>';
+        return;
+      }
+      try {
+        const r = await api('/api/admin/silica/dividend/log?limit=50', { method: 'GET' });
+        const log = Array.isArray(r?.log) ? r.log : [];
+        if (log.length === 0) {
+          wrap.innerHTML = '<div class="muted text-center" style="padding:24px 0;font-size:13px">아직 기록된 배당 액션이 없습니다.</div>';
+          return;
+        }
+        wrap.innerHTML = log.map(renderLogRow).join('');
+        // (2026-05-15 v374) dividend_paid 행 click delegation — 세부 모달과 통합.
+        //   wrap 자체에 한 번만 listener 등록 (innerHTML 갱신 후에도 살아있음).
+        if (!wrap.dataset.boundDetailClick) {
+          wrap.dataset.boundDetailClick = '1';
+          wrap.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action="open-payout-detail"]');
+            if (!target) return;
+            const execId = Number(target.getAttribute('data-execution-id') || 0);
+            const payoutDate = target.getAttribute('data-payout-date') || '';
+            const pool = target.getAttribute('data-pool') || '';
+            if (execId > 0 && typeof openDividendDetailModal === 'function') {
+              openDividendDetailModal(execId, payoutDate, pool);
+            }
+          });
+        }
+      } catch (e) {
+        wrap.innerHTML = `<div class="muted text-center" style="padding:24px 0;font-size:13px;color:#DC2626">로그 로드 실패: ${escHtml(e?.message || e)}</div>`;
+      }
+    };
+
+    document.getElementById('poolAmount')?.addEventListener('input', updateCalculation);
+    updateCalculation();
+    refreshSilicaPrice();
+    // (v327) 페이지 로드 시 배당 액션 로그 fetch. AdminCore.api 준비 후 잠시
+    //   대기 — 헤더 마운트와 동시에 화면이 채워지도록.
+    (function tryLogFetch() {
+      if (window.AdminCore?.api) { refreshActionLog(); return; }
+      setTimeout(tryLogFetch, 200);
+    })();
+
+    // (2026-05-12 v320) 배당 입력 차단 윈도우 (서버 권위) 게이팅.
+    //   서버 GET /api/admin/silica/dividend 응답의 admin_lock 메타에서
+    //   window.min / window.max 를 읽어 모든 안내 문자열 동적 구성.
+    //   백엔드 POST 도 동일 정책으로 423 반환하므로 클라이언트 검사를
+    //   우회해도 최종 차단.
+    let _cooldownLocked = false;
+    let _lockWindowText = '매월 14–16일 KST';   // GET 응답 도착 전 fallback
+    let _lockResumeText = '17일 이후';
+    const refreshCooldownGate = async () => {
+      const api = window.AdminCore?.api;
+      if (typeof api !== 'function') return;
+      let r;
+      try {
+        r = await api('/api/admin/silica/dividend', { method: 'GET' });
+      } catch (err) {
+        // (2026-05-13 v332) 이전엔 try/catch 가 모든 에러를 무음 처리 →
+        //   사용자는 빈 리스트만 보고 '왜 안 되지?' 추측. 이제 콘솔에
+        //   명확히 로그 + 화면에 에러 표시.
+        console.error('[dividend] GET failed', err);
+        const errMsg = err?.message || String(err);
+        const sched = document.getElementById('scheduledList');
+        if (sched) sched.innerHTML = `<div class="muted text-center" style="padding:24px 0;font-size:13px;color:#DC2626">로드 실패: ${errMsg}</div>`;
+        const past = document.getElementById('dividendHistoryRows');
+        if (past) past.innerHTML = `<tr><td colspan="5" class="muted text-center" style="padding:24px 0;color:#DC2626">로드 실패: ${errMsg}</td></tr>`;
+        return;
+      }
+
+      // 진단 — 콘솔에 응답 요약 출력
+      console.info('[dividend] GET 응답', {
+        scheduled_count: Array.isArray(r?.scheduled) ? r.scheduled.length : 'N/A',
+        past_count: Array.isArray(r?.past) ? r.past.length : 'N/A',
+        stakers: r?.stakers,
+        admin_lock: r?.admin_lock,
+        // (v332) DB 전체 상태 — 운영자가 '내가 만든 행이 어디 있나?' 즉시 확인
+        db_total: r?._diagnostic?.dividend_executions_total,
+        status_breakdown: r?._diagnostic?.status_breakdown,
+      });
+
+      // (2026-05-13 v340) v332 진단 노트 제거 — 데이터가 정상 흐름되는 게
+      //   확인되어 더 이상 필요 없음. console.info 는 디버깅 용으로 유지.
+
+      const lock = r?.admin_lock || {};
+      _cooldownLocked = !!lock.locked;
+      if (lock.window) {
+        _lockWindowText = `매월 ${lock.window.min}–${lock.window.max}일 KST`;
+        _lockResumeText = `${lock.window.max + 1}일 이후`;
+      }
+      // (2026-05-12 v324) 같은 응답에서 staker stats 도 함께 추출.
+      const stakerCnt = Number(r?.stakers?.count || 0);
+      if (stakerCnt > 0) {
+        RECIPIENT_COUNT = stakerCnt;
+        updateCalculation();
+      }
+
+      // (2026-05-13 v329) 운영자: '나는 배당 테스팅을 위해 1회 배당을
+      //   했지만, 기록이 남아있지 않다.' GET 응답에 scheduled / past
+      //   배열이 도착하는데 UI 가 무시하고 있었음. 두 목록을 명시적으로
+      //   렌더링.
+      renderScheduledList(Array.isArray(r?.scheduled) ? r.scheduled : []);
+      renderPastList(Array.isArray(r?.past) ? r.past : []);
+
+      const banner = document.getElementById('cooldownBanner');
+      const txt = document.getElementById('cooldownBannerText');
+      // (v321) hidden 속성 대신 style.display 직접 — 인라인 display 가
+      //         hidden 을 덮어쓰는 CSS 우선순위 버그 회피.
+      if (banner) banner.style.display = _cooldownLocked ? 'flex' : 'none';
+      if (txt && lock.window) {
+        txt.innerHTML = `오늘은 KST 기준 <strong>${lock.today_kst}일</strong> — ${_lockWindowText} 안전 윈도우 진행 중. 스테이킹 lock 시작 전후의 풀 변동을 막기 위해 신규 등록·수정이 차단됩니다. <strong>${_lockResumeText}</strong>에 다시 시도해주세요. (취소는 비상 레버로 항상 허용)`;
+      }
+      // gate 함수 호출 — 잠금 + 지갑 상태 모두 반영
+      syncWalletGate();
+    };
+
+    // (2026-05-13 v329) 예정 / 과거 배당 목록 렌더러.
+    const STATUS_BADGE = {
+      scheduled: { label: '예약됨', bg: 'rgba(124,58,237,0.10)', color: '#5B21B6' },
+      executing: { label: '실행 중', bg: 'rgba(245,158,11,0.10)', color: '#92400E' },
+      paid:      { label: '지급 완료', bg: 'rgba(16,185,129,0.10)', color: '#047857' },
+      cancelled: { label: '취소됨', bg: 'rgba(220,38,38,0.08)', color: '#991B1B' },
+    };
+    const renderStatusBadge = (status) => {
+      const s = STATUS_BADGE[status] || { label: status, bg: '#F3F4F6', color: '#374151' };
+      return `<span style="display:inline-block; padding:3px 9px; border-radius:999px; background:${s.bg}; color:${s.color}; font-size:11px; font-weight:700;">${s.label}</span>`;
+    };
+    function renderScheduledList(rows) {
+      const wrap = document.getElementById('scheduledList');
+      if (!wrap) return;
+      if (!rows.length) {
+        wrap.innerHTML = '<div class="muted text-center" style="padding:24px 0;font-size:13px">예정된 배당이 없습니다.</div>';
+        return;
+      }
+      // (2026-05-14 v357) 운영자: '이 버튼들은 이슈가 있지 않다면 비활성화
+      //   되어야한다.' payout 버튼은 payout_month <= 오늘 (= due today or
+      //   overdue) 일 때만 활성화. 정상 상태 (payout_month > 오늘) 면 시스템이
+      //   자동 처리할 예정이므로 admin 수동 개입 불필요 → disabled.
+      // (2026-05-15 v360) 운영자: '15일인데 왜 배당금이 안 들어왔나?' 진단
+      //   결과 cron 자체가 발화 안 한 dead-zone (당일=payout_month). 기존
+      //   strict less than (<) 조건이 day-of-payout 을 비활성으로 처리해서
+      //   cron 안 도는 상황에서도 admin 이 못 누름. <= 로 완화 — 당일도 수동
+      //   trigger 가능.
+      const todayKstStr = (function () {
+        // KST 오늘 날짜 (YYYY-MM-DD)
+        const now = new Date();
+        const kstMs = now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60_000;
+        const d = new Date(kstMs);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      })();
+      wrap.innerHTML = rows.map((row) => {
+        const date = String(row.payout_month || '').slice(0, 10);
+        const pool = fmt(Number(row.payout_amount_usdt || 0));
+        const cnt  = Number(row.recipient_count || 0);
+        // (v360) <= 로 완화 — payout_month == 오늘 (당일 지급 예정일) 도 활성화.
+        //   cron 이 안 돌면 admin 이 즉시 수동 처리할 수 있어야 함.
+        const isOverdue = date && date <= todayKstStr;   // 지급일이 오늘 또는 이미 지났는데 status=scheduled
+        const payoutBtnStyle = isOverdue
+          ? "margin-top:2px; padding:5px 12px; background:linear-gradient(135deg,#8E24AA,#7C3AED); border:none; border-radius:6px; color:#fff; font-size:11px; font-weight:700; letter-spacing:0.5px; cursor:pointer; transition:all .15s ease; box-shadow:0 2px 6px rgba(124,58,237,0.35);"
+          : "margin-top:2px; padding:5px 12px; background:rgba(148,163,184,0.10); border:1px solid rgba(148,163,184,0.30); border-radius:6px; color:#94A3B8; font-size:11px; font-weight:700; letter-spacing:0.5px; cursor:not-allowed;";
+        const payoutBtnTitle = isOverdue
+          ? "재해 복구: 이 배당을 즉시 지급"
+          : "시스템 자동 지급 예정 — 수동 개입 불필요";
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border);">
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:800; font-size:14px; color:var(--text);">#${row.id} · ${date}${isOverdue ? ' <span style="color:#DC2626; font-size:11px; font-weight:700;">⚠ 미지급</span>' : ''}</div>
+              ${cnt ? `<div style="font-size:11px; color:var(--steel); margin-top:3px; font-family:'Space Grotesk',monospace;">예상 ${cnt}명</div>` : ''}
+            </div>
+            <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <div style="font-family:'Unbounded', sans-serif; font-weight:800; font-size:16px; color:var(--logo-violet);">${pool}</div>
+              <div>${renderStatusBadge(String(row.status))}</div>
+              <div style="display:flex; gap:6px; margin-top:2px;">
+                <button type="button" class="div-payout-btn"
+                        data-action="payout-dividend"
+                        data-id="${row.id}"
+                        data-pool="${row.payout_amount_usdt}"
+                        data-date="${date}"
+                        ${isOverdue ? '' : 'disabled'}
+                        title="${payoutBtnTitle}"
+                        style="${payoutBtnStyle}">
+                  ▶ 즉시 지급
+                </button>
+                <button type="button" class="div-cancel-btn"
+                        data-action="cancel-dividend"
+                        data-id="${row.id}"
+                        data-pool="${row.payout_amount_usdt}"
+                        data-date="${date}"
+                        style="padding:5px 12px; background:rgba(220,38,38,0.06);
+                               border:1px solid rgba(220,38,38,0.30); border-radius:6px;
+                               color:#DC2626; font-size:11px; font-weight:700; letter-spacing:0.5px;
+                               cursor:pointer; transition:all .15s ease;">
+                  ✕ 취소
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+    // 호버 효과 — 동적 행에 inline CSS 만으론 :hover 안 잡혀 일회성 룰 주입
+    if (!document.getElementById('divCancelBtnStyle')) {
+      const s = document.createElement('style');
+      s.id = 'divCancelBtnStyle';
+      s.textContent =
+        '.div-cancel-btn:hover{background:rgba(220,38,38,0.12)!important;border-color:rgba(220,38,38,0.50)!important;color:#991B1B!important;}' +
+        '.div-payout-btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(124,58,237,0.45)!important;}' +
+        '.div-payout-btn:active{transform:translateY(0);}';
+      document.head.appendChild(s);
+    }
+
+    // (2026-05-15 v373) 배당 회차 세부 모달 — 검색 + 50개씩 페이지네이션.
+    //   이자 페이지의 패턴과 동일.
+    const DIV_PAGE_SIZE = 50;
+    const divDetailState = { executionId: 0, payoutDate: '', poolUsdt: '', offset: 0, total: 0, address: '', status: '' };
+
+    const fmtAddrShort = (a) => {
+      const s = String(a || '');
+      return s.length > 12 ? s.slice(0, 6) + '...' + s.slice(-4) : s;
+    };
+
+    async function renderDividendDetailPage() {
+      const body = document.getElementById('dividendDetailBody');
+      const meta = document.getElementById('dividendDetailMeta');
+      const prev = document.getElementById('dividendDetailPrev');
+      const next = document.getElementById('dividendDetailNext');
+      const pageInfo = document.getElementById('dividendDetailPageInfo');
+      if (!body) return;
+      body.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:24px 0;">로딩 중…</td></tr>';
+
+      const params = new URLSearchParams();
+      params.set('execution_id', String(divDetailState.executionId));
+      params.set('limit', String(DIV_PAGE_SIZE));
+      params.set('offset', String(divDetailState.offset));
+      if (divDetailState.address) params.set('address', divDetailState.address);
+      if (divDetailState.status) params.set('status', divDetailState.status);
+
+      const api = window.AdminCore?.api;
+      try {
+        const r = await api('/api/admin/silica/dividend/payout-log?' + params.toString(), { method: 'GET' });
+        const rows = Array.isArray(r?.rows) ? r.rows : [];
+        const pag = r?.pagination || {};
+        divDetailState.total = Number(pag.total || 0);
+
+        if (!rows.length) {
+          body.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:24px 0;">조회 결과 없음</td></tr>';
+        } else {
+          body.innerHTML = rows.map((row) => {
+            const st = String(row.status || '');
+            const isClaimed = st === 'claimed' || st === 'paid';
+            const staked = Number(row.staked_silica_sto_at_payout || 0);
+            const sharePct = Number(row.share_pct || 0);
+            const shareUsdt = Number(row.share_usdt || 0).toFixed(2);
+            const silica = Number(row.silica_amount || 0).toFixed(2);
+            // (audit M7 fix · 2026-06-12) DB 유래 문자열 필드 (address / claimed_at) escHtml 처리.
+            return `
+              <tr>
+                <td title="${escHtml(row.address)}" style="font-family:'Space Grotesk',monospace;font-size:11.5px;">${escHtml(fmtAddrShort(row.address))}</td>
+                <td style="text-align:right;font-family:'Space Grotesk',monospace;font-size:11.5px;">${staked.toLocaleString('ko-KR')}</td>
+                <td style="text-align:right;font-family:'Space Grotesk',monospace;font-size:11.5px;">${sharePct.toFixed(4)}</td>
+                <td style="text-align:right;font-family:'Space Grotesk',monospace;font-size:11.5px;">${shareUsdt}</td>
+                <td style="text-align:right;font-family:'Space Grotesk',monospace;font-weight:700;">${silica}</td>
+                <td>${isClaimed
+                  ? '<span style="display:inline-block;padding:2px 8px;background:rgba(16,185,129,0.12);color:#047857;border-radius:100px;font-size:11px;font-weight:700;">수령 완료</span>'
+                  : '<span style="display:inline-block;padding:2px 8px;background:rgba(245,158,11,0.12);color:#92400E;border-radius:100px;font-size:11px;font-weight:700;">미수령</span>'}</td>
+                <td style="font-family:'Space Grotesk',monospace;font-size:11.5px;white-space:nowrap;">${escHtml(row.claimed_at || '—')}</td>
+              </tr>`;
+          }).join('');
+        }
+
+        const currentPage = Math.floor(divDetailState.offset / DIV_PAGE_SIZE) + 1;
+        const totalPages = Math.max(1, Math.ceil(divDetailState.total / DIV_PAGE_SIZE));
+        if (pageInfo) pageInfo.textContent = `${currentPage} / ${totalPages}`;
+        if (prev) prev.disabled = divDetailState.offset === 0;
+        if (next) next.disabled = !pag.has_more;
+        if (meta) {
+          meta.innerHTML = `전체 <strong>${divDetailState.total.toLocaleString('ko-KR')}건</strong> · 현재 페이지 <strong>${rows.length}건</strong>`;
+        }
+      } catch (e) {
+        // (audit M7 fix · 2026-06-12) escHtml — API 에러 메시지 HTML 실행 차단.
+        body.innerHTML = `<tr><td colspan="7" class="text-center" style="padding:24px 0;color:#DC2626;">로딩 실패: ${escHtml((e && e.message) || e)}</td></tr>`;
+      }
+    }
+
+    function openDividendDetailModal(executionId, payoutDate, poolUsdt) {
+      const modal = document.getElementById('dividendDetailModal');
+      const title = document.getElementById('dividendDetailTitle');
+      const search = document.getElementById('dividendDetailSearch');
+      const statusSel = document.getElementById('dividendDetailStatus');
+      if (!modal) return;
+      divDetailState.executionId = executionId;
+      divDetailState.payoutDate = payoutDate;
+      divDetailState.poolUsdt = poolUsdt;
+      divDetailState.offset = 0;
+      divDetailState.total = 0;
+      divDetailState.address = '';
+      divDetailState.status = '';
+      if (search) search.value = '';
+      if (statusSel) statusSel.value = '';
+      if (title) title.textContent = `배당 #${executionId} · ${payoutDate} · ${poolUsdt} USDT`;
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+      renderDividendDetailPage();
+    }
+
+    function closeDividendDetailModal() {
+      const modal = document.getElementById('dividendDetailModal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+
+    // 모달 이벤트 핸들러 (DOMContentLoaded 후 한 번만 등록)
+    (function bindDividendDetailModal() {
+      const modal = document.getElementById('dividendDetailModal');
+      if (!modal || modal.dataset.bound === '1') return;
+      modal.dataset.bound = '1';
+      document.getElementById('dividendDetailClose')?.addEventListener('click', closeDividendDetailModal);
+      document.getElementById('dividendDetailBackdrop')?.addEventListener('click', closeDividendDetailModal);
+      document.getElementById('dividendDetailPrev')?.addEventListener('click', () => {
+        if (divDetailState.offset === 0) return;
+        divDetailState.offset = Math.max(0, divDetailState.offset - DIV_PAGE_SIZE);
+        renderDividendDetailPage();
+      });
+      document.getElementById('dividendDetailNext')?.addEventListener('click', () => {
+        divDetailState.offset = divDetailState.offset + DIV_PAGE_SIZE;
+        renderDividendDetailPage();
+      });
+      // 검색 + 필터 (debounce 350ms)
+      let _divSearchDebounce = null;
+      const triggerSearch = () => {
+        divDetailState.address = (document.getElementById('dividendDetailSearch')?.value || '').trim();
+        divDetailState.status = document.getElementById('dividendDetailStatus')?.value || '';
+        divDetailState.offset = 0;
+        renderDividendDetailPage();
+      };
+      document.getElementById('dividendDetailSearch')?.addEventListener('input', () => {
+        clearTimeout(_divSearchDebounce);
+        _divSearchDebounce = setTimeout(triggerSearch, 350);
+      });
+      document.getElementById('dividendDetailSearch')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { clearTimeout(_divSearchDebounce); triggerSearch(); }
+      });
+      document.getElementById('dividendDetailStatus')?.addEventListener('change', triggerSearch);
+      document.getElementById('dividendDetailSearchClear')?.addEventListener('click', () => {
+        const s = document.getElementById('dividendDetailSearch');
+        const st = document.getElementById('dividendDetailStatus');
+        if (s) s.value = '';
+        if (st) st.value = '';
+        triggerSearch();
+      });
+      // 초기 hidden
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    })();
+
+    function renderPastList(rows) {
+      const tbody = document.getElementById('dividendHistoryRows');
+      if (!tbody) return;
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="muted text-center" style="padding:24px 0">아직 실행된 배당이 없습니다.</td></tr>';
+        return;
+      }
+      // (2026-05-15 v373) 행 클릭 시 세부 모달 — execution_id 로 dividend_payouts
+      //   사용자별 행 표시.
+      tbody.innerHTML = rows.map((row) => {
+        const date = String(row.payout_month || '').slice(0, 10);
+        const pool = fmt(Number(row.payout_amount_usdt || 0));
+        const silicaTotal = row.silica_total_distributed != null
+          ? fmt(Number(row.silica_total_distributed))
+          : '—';
+        const cnt = row.recipient_count != null ? `${Number(row.recipient_count).toLocaleString('ko-KR')}명` : '—';
+        return `
+          <tr data-execution-id="${row.id}" data-payout-date="${date}" data-pool="${pool}"
+              style="cursor:pointer;transition:background .15s ease;"
+              onmouseover="this.style.background='rgba(124,58,237,0.04)'"
+              onmouseout="this.style.background=''">
+            <td>#${row.id} <span style="color:var(--steel-dim);font-size:11px">${date}</span></td>
+            <td style="text-align:right; font-family:'Space Grotesk',monospace;">${pool}</td>
+            <td style="text-align:right; font-family:'Space Grotesk',monospace;">${silicaTotal}</td>
+            <td style="text-align:right;">${cnt}</td>
+            <td>${renderStatusBadge(String(row.status))}</td>
+          </tr>`;
+      }).join('');
+      // 행 클릭 → 모달
+      tbody.querySelectorAll('tr[data-execution-id]').forEach((tr) => {
+        tr.addEventListener('click', () => {
+          const execId = Number(tr.getAttribute('data-execution-id') || 0);
+          const date = tr.getAttribute('data-payout-date') || '';
+          const pool = tr.getAttribute('data-pool') || '';
+          if (execId > 0) openDividendDetailModal(execId, date, pool);
+        });
+      });
+    }
+
+    // (2026-05-12 v309) 지갑 연결 상태에 따라 배너 + 실행 버튼 활성화 토글.
+    // admin/header.html 헤더 마운트가 끝나는 시점은 다를 수 있으므로 초기 1회 +
+    // admin-wallet-changed 이벤트 + 짧은 폴링으로 동기화.
+    const syncWalletGate = () => {
+      const banner = document.getElementById('walletWarnBanner');
+      const btn = document.getElementById('dividendExecuteBtn');
+      const connected = !!(window.AdminWallet && window.AdminWallet.isConnected && window.AdminWallet.isConnected());
+      // (v321) style.display 직접 — hidden 속성은 inline display:flex 에
+      // 의해 덮어쓰여 무시되는 버그가 있었음. 지갑 배너는 cooldown 락이
+      // 아닐 때만 노출 (cooldown 배너 우선).
+      if (banner) {
+        const showWalletBanner = !connected && !_cooldownLocked;
+        banner.style.display = showWalletBanner ? 'flex' : 'none';
+      }
+      if (btn) {
+        const blocked = !connected || _cooldownLocked;
+        btn.disabled = blocked;
+        btn.style.opacity = blocked ? '0.55' : '';
+        btn.style.cursor = blocked ? 'not-allowed' : '';
+        btn.title = _cooldownLocked
+          ? `${_lockWindowText} 배당 입력 차단 윈도우입니다 (${_lockResumeText} 가능)`
+          : (connected ? '' : '관리자 지갑 연결 후 실행 가능');
+      }
+    };
+    syncWalletGate();
+    refreshCooldownGate();
+    window.addEventListener('admin-wallet-changed', syncWalletGate);
+    // AdminWallet 헬퍼가 헤더 스크립트 이후에 로드될 수 있어 짧게 재시도
+    let _wgTries = 0;
+    const _wgTimer = setInterval(() => {
+      syncWalletGate();
+      if (++_wgTries > 20) clearInterval(_wgTimer);  // 약 4초
+    }, 200);
+
+    // showToast 헬퍼 — 두 버튼이 공유.
+    const showToast = (msg, kind) => {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.classList.remove('hidden', 'good', 'bad');
+      t.classList.add(kind || '');
+      t.textContent = msg;
+      setTimeout(() => t.classList.add('hidden'), 2800);
+    };
+
+    // (2026-05-13 v339) 배당 취소 모달 — Promise<string|null> 반환.
+    //   사용자가 닫기/백드롭/ESC 클릭 시 null, 취소 실행 클릭 시 reason 문자열.
+    const showDivCancelModal = (opts) => new Promise((resolve) => {
+      const modal = document.getElementById('divCancelModal');
+      if (!modal) { resolve(null); return; }
+
+      // 값 주입
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      set('divCancelTargetId', `#${opts.id}`);
+      set('divCancelTargetPool', `${Number(opts.pool || 0).toLocaleString('ko-KR')} USDT`);
+      set('divCancelTargetDate', opts.date || '—');
+      const reasonEl = document.getElementById('divCancelReason');
+      if (reasonEl) reasonEl.value = '';
+
+      modal.hidden = false;
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => reasonEl?.focus(), 50);
+
+      const cleanup = (result) => {
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        modal.removeEventListener('click', onClick);
+        document.removeEventListener('keydown', onKey);
+        resolve(result);
+      };
+      const onClick = (e) => {
+        const action = e.target.closest('[data-dialog-action]')?.dataset?.dialogAction;
+        if (action === 'confirm') cleanup((reasonEl?.value || '').trim());
+        else if (action === 'cancel') cleanup(null);
+      };
+      const onKey = (e) => {
+        if (e.key === 'Escape') cleanup(null);
+        // Enter 는 textarea 내부면 줄바꿈, Ctrl/Cmd+Enter 만 confirm
+        else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) cleanup((reasonEl?.value || '').trim());
+      };
+      modal.addEventListener('click', onClick);
+      document.addEventListener('keydown', onKey);
+    });
+
+    // 예정된 배당 카드 → [✕ 취소] / [▶ 즉시 지급] 버튼 클릭 위임.
+    //   (v357) 평상시 지급은 cron 이 자동 처리 — 즉시 지급은 payout_month
+    //   < 오늘 (= overdue) 인 행에서만 활성화 (renderScheduledList 에서 토글).
+    document.getElementById('scheduledList')?.addEventListener('click', async (e) => {
+      const cancelBtn = e.target.closest('button[data-action="cancel-dividend"]');
+      const payoutBtn = e.target.closest('button[data-action="payout-dividend"]');
+      const btn = cancelBtn || payoutBtn;
+      if (!btn) return;
+      const id = Number(btn.dataset.id || 0);
+      const pool = Number(btn.dataset.pool || 0);
+      const date = String(btn.dataset.date || '');
+      if (!id) return;
+
+      const api = window.AdminCore?.api;
+
+      // ── [▶ 즉시 지급] — 재해 복구용 강제 payout ─────────────────────
+      if (payoutBtn) {
+        if (payoutBtn.disabled) return;   // 정상 운영 중인 행은 disabled
+        const ok = window.confirm(
+          `⚠ 재해 복구 모드\n\n` +
+          `배당 #${id} (지급예정일 ${date}, 총 ${pool} USDT) 을 지금 즉시 지급합니다.\n\n` +
+          `이 작업은 되돌릴 수 없습니다. 평상시엔 시스템이 자동 처리하므로, 14~16일 시스템이 모두 실패한 재해 상황에서만 사용하세요.\n\n` +
+          `계속하시겠습니까?`
+        );
+        if (!ok) return;
+
+        payoutBtn.disabled = true;
+        payoutBtn.style.opacity = '0.5';
+        try {
+          const res = await api('/api/admin/silica/dividend/payout', {
+            method: 'POST',
+            body: { id },
+          });
+          const recipients = Number(res?.recipient_count ?? 0);
+          showToast(`✓ 배당 #${id} 즉시 지급 완료 — ${recipients}명 수령`, 'good');
+          console.info('[dividend payout] result', res);
+          setTimeout(() => location.reload(), 1800);
+        } catch (err) {
+          showToast(`✗ 지급 실패: ${err?.message || err}`, 'bad');
+          payoutBtn.disabled = false;
+          payoutBtn.style.opacity = '';
+        }
+        return;
+      }
+
+      // ── [✕ 취소] — 기존 흐름 그대로 ──────────────────────────────────
+      const reason = await showDivCancelModal({ id, pool, date });
+      if (reason === null) return;
+      if (!reason) {
+        showToast('취소 사유를 입력해주세요.', 'bad');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      try {
+        const res = await api('/api/admin/silica/dividend/cancel', {
+          method: 'POST',
+          body: { id, reason },
+        });
+        const expired = Number(res?.cascade?.linked_popups_expired ?? 0);
+        const newPopId = res?.cascade?.cancellation_popup_id;
+        const detail = `연결 팝업 만료: ${expired}개 · 취소 안내 팝업 ${newPopId ? `#${newPopId}` : ''} 생성`;
+        showToast(`✓ 배당 #${id} 취소 완료 — ${detail}`, 'good');
+        console.info('[dividend cancel] cascade', res?.cascade);
+        setTimeout(() => location.reload(), 1800);
+      } catch (err) {
+        showToast(`✗ 취소 실패: ${err?.message || err}`, 'bad');
+        btn.disabled = false;
+        btn.style.opacity = '';
+      }
+    });
+
+    // (2026-05-13 v337) 배당 예약 확인 모달 — Promise 반환 (true=확인, false=취소).
+    //   모달 마크업은 페이지 하단에 사전 렌더, JS 가 값 주입 후 hidden 토글.
+    const showDivExecModal = (opts) => new Promise((resolve) => {
+      const modal = document.getElementById('divExecModal');
+      if (!modal) {
+        // 모달 마크업 누락 — fallback 으로 window.confirm
+        const ok = window.confirm(`배당 ${opts.pool} USDT를 ${opts.payoutDate}에 예약합니다. 진행하시겠습니까?`);
+        resolve(ok);
+        return;
+      }
+
+      // 값 주입
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      set('divExecPool',       `${opts.pool.toLocaleString('ko-KR')} USDT`);
+      set('divExecDate',       opts.payoutDate);
+      set('divExecCycle',      opts.cycle);
+      set('divExecPriceMode',  opts.priceModeLabel);
+      set('divExecSilica',     opts.silicaTotal > 0
+        ? `${opts.silicaTotal.toLocaleString('ko-KR', { maximumFractionDigits: 2 })} Silica`
+        : '— Silica');
+      set('divExecPriceUsed',  opts.silicaPrice > 0
+        ? `${opts.silicaPrice.toLocaleString('en-US', { maximumFractionDigits: 8 })} USDT`
+        : '— USDT');
+      set('divExecRecipients', opts.recipients > 0 ? `${opts.recipients.toLocaleString('ko-KR')}명` : '미상');
+      set('divExecAvg', opts.avg > 0
+        ? `${opts.avg.toLocaleString('ko-KR', { maximumFractionDigits: 2 })} Silica`
+        : '—');
+
+      // execution_lock 모드 → 예상치 박스를 emerald 톤으로 + 경고 메시지 변경
+      const estBox = document.getElementById('divExecEstimateBox');
+      const estBadge = document.getElementById('divExecEstimateBadge');
+      const estWarn = document.getElementById('divExecWarning');
+      if (estBox) estBox.classList.toggle('locked', !!opts.isLocked);
+      if (estBadge) estBadge.textContent = opts.isLocked ? '실행 시점 시세 락' : '지급일 자동 재계산';
+      if (estWarn) {
+        estWarn.innerHTML = opts.isLocked
+          ? '<span class="ic">✓</span><span><strong>execution_lock 모드</strong> — 위 시세로 분배량이 확정됩니다. 5/15 시세 변동과 무관하게 동일한 Silica 양이 지급됩니다.</span>'
+          : '<span class="ic">⚠</span><span>실제 분배량과 수령자 수는 <strong>지급일(15일) 시스템 실행 시점</strong>의 시세와 staking 상태에 따라 달라질 수 있습니다.</span>';
+      }
+
+      // 표시
+      modal.hidden = false;
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      const cleanup = (result) => {
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        modal.removeEventListener('click', onClick);
+        document.removeEventListener('keydown', onKey);
+        resolve(result);
+      };
+      const onClick = (e) => {
+        const action = e.target.closest('[data-dialog-action]')?.dataset?.dialogAction;
+        if (action === 'confirm') cleanup(true);
+        else if (action === 'cancel') cleanup(false);
+      };
+      const onKey = (e) => {
+        if (e.key === 'Escape') cleanup(false);
+        else if (e.key === 'Enter') cleanup(true);
+      };
+      modal.addEventListener('click', onClick);
+      document.addEventListener('keydown', onKey);
+    });
+
+    document.getElementById('dividendExecuteBtn')?.addEventListener('click', async () => {
+      const pool = parseFloat(document.getElementById('poolAmount')?.value || '0');
+      const cycle = document.getElementById('payoutCycle')?.value;
+      // (2026-05-12 v322) payoutDate 는 hidden 으로 picker refresh() 가 자동
+      //   계산해 채워둠 — 회차 선택 시 cycleToPayoutDate() 가 15일로 고정.
+      const payoutDate = (document.getElementById('payoutDate')?.value || '').trim();
+      const priceMode = document.getElementById('priceMode')?.value || 'payout_admin';
+
+      // 지갑 가드 — 백엔드(adminOnly)가 어차피 403 으로 거부하지만, 사전 차단으로
+      // UX 명확화. window.AdminWallet 은 admin.core.js 가 노출.
+      const walletConnected = !!(window.AdminWallet && window.AdminWallet.isConnected && window.AdminWallet.isConnected());
+      if (!walletConnected) {
+        showToast('관리자 지갑을 먼저 연결하세요.', 'bad');
+        syncWalletGate();
+        return;
+      }
+
+      // (2026-05-12 v320) 배당 입력 차단 윈도우 확인 — 백엔드도 423 으로
+      // 거부하지만 사전 차단으로 폼 채우기 헛수고 방지. 윈도우 텍스트는
+      // refreshCooldownGate 가 GET 응답에서 받아 동적 구성.
+      if (_cooldownLocked) {
+        showToast(`${_lockWindowText} 배당 입력 차단 기간입니다. ${_lockResumeText}에 다시 시도하세요.`, 'bad');
+        return;
+      }
+
+      if (!cycle) {
+        showToast('배당 회차를 선택하세요. (분기 또는 연간)', 'bad');
+        return;
+      }
+      if (!payoutDate) {
+        // 회차 선택이 안 된 경우 — 위 cycle 검사에서 이미 걸러지지만 안전망
+        showToast('지급일이 계산되지 않았습니다. 회차를 다시 선택하세요.', 'bad');
+        return;
+      }
+      if (pool <= 0) {
+        showToast('배당 풀은 0보다 커야 합니다.', 'bad');
+        return;
+      }
+
+      // (2026-05-12 v325) 운영자: '지급을 하자 코멘트가 나타났다. api 연동
+      //   확인중 이라는 멘트가 잠시 있다가 사라졌다.' 이전엔 stub 토스트만
+      //   띄우고 끝났음 — 실제 POST /api/admin/silica/dividend 연동.
+      const api = window.AdminCore?.api;
+      if (typeof api !== 'function') {
+        showToast('관리자 API 핸들러 로드 대기 중…', 'bad');
+        return;
+      }
+
+      // (2026-05-13 v337) 운영자: '다이얼로그를 디자인 해줘.' window.confirm()
+      //   대신 Aurora 테마 커스텀 모달 — 확정 정보(violet 박스) + 예상치
+      //   (amber 박스, execution_lock 시 emerald) 시각적 구분.
+      const recipNum = RECIPIENT_COUNT > 0 ? RECIPIENT_COUNT : 0;
+      const silicaTotalNum = SILICA_PRICE > 0 ? (pool / SILICA_PRICE) : 0;
+      const avgNum = recipNum > 0 && silicaTotalNum > 0 ? (silicaTotalNum / recipNum) : 0;
+      const priceModeLabel = {
+        payout_admin:   '지급일 시점 관리자 설정 시세 사용',
+        payout_api:     '지급일 시점 거래소 API 시세',
+        execution_lock: '지금 시세로 락 (실행 시점 고정)',
+      }[priceMode] || priceMode;
+      const isLocked = priceMode === 'execution_lock';
+
+      const okClicked = await showDivExecModal({
+        pool: pool,
+        payoutDate: payoutDate,
+        cycle: cycle,
+        priceModeLabel: priceModeLabel,
+        isLocked: isLocked,
+        silicaPrice: SILICA_PRICE,
+        silicaTotal: silicaTotalNum,
+        recipients: recipNum,
+        avg: avgNum,
+      });
+      if (!okClicked) return;
+
+      // 버튼 로딩 상태
+      const btn = document.getElementById('dividendExecuteBtn');
+      const origText = btn?.textContent || '';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '예약 중…';
+        btn.style.opacity = '0.7';
+      }
+
+      try {
+        // 팝업은 별도 핸들러에서 게시 (v313) — popup_ko/popup_en 비움.
+        const res = await api('/api/admin/silica/dividend', {
+          method: 'POST',
+          body: {
+            pool_usdt: pool,
+            payout_month: payoutDate,  // YYYY-MM-DD; 백엔드가 -15 정규화
+            price_mode: priceMode,
+            popup_ko: '',
+            popup_en: '',
+            memo: `cycle=${cycle}`,
+          },
+        });
+        const newId = res?.id || res?.data?.id || '?';
+        const newDate = res?.payout_date || payoutDate;
+        showToast(`✓ 배당 #${newId} 예약 완료 (${newDate} 지급 예정)`, 'good');
+        // 1.5초 후 페이지 새로고침 — 예정 배당 목록 자동 갱신
+        setTimeout(() => location.reload(), 1500);
+      } catch (e) {
+        const msg = e?.message || String(e);
+        // 백엔드 검증 메시지가 그대로 노출됨 (예: '이번 회차는 선택 불가...')
+        showToast(`✗ 배당 예약 실패: ${msg}`, 'bad');
+        // 버튼 복원
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = origText;
+          btn.style.opacity = '';
+        }
+      }
+    });
+
+    // (2026-05-12 v314) 자동 연결 — 가장 가까운 예정 배당 조회 후 배지 표시.
+    //   GET /api/admin/silica/dividend 는 scheduled 배당을 payout_month ASC
+    //   순으로 반환. earliest upcoming = [0] 항목. 저장 시 이 ID 를
+    //   linked_id 로 전달 → 배당 취소 시 팝업도 자동 expire.
+    let _linkedDividendId = null;
+    const refreshLinkInfo = async () => {
+      const info = document.getElementById('popupLinkInfoText');
+      const wrap = document.getElementById('popupLinkInfo');
+      if (!info || !wrap) return;
+      try {
+        const api = window.AdminCore?.api;
+        if (typeof api !== 'function') {
+          info.textContent = '관리자 API 핸들러 로드 대기 중…';
+          return;
+        }
+        const r = await api('/api/admin/silica/dividend', { method: 'GET' });
+        const scheduled = Array.isArray(r?.scheduled) ? r.scheduled : [];
+        const target = scheduled[0] || null;  // earliest upcoming (payout_month ASC)
+        if (!target) {
+          _linkedDividendId = null;
+          // 회색 톤으로 변경 — 일반 공지 모드
+          wrap.style.background = 'rgba(107,114,128,0.06)';
+          wrap.style.borderColor = 'rgba(107,114,128,0.3)';
+          wrap.style.color = '#374151';
+          wrap.querySelector('div > div:first-child').style.color = '#6B7280';
+          info.innerHTML = '예정된 배당이 없습니다 — <strong style="color:#374151">일반 공지로 게시</strong>됩니다 (배당 연결 없음)';
+          return;
+        }
+        _linkedDividendId = Number(target.id) || null;
+        const date = String(target.payout_month || '').slice(0, 10);
+        const amt = Number(target.payout_amount_usdt || 0).toLocaleString('ko-KR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        info.innerHTML = `<strong style="color:#5B21B6">배당 #${target.id}</strong> · 지급일 <strong>${date}</strong> · ${amt} USDT`
+                       + `<div style="margin-top:2px; font-size:11px; color:#7C3AED;">배당 취소 시 이 팝업도 자동 만료됨</div>`;
+      } catch (e) {
+        _linkedDividendId = null;
+        info.textContent = '예정 배당 조회 실패 (' + (e?.message || e) + ')';
+      }
+    };
+    // 첫 호출 — admin.core.js 가 늦게 마운트될 수 있어 짧게 재시도.
+    refreshLinkInfo();
+    let _liTries = 0;
+    const _liTimer = setInterval(() => {
+      if (window.AdminCore?.api) {
+        refreshLinkInfo();
+        clearInterval(_liTimer);
+      }
+      if (++_liTries > 25) clearInterval(_liTimer);
+    }, 200);
+
+    // (2026-05-12 v313) 팝업 저장 (즉시 게시) — POST /api/admin/silica/popups.
+    //   백엔드는 adminAuth() (JWT) 만 검증 → 지갑 미연결도 OK.
+    //   (v314) linked_id 자동 첨부 — _linkedDividendId 가 있으면 함께 전송.
+    //   (2026-05-18 v532) 시작 시간 입력 필드 추가 + 로컬→UTC 변환 일관화.
+    //     기존엔 startAt / endAt 을 로컬 시각 텍스트로 만들어 그대로 전송 →
+    //     백엔드는 UTC 로 해석 → KST(+09:00) 입력이면 ~9시간 미래로 잡힘
+    //     → user 측 SQL `start_at <= now_utc` 필터에서 제외 → 팝업 안 나옴
+    //     (v531 _diag 로 확인된 운영자 실 사례). new Date(s).toISOString()
+    //     으로 브라우저 로컬 → UTC 변환 후 MySQL DATETIME 포맷으로 보냄.
+    document.getElementById('popupSaveBtn')?.addEventListener('click', async () => {
+      const title = (document.getElementById('popupTitle')?.value || '').trim();
+      const titleEn = (document.getElementById('popupTitleEn')?.value || '').trim();
+      const ko = (document.getElementById('popupContentKo')?.value || '').trim();
+      const en = (document.getElementById('popupContentEn')?.value || '').trim();
+      const startInput = (document.getElementById('popupStartAt')?.value || '').trim();
+      const endInput = (document.getElementById('popupEndAt')?.value || '').trim();
+
+      if (!title) { showToast('팝업 제목 (KO) 을 입력하세요.', 'bad'); return; }
+      if (!ko)    { showToast('팝업 본문 (KO) 을 입력하세요.', 'bad'); return; }
+
+      // (v532) 로컬 datetime-local 문자열을 UTC MySQL DATETIME 으로 변환.
+      //   new Date(s) 는 datetime-local 입력을 사용자 로컬 타임존으로 해석한다.
+      //   .toISOString() 은 UTC ISO 문자열을 돌려준다. 그 후 'T' → 공백,
+      //   ms 부분 잘라내어 MySQL DATETIME 포맷 'YYYY-MM-DD HH:MM:SS' 로 만든다.
+      const toUtcMysql = (d) => d.toISOString().slice(0, 19).replace('T', ' ');
+      const utcNow = () => toUtcMysql(new Date());
+
+      // 시작 시간 — 입력이 있으면 로컬→UTC, 없으면 지금 (UTC).
+      let startAt;
+      if (startInput) {
+        const d = new Date(startInput);
+        if (Number.isNaN(d.getTime())) {
+          showToast('시작 시간 형식이 올바르지 않습니다.', 'bad');
+          return;
+        }
+        startAt = toUtcMysql(d);
+      } else {
+        startAt = utcNow();
+      }
+
+      // 종료일 — 미입력 시 +7일. date 입력 (YYYY-MM-DD) 은 로컬 23:59:59 로
+      //   확장 후 UTC 변환. KST 23:59 → UTC 14:59 로 자동 보정된다.
+      let endAt;
+      if (endInput) {
+        const d = new Date(`${endInput}T23:59:59`);
+        if (Number.isNaN(d.getTime())) {
+          showToast('종료일 형식이 올바르지 않습니다.', 'bad');
+          return;
+        }
+        endAt = toUtcMysql(d);
+      } else {
+        const d = new Date();
+        d.setDate(d.getDate() + 7);
+        d.setHours(23, 59, 59, 0);
+        endAt = toUtcMysql(d);
+      }
+
+      // (v532) 시작 시간이 종료 시간보다 늦으면 명시적 에러로 차단.
+      if (startAt > endAt) {
+        showToast('시작 시간이 종료 시간보다 늦습니다.', 'bad');
+        return;
+      }
+
+      const btn = document.getElementById('popupSaveBtn');
+      if (btn) btn.disabled = true;
+
+      try {
+        // admin.core.js 가 노출하는 apiCall 사용 (자동으로 admin Bearer 토큰 첨부)
+        const api = window.AdminApi || window.AdminCore?.api;
+        const payload = {
+          type: 'dividend',
+          title_ko: title,
+          title_en: titleEn || title,
+          body_ko: ko,
+          body_en: en || ko,
+          audience: 'all',
+          dismissable: 1,
+          start_at: startAt,
+          end_at: endAt,
+        };
+        // (2026-05-12 v314) 가장 가까운 예정 배당이 있으면 자동 연결.
+        if (_linkedDividendId && _linkedDividendId > 0) {
+          payload.linked_id = _linkedDividendId;
+          payload.auto_trigger = 'dividend_exec';
+        }
+
+        let res;
+        if (typeof api === 'function') {
+          res = await api('/api/admin/silica/popups', { method: 'POST', body: payload });
+        } else {
+          // Fallback — 직접 fetch + localStorage 토큰
+          // (2026-05-26 v835) X-Admin-Wallet 헤더 추가 — 화이트리스트 활성 시 누락 시 403.
+          const tok = (() => { try { return localStorage.getItem('rwa_admin_token_v1') || ''; } catch { return ''; } })();
+          const adminWallet = (() => { try { return localStorage.getItem('rwa_admin_wallet_v1') || ''; } catch { return ''; } })();
+          const headers = { 'Content-Type': 'application/json' };
+          if (tok) headers.Authorization = `Bearer ${tok}`;
+          if (adminWallet) headers['X-Admin-Wallet'] = adminWallet;
+          const r = await fetch('/api/admin/silica/popups', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload),
+          });
+          res = await r.json().catch(() => ({}));
+          if (!r.ok || res?.ok === false) throw new Error(res?.message || `HTTP ${r.status}`);
+        }
+
+        const linkSuffix = (_linkedDividendId && _linkedDividendId > 0)
+          ? ` (배당 #${_linkedDividendId} 와 연결됨)`
+          : ' (일반 공지)';
+        showToast('팝업이 게시되었습니다.' + linkSuffix, 'good');
+        // 입력 초기화
+        document.getElementById('popupTitle').value = '';
+        document.getElementById('popupTitleEn').value = '';
+        document.getElementById('popupContentKo').value = '';
+        document.getElementById('popupContentEn').value = '';
+        document.getElementById('popupStartAt').value = '';
+        document.getElementById('popupEndAt').value = '';
+        // 배지 새로고침 — 같은 배당에 또 게시할 수도 있어 상태 유지
+        refreshLinkInfo();
+      } catch (e) {
+        showToast('팝업 저장 실패: ' + (e?.message || e), 'bad');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

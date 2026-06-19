@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preview Mode · SilicaChain Admin</title>
+<link rel="shortcut icon" href="img/favicon.png">
+<link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .preview-wrap {
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  .preview-card {
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    padding: 48px 40px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--aurora-1), var(--aurora-3), var(--aurora-2));
+  }
+  .preview-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .preview-header img {
+    height: 48px;
+    margin-bottom: 16px;
+    );
+  }
+  .preview-header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .preview-header p {
+    color: var(--steel);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .preview-status {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .preview-status.active {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--green);
+  }
+  .preview-status.inactive {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: var(--amber);
+  }
+  .activate-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--logo-violet);
+    color: var(--platinum);
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+    margin-bottom: 24px;
+  }
+  .pages-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 600px) { .pages-grid { grid-template-columns: 1fr; } }
+  .page-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    text-decoration: none;
+    transition: all var(--t);
+    font-size: 13px;
+  }
+  .page-link:hover {
+    border-color: var(--aurora-3);
+    background: rgba(6, 182, 212, 0.05);
+    transform: translateX(4px);
+  }
+  .page-link.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .page-link .num {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    color: var(--steel-dim);
+    width: 22px;
+  }
+  .page-link .name { flex: 1; font-weight: 500; }
+  .page-link .new-badge {
+    padding: 1px 6px;
+    background: var(--aurora-2);
+    color: white;
+    font-family: 'Oswald', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 3px;
+  }
+  .page-link .arrow { color: var(--aurora-3); }
+  .preview-info {
+    margin-top: 24px;
+    padding: 16px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    color: var(--blue);
+    line-height: 1.7;
+  }
+  .preview-info strong {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .danger-clear {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: var(--steel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .danger-clear:hover {
+    color: var(--red);
+    border-color: var(--red);
+  }
+</style>
+</head>
+<body>
+
+<div class="preview-wrap">
+  <div class="preview-card">
+    <div class="preview-header">
+      <img src="img/logo_W.png" alt="SilicaChain">
+      <h1>Preview Mode</h1>
+      <p>DB 없이 디자인을 검토하기 위한 임시 우회 모드입니다.<br>
+      localStorage에 더미 토큰을 설정하여 인증 체크를 통과합니다.</p>
+    </div>
+
+    <div id="status" class="preview-status inactive">
+      ⚠ Preview Mode 비활성 — 활성화 버튼을 누르세요.
+    </div>
+
+    <button id="activateBtn" class="activate-btn">
+      ◆ Preview Mode 활성화
+    </button>
+
+    <div id="pagesGrid" class="pages-grid" style="opacity: 0.4; pointer-events: none;">
+      <a class="page-link" href="dashboard.html">
+        <span class="num">01</span>
+        <span class="name">대시보드</span>
+        <span class="arrow">→</span>
+      </a>
+      <!-- (2026-05-12 v302) asset.html 제거 — 자산 등록/관리는
+           assets.html 로 단일화. preview-mode 의 'assets.html' 항목이
+           이미 별도로 존재한다면 중복이 아니므로 건드리지 않고, 이
+           위치의 단수 'asset.html' 안내만 삭제. -->
+      <a class="page-link" href="settings.html">
+        <span class="num">03</span>
+        <span class="name">환경 설정</span>
+        <span class="arrow">→</span>
+      </a>
+      <a class="page-link" href="silica-price.html">
+        <span class="num">04</span>
+        <span class="name">Silica 시세</span>
+        <span class="new-badge">NEW</span>
+      </a>
+      <a class="page-link" href="staking.html">
+        <span class="num">05</span>
+        <span class="name">스테이킹 설정</span>
+        <span class="new-badge">NEW</span>
+      </a>
+      <a class="page-link" href="dividend.html">
+        <span class="num">06</span>
+        <span class="name">배당 실행</span>
+        <span class="new-badge">NEW</span>
+      </a>
+      <a class="page-link" href="popups.html">
+        <span class="num">07</span>
+        <span class="name">공지 팝업</span>
+        <span class="new-badge">NEW</span>
+      </a>
+      <a class="page-link" href="login.html">
+        <span class="num">08</span>
+        <span class="name">로그인 (디자인)</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+
+    <div class="preview-info">
+      <strong>📌 알아두실 사항</strong>
+      • 일부 페이지는 API 호출 실패로 데이터가 비어 있을 수 있습니다 (정상)<br>
+      • "저장" 버튼은 토스트만 표시 (DB 미연동)<br>
+      • 콘솔에 일부 에러가 표시될 수 있습니다 (정상)<br>
+      • Preview 토큰은 클라이언트 측만 우회합니다
+    </div>
+
+    <button id="clearBtn" class="danger-clear">Preview 토큰 제거 (실제 로그인 모드로)</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'rwa_admin_token_v1';
+  const PREVIEW_TOKEN = 'silica-preview-bypass-' + Date.now();
+  const statusEl = document.getElementById('status');
+  const activateBtn = document.getElementById('activateBtn');
+  const pagesGrid = document.getElementById('pagesGrid');
+  const clearBtn = document.getElementById('clearBtn');
+
+  function checkStatus() {
+    const token = localStorage.getItem(STORAGE_KEY);
+    if (token && token.startsWith('silica-preview-bypass-')) {
+      statusEl.className = 'preview-status active';
+      statusEl.innerHTML = '✓ Preview Mode 활성 — 모든 페이지 접근 가능';
+      pagesGrid.style.opacity = '1';
+      pagesGrid.style.pointerEvents = '';
+      activateBtn.textContent = '◆ 토큰 갱신';
+    } else {
+      statusEl.className = 'preview-status inactive';
+      statusEl.innerHTML = '⚠ Preview Mode 비활성 — 활성화 버튼을 누르세요.';
+      pagesGrid.style.opacity = '0.4';
+      pagesGrid.style.pointerEvents = 'none';
+      activateBtn.textContent = '◆ Preview Mode 활성화';
+    }
+  }
+
+  activateBtn.addEventListener('click', () => {
+    localStorage.setItem(STORAGE_KEY, PREVIEW_TOKEN);
+    checkStatus();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Preview 토큰을 제거하시겠습니까?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      checkStatus();
+    }
+  });
+
+  // Auto-activate on load (since this is a preview tool)
+  if (!localStorage.getItem(STORAGE_KEY) || !localStorage.getItem(STORAGE_KEY).startsWith('silica-preview-bypass-')) {
+    localStorage.setItem(STORAGE_KEY, PREVIEW_TOKEN);
+  }
+  checkStatus();
+})();
+</script>
+
+</body>
+</html>

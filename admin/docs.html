@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <!-- Script-load retry: catches transient QUIC/HTTP3/network failures and retries up to 2x -->
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>문서 관리 · SilicaChain</title>
+  <link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+  <link rel="shortcut icon" href="img/favicon.png">
+  <style>
+    .admin-shell{max-width:1200px;margin:0 auto;padding:22px 16px}
+    .admin-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .admin-grid{display:grid;grid-template-columns:260px 1fr;gap:14px;margin-top:14px}
+    @media (max-width: 900px){.admin-grid{grid-template-columns:1fr}}
+    .admin-menu a{justify-content:flex-start;text-decoration:none}
+    .admin-menu a.active{background:var(--accent-light); border:1px solid var(--amber-border); color:var(--accent-dark)}
+    .admin-menu{display:flex;flex-direction:column;gap:10px}
+    .admin-menu a{width:100% !important;display:flex !important;justify-content:flex-start !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .admin-menu a.btn.block{width:100% !important;display:flex !important}
+    @media (max-width: 900px){.admin-menu{ gap:8px; }}
+
+    .upload-overlay.hidden{display:none}
+    .upload-overlay{position:fixed;inset:0;z-index:10020;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .upload-overlay-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 20px 60px rgba(15,23,42,.18);padding:20px 22px;min-width:280px;display:flex;align-items:center;gap:12px} 
+    .upload-spin{width:20px;height:20px;border-radius:50%;border:2px solid rgba(15,23,42,.18);border-top-color:#111827;animation:docspin .9s linear infinite}
+    @keyframes docspin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<div id="toast" class="pill hidden"></div>
+
+<div id="adminHeaderMount"></div>
+<div class="admin-shell">
+<div class="admin-grid">
+
+<div class="card">
+<div class="pad admin-menu">
+
+<div class="muted">관리 메뉴</div>
+
+<a class="btn block" href="dashboard.html">대시보드</a>
+<a class="btn block" href="assets.html">부동산 자산 등록/관리</a>
+<a class="btn block active" href="docs.html">문서 관리</a>
+<a class="btn block" href="sales.html">매각 관리</a>
+<a class="btn block" href="staking.html">스테이킹 설정</a>
+<a class="btn block" href="users.html">유저 관리</a>
+        <a class="btn block" href="emails.html">단체 메일 발송</a>
+<a class="btn block" href="accounting.html">회계 통계</a>
+<a class="btn block" href="referrals.html">추천인 관리</a>
+<a class="btn block" href="deposits.html">입금 승인 관리</a>
+<a class="btn block" href="withdrawals.html">출금 신청 (USDT)</a>
+        <a class="btn block" href="token-withdrawals.html">토큰 출금 관리</a>
+<a class="btn block" href="transactions.html">입출금 내역</a>
+<a class="btn block" href="contracts.html">전자계약 관리</a>
+<a class="btn block" href="settings.html">환경설정</a>
+<a class="btn block" href="fx-live.html">실시간 환율</a>
+
+</div>
+</div>
+
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <div style="font-weight:950;font-size:16px">문서 업로드</div>
+            <div class="muted" style="margin-top:6px">증빙/감정평가/회계 문서를 업로드하고 노출합니다. 매각 관련 문서도 이 페이지와 매각 관리 페이지에서 같은 데이터로 연동됩니다.</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="split">
+          <div class="field">
+            <label for="docAssetSelect">자산</label>
+            <select id="docAssetSelect" class="input"></select>
+          </div>
+          <div class="field">
+            <label for="docTypeSelect">문서 유형</label>
+            <!-- (2026-05-12 v283) 운영자: '문서 유형을 선택하지 않으면 등록
+                 되지 않도록 해라.' 기본값을 placeholder 로 두고 사용자가
+                 명시적으로 골라야만 업로드 가능. 기존 '_all' 은 목록 필터
+                 용도로 유지. -->
+            <select id="docTypeSelect" class="input">
+              <option value="" disabled selected hidden>— 문서 유형을 선택하세요 —</option>
+              <option value="_all">전체 문서 (목록만)</option>
+              <option value="registry">등기부등본</option>
+              <option value="valuation">자산평가서</option>
+              <option value="accounting">회계자료</option>
+              <option value="official1">공식문서1</option>
+              <option value="official2">공식문서2</option>
+              <option value="proof">증빙문서</option>
+              <option value="general">일반문서</option>
+            </select>
+            <div class="help" style="margin-top:6px">매각 관련 문서(매각공문 / 매각증빙자료)는 <a href="sales.html">매각 관리</a> 페이지에서 등록합니다.</div>
+          </div>
+        </div>
+
+        <div class="split" style="margin-top:10px">
+          <div class="field">
+            <label for="docTitle">문서명</label>
+            <input id="docTitle" class="input" placeholder="예: 등기부등본(마스킹)" />
+          </div>
+          <div class="field">
+            <label for="docDate">문서일</label>
+            <input id="docDate" class="input" type="date" />
+          </div>
+        </div>
+
+        <div id="docAmountWrap" class="field" style="margin-top:10px; display:none">
+          <label for="docAmount">평가금액(<span id="docAmountCcy">USDT</span>) (감정평가 전용)</label>
+          <input id="docAmount" class="input" inputmode="numeric" placeholder="예: 100000 USDT" />
+        </div>
+
+        <div class="split" style="margin-top:10px">
+          <div class="field">
+            <label for="docFile">PDF 파일</label>
+            <input id="docFile" class="input" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" />
+            <div class="help">PDF 또는 이미지 업로드 가능</div>
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button id="docUploadBtn" class="btn primary block" type="button">업로드</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="align-items:flex-end">
+          <div>
+            <div style="font-weight:950;font-size:16px">업로드된 문서</div>
+            <div class="muted" id="docHint" style="margin-top:6px">-</div>
+          </div>
+          <div class="tagrow">
+            <button id="docRefreshBtn" class="btn small" type="button">새로고침</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; overflow:auto">
+          <div class="table-wrap">
+          <table class="table">
+            <thead id="docListThead">
+              <tr>
+                <th>문서</th>
+                <th class="right">문서일</th>
+                <th class="right">금액</th>
+                <th class="right">보기</th>
+                <th class="right">삭제</th>
+              </tr>
+            </thead>
+            <tbody id="docListTbody"></tbody>
+          </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="docUploadOverlay" class="upload-overlay hidden" aria-hidden="true">
+  <div class="upload-overlay-card" role="status" aria-live="polite">
+    <span class="upload-spin" aria-hidden="true"></span>
+    <div>
+      <div style="font-weight:900">업로드 중</div>
+      <div class="muted" id="docUploadOverlayMsg" style="margin-top:4px">파일이 저장될 때까지 잠시만 기다려주세요.</div>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/docs.js?v=20260526v850-image-swap"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+window.AdminHeader.loadHeader()
+})
+</script>
+
+
+</body>
+</html>

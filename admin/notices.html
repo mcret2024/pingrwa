@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+  <script>(function(){var seen={};document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='SCRIPT')return;var src=t.src||'';if(!src||seen[src]>=2)return;seen[src]=(seen[src]||0)+1;var s=document.createElement('script');s.src=src+(src.indexOf('?')>=0?'&':'?')+'r='+Date.now();s.async=false;setTimeout(function(){document.head.appendChild(s);},400*seen[src]);console.warn('[script-retry]',src,'attempt',seen[src]);},true);})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>회계 자료 / 공지 관리 · SilicaChain</title>
+<link rel="stylesheet" href="css/silica-admin.css?v=20260526v850-image-swap">
+<link rel="shortcut icon" href="img/favicon.png">
+<style>
+  .admin-shell{ max-width:1100px; margin:0 auto; padding:22px 16px; }
+  .notice-grid{ display:grid; grid-template-columns:1fr; gap:14px; }
+  .notice-form-card .pad{ padding:18px; }
+  .notice-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    gap:10px 14px;
+    padding:14px 16px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    margin-bottom:10px;
+    background:#fff;
+  }
+  .notice-row .nr-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    min-width:0;
+  }
+  .notice-row .nr-main{
+    flex:1 1 320px;
+    min-width:240px;
+  }
+  .notice-row .nr-meta{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+    flex:0 0 auto;
+    min-width:90px;
+    font-size:12px;
+  }
+  .notice-row .nr-actions{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    flex:0 0 auto;
+    margin-left:auto;
+  }
+  .notice-row .cat-badge{
+    display:inline-block;
+    padding:3px 8px;
+    border-radius:6px;
+    background:rgba(124,58,237,.08);
+    color:#7C3AED;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .notice-row .pub-on{ color:#10b981; font-weight:800; }
+  .notice-row .pub-off{ color:#dc2626; font-weight:800; }
+  .notice-row .title-line{ font-weight:800; word-break:break-word; }
+  .notice-row .meta-line{ font-size:11px; color:var(--muted); margin-top:4px; word-break:break-all; }
+  .notice-row .meta-label{ color:var(--muted); font-size:10px; letter-spacing:.4px; text-transform:uppercase; }
+  .notice-row .meta-value{ font-weight:700; }
+  @media (max-width:600px){
+    .notice-row .nr-actions{ margin-left:0; width:100%; }
+  }
+  textarea.notice-body{ min-height:90px; resize:vertical; }
+
+  /* (v506) 공지 수정 모달 */
+  .nt-edit-backdrop{
+    position:fixed; inset:0;
+    background:rgba(15,23,42,0.55);
+    backdrop-filter:blur(4px);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:9999;
+    padding:20px;
+  }
+  .nt-edit-backdrop.open{ display:flex; }
+  .nt-edit-modal{
+    background:#fff;
+    border-radius:14px;
+    max-width:720px; width:100%;
+    max-height:90vh; overflow-y:auto;
+    box-shadow:0 24px 48px rgba(0,0,0,0.25);
+  }
+  .nt-edit-modal .pad{ padding:22px 24px; }
+  .nt-edit-modal h3{ margin:0 0 14px; font-size:18px; }
+  .nt-edit-actions{
+    display:flex; justify-content:flex-end; gap:8px;
+    padding:14px 24px;
+    border-top:1px solid var(--border);
+    background:#fafbfc;
+    border-radius:0 0 14px 14px;
+  }
+</style>
+</head>
+<body data-page="notices">
+
+<div id="toast" class="pill hidden"></div>
+
+<div id="adminHeaderMount"></div>
+
+<div class="admin-shell">
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="pad">
+      <div class="row" style="align-items:flex-end">
+        <div>
+          <div style="font-weight:950;font-size:18px">회계 자료 / 공지 관리</div>
+          <div class="muted" style="margin-top:6px">
+            연간 · 분기 회계 보고서와 일반 공지를 업로드 / 관리합니다.
+            사용자는 <code>/user/notices.html</code> (상단 메뉴 '공지') 에서 열람합니다.
+          </div>
+        </div>
+        <div class="tagrow">
+          <button id="noticeRefreshBtn" class="btn small" type="button">새로고침</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notice-grid">
+
+    <!-- LEFT: New notice form -->
+    <div class="card notice-form-card">
+      <div class="pad">
+        <div style="font-weight:900;font-size:15px;margin-bottom:10px">신규 공지 등록</div>
+
+        <div class="field">
+          <label for="ntCategory">카테고리</label>
+          <select id="ntCategory" class="input">
+            <option value="accounting_annual">연간 회계</option>
+            <option value="accounting_quarterly">분기 회계</option>
+            <option value="general">일반 공지</option>
+          </select>
+        </div>
+
+        <!-- (2026-05-18 v502) 운영자 요청: '제목과 본문 영문 국문 따로 등록'.
+             KO 는 필수 (사용자 기본 표시), EN 은 선택 (영문 사용자용). 영문
+             비워두면 한국어로 폴백. -->
+        <div class="field" style="margin-top:10px">
+          <label for="ntTitle">제목 (한국어) <span style="color:#dc2626">*</span></label>
+          <input id="ntTitle" class="input" placeholder="예: FY2025 연간 회계 보고서">
+          <div class="adm-field-note">한국어 사용자에게 표시됩니다.</div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label for="ntTitleEn">Title (English)</label>
+          <input id="ntTitleEn" class="input" placeholder="e.g., FY2025 Annual Accounting Report">
+          <div class="adm-field-note">영문 사용자에게 표시됩니다. 비워두면 한국어 제목으로 폴백.</div>
+        </div>
+
+        <div class="split" style="margin-top:10px">
+          <div class="field">
+            <label for="ntPeriod">기간 라벨 (선택)</label>
+            <input id="ntPeriod" class="input" placeholder="FY2025, 2026Q1 등">
+          </div>
+          <div class="field">
+            <label for="ntDate">공시일 (선택)</label>
+            <input id="ntDate" class="input" type="date">
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label for="ntBody">본문 텍스트 (한국어, 선택)</label>
+          <textarea id="ntBody" class="input notice-body" placeholder="공지 본문을 한국어로 입력하세요."></textarea>
+          <div class="adm-field-note">한국어 사용자에게 표시됩니다. 파일과 별도로 표시됩니다.</div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label for="ntBodyEn">Body Text (English, optional)</label>
+          <textarea id="ntBodyEn" class="input notice-body" placeholder="Enter the notice body in English."></textarea>
+          <div class="adm-field-note">영문 사용자에게 표시됩니다. 비워두면 한국어 본문으로 폴백.</div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label for="ntFile">첨부 파일 (선택, PDF/PNG/JPG/WEBP, ≤ 25 MB)</label>
+          <input id="ntFile" class="input" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:600">
+            <input id="ntPublished" type="checkbox" checked>
+            <span>등록 즉시 공개</span>
+          </label>
+          <div class="adm-field-note">체크 해제 시 비공개 상태로 저장되어 사용자 측엔 노출되지 않습니다.</div>
+        </div>
+
+        <div style="margin-top:14px;text-align:right">
+          <button id="ntSubmitBtn" class="btn small primary" type="button">등록</button>
+          <span id="ntSubmitFeedback" class="adm-field-note" style="margin-left:10px"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Existing notices list -->
+    <div class="card">
+      <div class="pad">
+        <div style="font-weight:900;font-size:15px;margin-bottom:10px">등록된 공지</div>
+        <div id="ntList">
+          <div class="muted">로딩 중…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- (v506) 공지 수정 모달 -->
+<div id="ntEditBackdrop" class="nt-edit-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="nt-edit-modal">
+    <div class="pad">
+      <h3>공지 수정</h3>
+      <input type="hidden" id="ntEditId">
+      <div class="field">
+        <label for="ntEditCategory">카테고리</label>
+        <select id="ntEditCategory" class="input">
+          <option value="accounting_annual">연간 회계</option>
+          <option value="accounting_quarterly">분기 회계</option>
+          <option value="general">일반 공지</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="ntEditTitle">제목 (한국어) <span style="color:#dc2626">*</span></label>
+        <input id="ntEditTitle" class="input">
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="ntEditTitleEn">Title (English)</label>
+        <input id="ntEditTitleEn" class="input">
+        <div class="adm-field-note">비워두면 한국어 제목으로 폴백.</div>
+      </div>
+      <div class="split" style="margin-top:10px">
+        <div class="field">
+          <label for="ntEditPeriod">기간 라벨 (선택)</label>
+          <input id="ntEditPeriod" class="input">
+        </div>
+        <div class="field">
+          <label for="ntEditDate">공시일 (선택)</label>
+          <input id="ntEditDate" class="input" type="date">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="ntEditBody">본문 텍스트 (한국어, 선택)</label>
+        <textarea id="ntEditBody" class="input notice-body"></textarea>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="ntEditBodyEn">Body Text (English, optional)</label>
+        <textarea id="ntEditBodyEn" class="input notice-body"></textarea>
+        <div class="adm-field-note">비워두면 한국어 본문으로 폴백.</div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>첨부 파일</label>
+        <div id="ntEditCurrentFile" class="adm-field-note" style="margin-bottom:6px"></div>
+        <input id="ntEditFile" class="input" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:12px">
+          <input id="ntEditRemoveFile" type="checkbox">
+          <span>기존 파일 삭제</span>
+        </label>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600">
+          <input id="ntEditPublished" type="checkbox">
+          <span>공개</span>
+        </label>
+      </div>
+    </div>
+    <div class="nt-edit-actions">
+      <button id="ntEditCancel" class="btn small" type="button">취소</button>
+      <button id="ntEditSave" class="btn small primary" type="button">저장</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.i18n.js?v=20260508i18n23-dialogfix"></script>
+<script src="js/admin.core.js?v=20260526v850-image-swap"></script>
+<script src="js/admin.header.js?v=20260526v850-image-swap"></script>
+<script src="js/notices.js?v=20260526v850-image-swap"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.AdminHeader?.loadHeader) window.AdminHeader.loadHeader();
+});
+</script>
+
+</body>
+</html>
