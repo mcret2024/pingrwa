@@ -1,196 +1,126 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PINGRWA — Institutional</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PINGRWA — Enefty style</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-:root{--bg:#F6F8FC;--card:#fff;--ink:#0F172A;--mut:#64748B;--mut2:#94A3B8;--line:#E6EAF1;
- --nv:#0F2A52;--bl:#2563EB;--bl2:#1D4ED8;--gr:#16A34A;--am:#D97706;
- --disp:'Manrope','Pretendard',sans-serif;--body:'Pretendard','Manrope',sans-serif;--mono:'IBM Plex Mono',monospace}
+:root{--bg:#0A0B14;--bg2:#10121F;--card:#141627;--line:#222540;--ind:#5D5FEF;--ind2:#6C5CE7;--cy:#22D3EE;--ink:#FFFFFF;--mut:#9499B7;--ok:#22C55E;
+ --disp:'Poppins','Pretendard',sans-serif;--body:'Pretendard','Poppins',sans-serif;--g:linear-gradient(96deg,#5D5FEF,#22D3EE)}
 body{margin:0;font-family:var(--body);color:var(--ink);background:var(--bg)}
-.wrap{max-width:1180px;margin:0 auto;padding:0 40px}
-.top{background:var(--nv);color:#fff;font-family:var(--mono);font-size:12px}
-.top .wrap{display:flex;gap:30px;padding:8px 40px;align-items:center;flex-wrap:wrap}
-.top .up{color:#4ADE80}.top b{color:#fff}
-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line);background:#fff}
-.navw{background:#fff;position:sticky;top:0;z-index:10}
-.logo{font-family:var(--disp);font-weight:800;font-size:21px;display:flex;align-items:center;gap:9px;color:var(--nv)}
-.logo .mk{width:28px;height:28px;border-radius:7px;background:var(--nv);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
-.logo b{color:var(--bl)}
-.menu{display:flex;gap:28px;font-size:14px;color:var(--mut);font-weight:500}.menu .on{color:var(--ink)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 44px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.logo{font-family:var(--disp);font-weight:800;font-size:22px;display:flex;align-items:center;gap:9px}
+.logo .mk{width:30px;height:30px;border-radius:9px;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:16px}
+.menu{display:flex;gap:30px;font-size:14px;color:var(--mut);font-weight:500}.menu .on{color:#fff}
 .right{display:flex;align-items:center;gap:12px}
-.btn{font-family:var(--body);font-weight:600;font-size:14px;border-radius:10px;cursor:pointer;padding:10px 18px;border:1px solid var(--line);background:#fff;color:var(--ink)}
-.pri{background:var(--bl);color:#fff;border:0}
-.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:56px 0 40px}
-.trust{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--gr);background:#ECFDF3;border:1px solid #CBF3DD;padding:6px 13px;border-radius:8px;margin-bottom:22px}
-.h1{font-family:var(--disp);font-size:50px;line-height:1.1;font-weight:800;letter-spacing:-1.5px;margin:0 0 18px;color:var(--nv)}
-.h1 em{font-style:normal;color:var(--bl)}
-.lead{font-size:16.5px;color:var(--mut);line-height:1.7;margin:0 0 26px;max-width:480px}
-.cta{display:flex;gap:12px;margin-bottom:30px}
-.badges{display:flex;gap:22px;flex-wrap:wrap}
-.badges div{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mut)}
-.badges i{color:var(--gr);font-size:17px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 30px rgba(15,42,82,.06)}
-.hcard{padding:24px}
-.hcard .hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.hcard .hh .t{font-size:13px;color:var(--mut);font-weight:600}
-.hcard .hh .tag{font-family:var(--mono);font-size:11px;color:var(--gr);background:#ECFDF3;padding:4px 9px;border-radius:6px}
-.hcard .apy{font-family:var(--disp);font-weight:800;font-size:46px;color:var(--nv);letter-spacing:-1px}
-.hcard .apl{font-size:12px;color:var(--mut);margin-bottom:14px}
-.chart{height:90px;margin:6px 0 16px}
-.hrow{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--mut);padding:9px 0;border-top:1px solid var(--line)}
-.hrow b{color:var(--ink)}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:26px 0 0}
-.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
-.kpi .v{font-family:var(--disp);font-weight:800;font-size:26px;color:var(--nv)}
-.kpi .l{font-size:12.5px;color:var(--mut);margin-top:5px}
-.kpi .c{font-family:var(--mono);font-size:11px;color:var(--gr);margin-top:3px}
-.sec{padding:58px 0 0}
-.sh{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
-.sh .e{font-family:var(--mono);font-size:12px;color:var(--bl);letter-spacing:1px;margin-bottom:8px}
-.sh h2{font-family:var(--disp);font-size:30px;font-weight:800;color:var(--nv);margin:0;letter-spacing:-.5px}
-.sh a{font-size:13px;color:var(--bl);text-decoration:none;font-weight:600}
-.pools{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.pool{padding:24px}
-.pool.feat{border:2px solid var(--bl)}
-.pool .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.pool .nm{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--nv)}
-.rk{font-family:var(--mono);font-size:10px;padding:5px 9px;border-radius:6px;font-weight:600}
-.rk.a{background:#ECFDF3;color:#15803D}.rk.b{background:#EFF6FF;color:#1D4ED8}.rk.c{background:#FEF3C7;color:#B45309}
-.pool .big{font-family:var(--disp);font-weight:800;font-size:42px;color:var(--nv);line-height:1}
-.pool .bl{font-family:var(--mono);font-size:11px;color:var(--mut);margin:6px 0 18px}
-.pbar{height:7px;border-radius:999px;background:#EEF2F8;overflow:hidden}.pbar i{display:block;height:100%;background:var(--bl)}
-.pmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:10px}.pmeta b{color:var(--ink)}
-.pool .btn{width:100%;margin-top:18px}
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.step{padding:22px;background:#fff;border:1px solid var(--line);border-radius:14px}
-.step .n{font-family:var(--mono);font-size:12px;color:#fff;background:var(--nv);width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-.step h4{font-family:var(--disp);font-size:16px;margin:0 0 8px;font-weight:700;color:var(--nv)}
-.step p{font-size:13px;color:var(--mut);line-height:1.6;margin:0}
-.mkt{overflow:hidden}
-.mh,.mr{display:grid;grid-template-columns:1fr 1.1fr .8fr .7fr 1.5fr .8fr;gap:14px;align-items:center;padding:14px 22px}
-.mh{font-family:var(--mono);font-size:11px;color:var(--mut2);border-bottom:1px solid var(--line);letter-spacing:.5px;background:#FBFCFE}
-.mr{border-bottom:1px solid var(--line);font-size:14px}.mr:last-child{border-bottom:0}
-.mr .id{font-family:var(--mono);font-size:12px;color:var(--bl)}
-.mr .ind{display:flex;align-items:center;gap:10px}.mr .dot{width:26px;height:26px;border-radius:7px}
-.mr .amt{font-family:var(--mono);font-weight:600;color:var(--ink)}.mr .yld{font-family:var(--mono);color:var(--gr);font-weight:600}
-.mprog{display:flex;align-items:center;gap:9px}.mprog .b{flex:1;height:6px;border-radius:999px;background:#EEF2F8;overflow:hidden}.mprog .b i{display:block;height:100%;background:var(--bl)}.mprog span{font-family:var(--mono);font-size:11px;color:var(--mut)}
-.badge{font-family:var(--mono);font-size:10px;padding:5px 9px;border-radius:6px;font-weight:600}.badge.r{background:#EFF6FF;color:#1D4ED8}.badge.d{background:#ECFDF3;color:#15803D}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.calc{padding:24px}
-.calc h3{font-family:var(--disp);margin:0 0 4px;font-size:18px;color:var(--nv);font-weight:700}
-.calc .cs{font-family:var(--mono);font-size:12px;color:var(--mut);margin:0 0 16px}
-.ci{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
-.ci:last-child{border-bottom:0}.ci .k{color:var(--mut)}.ci .v{font-family:var(--mono);font-weight:600}
-.ci.hl .v{color:var(--gr);font-size:16px}
-.panel{padding:24px}.panel h3{font-family:var(--disp);font-size:17px;margin:0 0 14px;color:var(--nv);font-weight:700;display:flex;align-items:center;gap:8px}.panel h3 i{color:var(--bl)}
-.tr{display:grid;grid-template-columns:22px 30px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}.tr:last-child{border-bottom:0}
-.tr .rn{font-family:var(--mono);color:var(--mut);font-size:12px}.tr .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#0F2A52)}
-.tr .nm{font-family:var(--mono);font-size:13px}.tr .sv{font-family:var(--mono);color:var(--bl);font-size:12px}
-.cband{margin-top:60px;text-align:center;background:var(--nv);color:#fff;border-radius:20px;padding:52px 20px}
-.cband h2{font-family:var(--disp);font-size:34px;font-weight:800;margin:0 0 12px;letter-spacing:-.5px}
-.cband p{opacity:.8;font-size:15px;margin:0 0 24px}
-.cband .btn{background:#fff;color:var(--nv);border:0;font-weight:700;padding:13px 26px}
-footer{margin-top:54px;padding:36px 0 56px;border-top:1px solid var(--line);display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:20px}
-footer .desc{font-size:12.5px;color:var(--mut);line-height:1.7;margin-top:12px;max-width:270px}
-footer h5{font-family:var(--mono);font-size:11px;color:var(--mut2);margin:0 0 12px;letter-spacing:.5px}
-footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:8px;text-decoration:none}footer a:hover{color:var(--bl)}
-.g1{background:linear-gradient(135deg,#2563EB,#0F2A52)}.g2{background:linear-gradient(135deg,#0EA5E9,#2563EB)}.g3{background:linear-gradient(135deg,#D97706,#F59E0B)}.g4{background:linear-gradient(135deg,#16A34A,#0EA5E9)}.g5{background:linear-gradient(135deg,#DB2777,#D97706)}
-@media(max-width:900px){.wrap{padding:0 18px}.menu,.top .wrap span:nth-child(n+4){display:none}.hero{grid-template-columns:1fr}.h1{font-size:36px}.kpis,.pools,.steps{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.mh span:nth-child(n+3),.mr>*:nth-child(n+5){display:none}.mh,.mr{grid-template-columns:1fr 1fr}footer{grid-template-columns:1fr 1fr}}
+.btn{font-family:var(--disp);font-weight:600;font-size:14px;border-radius:12px;cursor:pointer;padding:11px 22px;border:1px solid var(--line);background:transparent;color:#fff}
+.pri{background:var(--ind);border:0}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;padding:40px 0 20px}
+.h1{font-family:var(--disp);font-size:54px;line-height:1.12;font-weight:700;margin:0 0 18px;letter-spacing:-1px}
+.h1 em{font-style:normal;color:var(--ind)}
+.lead{font-size:16px;color:var(--mut);line-height:1.8;max-width:480px;margin:0 0 28px}
+.cta{display:flex;gap:14px;margin-bottom:36px}
+.hstats{display:flex;gap:40px}
+.hstats .v{font-family:var(--disp);font-weight:700;font-size:30px}.hstats .l{font-size:13px;color:var(--mut);margin-top:2px}
+.orbwrap{position:relative;height:420px;display:flex;align-items:center;justify-content:center}
+.glow{position:absolute;width:330px;height:330px;border-radius:50%;background:radial-gradient(circle,rgba(93,95,239,.5),rgba(34,211,238,.14) 46%,transparent 70%);filter:blur(8px)}
+.orb{position:relative;width:380px;height:380px;animation:spin 34s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.node{position:absolute;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 12px 2px var(--cy);animation:pulse 2.6s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.5;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
+.sec{padding:54px 0 0}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.sh h2{font-family:var(--disp);font-size:30px;font-weight:700;margin:0;letter-spacing:-.5px}
+.sh .btn{padding:9px 18px;font-size:13px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.nft{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px;transition:.2s}.nft:hover{transform:translateY(-5px);border-color:var(--ind)}
+.nft .art{height:180px;border-radius:13px;position:relative;display:flex;align-items:flex-start;padding:10px}
+.nft .tmr{margin-left:auto;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;color:#fff}
+.nft h4{font-family:var(--disp);font-size:15px;margin:13px 6px 4px;font-weight:600}
+.nft .who{display:flex;align-items:center;gap:8px;padding:0 6px;font-size:12px;color:var(--mut)}.nft .who .av{width:20px;height:20px;border-radius:50%;background:var(--g)}
+.nft .ft{display:flex;align-items:center;justify-content:space-between;padding:12px 6px 4px;margin-top:10px;border-top:1px solid var(--line)}
+.nft .ft .pl{font-size:11px;color:var(--mut)}.nft .ft .pv{font-family:var(--disp);font-weight:700;font-size:14px}
+.nft .ft .bid{background:var(--ind);color:#fff;border:0;font-size:12px;font-weight:600;padding:8px 14px;border-radius:9px;font-family:var(--disp);cursor:pointer}
+.nbar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);margin:11px 6px 0;overflow:hidden}.nbar i{display:block;height:100%;background:var(--g)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+.step .ic{width:48px;height:48px;border-radius:13px;background:rgba(93,95,239,.16);color:var(--ind);display:flex;align-items:center;justify-content:center;font-size:23px;margin-bottom:14px}
+.step h4{font-family:var(--disp);font-size:16px;margin:0 0 8px;font-weight:600}.step p{font-size:13px;color:var(--mut);line-height:1.7;margin:0}
+.cband{margin-top:60px;border-radius:24px;background:var(--g);padding:52px 40px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.cband h2{font-family:var(--disp);font-size:32px;font-weight:700;margin:0 0 8px}.cband p{margin:0;opacity:.9}
+.cband .btn{background:#fff;color:var(--ind);border:0;font-weight:700;padding:13px 26px}
+footer{margin-top:54px;border-top:1px solid var(--line);padding:38px 0 56px;display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:22px}
+footer .desc{font-size:12.5px;color:var(--mut);line-height:1.7;margin-top:14px;max-width:260px}
+footer h5{font-family:var(--disp);font-size:13px;margin:0 0 13px;font-weight:600}footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-decoration:none}footer a:hover{color:#fff}
+.b1{background:linear-gradient(135deg,#5D5FEF,#22D3EE)}.b2{background:linear-gradient(135deg,#F472B6,#A855F7)}.b3{background:linear-gradient(135deg,#FB923C,#F43F5E)}.b4{background:linear-gradient(135deg,#34D399,#22D3EE)}.b5{background:linear-gradient(135deg,#818CF8,#C084FC)}.b6{background:linear-gradient(135deg,#FBBF24,#FB923C)}.b7{background:linear-gradient(135deg,#2DD4BF,#3B82F6)}.b8{background:linear-gradient(135deg,#F87171,#FBBF24)}
+@media(max-width:900px){.wrap{padding:0 18px}.menu{display:none}.hero{grid-template-columns:1fr}.orbwrap{order:-1;height:320px}.h1{font-size:36px}.grid4{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.cband{flex-direction:column;text-align:center}footer{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<div class="top"><div class="wrap"><span>TVL <b>$4,210,500</b></span><span>평균 APY <span class="up">18.4%</span></span><span>상환율 <span class="up">99.2%</span></span><span>부도율 <b>0.8%</b></span><span>가맹점 <b>1,240</b></span></div></div>
-<div class="navw"><div class="wrap"><nav>
- <div class="logo"><span class="mk">P</span>PING<b>RWA</b></div>
- <div class="menu"><span class="on">마켓</span><span>투자 풀</span><span>채권</span><span>실적</span><span>문서</span></div>
- <div class="right"><button class="btn">로그인</button><button class="btn pri">지갑 연결</button></div>
-</nav></div></div>
 <div class="wrap">
+ <nav><div class="logo"><span class="mk"><i class="ti ti-diamond"></i></span>PINGRWA</div><div class="menu"><span class="on">마켓</span><span>채권 풀</span><span>채권</span><span>실적</span><span>문서</span></div><div class="right"><button class="btn">문서</button><button class="btn pri">지갑 연결</button></div></nav>
+
  <section class="hero">
   <div>
-   <span class="trust"><i class="ti ti-shield-check" style="font-size:15px"></i> 실물 매출채권 담보 · KYC/AML 적용</span>
-   <h1 class="h1">실물 매출채권에<br><em>기관처럼 투자</em>하세요</h1>
-   <p class="lead">PINGPAY 가맹점 선지급 매출채권을 토큰화한 RWA 투자 상품. 실제 매출 상환 현금흐름에서 안정적 수익을 분배합니다.</p>
-   <div class="cta"><button class="btn pri">투자 시작하기</button><button class="btn">상품 안내서 (PDF)</button></div>
-   <div class="badges"><div><i class="ti ti-circle-check"></i>실물자산 담보</div><div><i class="ti ti-circle-check"></i>60일 단기 만기</div><div><i class="ti ti-circle-check"></i>자동 분산 투자</div></div>
+   <h1 class="h1">실물 매출채권의 세계,<br><em>투자하고 수익</em>을 얻으세요</h1>
+   <p class="lead">PINGPAY 가맹점 선지급 매출채권을 토큰화한 RWA 프로토콜. 실제 매출 상환 현금흐름에 분산 투자하고 안정적 온체인 수익을 받으세요.</p>
+   <div class="cta"><button class="btn pri">투자 시작하기</button><button class="btn">작동 방식</button></div>
+   <div class="hstats"><div><div class="v">$4.21M</div><div class="l">누적 예치</div></div><div><div class="v">18.4%</div><div class="l">표준 APY</div></div><div><div class="v">1,240+</div><div class="l">가맹점</div></div></div>
   </div>
-  <div class="card hcard">
-   <div class="hh"><span class="t">표준 채권 풀 · 60일</span><span class="tag">LIVE</span></div>
-   <div class="apy">18.4%</div><div class="apl">예상 연환산 수익률 (APY)</div>
-   <svg class="chart" viewBox="0 0 320 90" preserveAspectRatio="none"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2563EB" stop-opacity=".22"/><stop offset="1" stop-color="#2563EB" stop-opacity="0"/></linearGradient></defs><path d="M0 70 L40 64 L80 66 L120 52 L160 54 L200 40 L240 34 L280 24 L320 18 L320 90 L0 90 Z" fill="url(#lg)"/><path d="M0 70 L40 64 L80 66 L120 52 L160 54 L200 40 L240 34 L280 24 L320 18" fill="none" stroke="#2563EB" stroke-width="2.5"/></svg>
-   <div class="hrow"><span>충전율</span><b>64%</b></div><div class="hrow"><span>분산 채권</span><b>210건</b></div><div class="hrow"><span>최소 예치</span><b>50 USDT</b></div>
-  </div>
- </section>
- <div class="kpis">
-  <div class="kpi"><div class="v">$4.21M</div><div class="l">누적 예치 (TVL)</div><div class="c">▲ 6.2% 30d</div></div>
-  <div class="kpi"><div class="v">$12.8M</div><div class="l">누적 상환액</div><div class="c">▲ 11.4% 30d</div></div>
-  <div class="kpi"><div class="v">99.2%</div><div class="l">평균 상환율</div><div class="c">안정</div></div>
-  <div class="kpi"><div class="v">0.8%</div><div class="l">부도율</div><div class="c">업계 평균 이하</div></div>
- </div>
-
- <section class="sec">
-  <div class="sh"><div><div class="e">INVEST</div><h2>투자 풀</h2></div><a>전체 풀 보기 →</a></div>
-  <div class="pools">
-   <div class="card pool"><div class="ph"><span class="nm">안정형 풀</span><span class="rk a">저위험</span></div><div class="big">12.0%</div><div class="bl">APY · 60일 만기</div><div class="pbar"><i style="width:82%"></i></div><div class="pmeta"><span>충전율 <b>82%</b></span><span>채권 <b>320</b></span></div><button class="btn">예치하기</button></div>
-   <div class="card pool feat"><div class="ph"><span class="nm">표준형 풀</span><span class="rk b">중위험</span></div><div class="big">18.4%</div><div class="bl">APY · 60일 만기</div><div class="pbar"><i style="width:64%"></i></div><div class="pmeta"><span>충전율 <b>64%</b></span><span>채권 <b>210</b></span></div><button class="btn pri">예치하기</button></div>
-   <div class="card pool"><div class="ph"><span class="nm">성장형 풀</span><span class="rk c">고수익</span></div><div class="big">24.0%</div><div class="bl">APY · 90일 만기</div><div class="pbar"><i style="width:47%"></i></div><div class="pmeta"><span>충전율 <b>47%</b></span><span>채권 <b>150</b></span></div><button class="btn">예치하기</button></div>
-  </div>
+  <div class="orbwrap"><div class="glow"></div><div class="orb">
+   <svg viewBox="0 0 380 380" fill="none">
+    <circle cx="190" cy="190" r="158" stroke="rgba(93,95,239,.35)"/>
+    <ellipse cx="190" cy="190" rx="158" ry="58" stroke="rgba(34,211,238,.3)"/>
+    <ellipse cx="190" cy="190" rx="158" ry="116" stroke="rgba(93,95,239,.25)"/>
+    <ellipse cx="190" cy="190" rx="58" ry="158" stroke="rgba(93,95,239,.22)"/>
+    <ellipse cx="190" cy="190" rx="116" ry="158" stroke="rgba(255,255,255,.07)"/>
+    <path d="M40 158 Q190 64 340 158" stroke="rgba(34,211,238,.45)" stroke-dasharray="3 6"/>
+    <path d="M52 256 Q190 340 320 234" stroke="rgba(93,95,239,.45)" stroke-dasharray="3 6"/>
+   </svg>
+   <span class="node" style="left:34px;top:158px"></span><span class="node" style="left:330px;top:155px;animation-delay:.6s"></span><span class="node" style="left:188px;top:30px;animation-delay:1.1s"></span><span class="node" style="left:186px;top:338px;animation-delay:1.5s"></span><span class="node" style="left:92px;top:84px;animation-delay:.3s"></span><span class="node" style="left:286px;top:282px;animation-delay:1.3s"></span>
+  </div></div>
  </section>
 
  <section class="sec">
-  <div class="sh"><div><div class="e">HOW IT WORKS</div><h2>작동 방식</h2></div></div>
+  <div class="sh"><h2>주목받는 채권</h2><button class="btn">전체 보기</button></div>
+  <div class="grid4">
+   <div class="nft"><div class="art b1"><span class="tmr">D-40</span></div><h4>카페 · F&B #PB-1042</h4><div class="who"><span class="av"></span>PINGPAY 가맹점</div><div class="nbar"><i style="width:34%"></i></div><div class="ft"><div><div class="pl">선지급 / 수익</div><div class="pv">$600 · +20%</div></div><button class="bid">투자</button></div></div>
+   <div class="nft"><div class="art b2"><span class="tmr">D-25</span></div><h4>리테일 #PB-1041</h4><div class="who"><span class="av"></span>PINGPAY 가맹점</div><div class="nbar"><i style="width:58%"></i></div><div class="ft"><div><div class="pl">선지급 / 수익</div><div class="pv">$1,200 · +20%</div></div><button class="bid">투자</button></div></div>
+   <div class="nft"><div class="art b3"><span class="tmr">D-11</span></div><h4>뷰티 #PB-1040</h4><div class="who"><span class="av"></span>PINGPAY 가맹점</div><div class="nbar"><i style="width:81%"></i></div><div class="ft"><div><div class="pl">선지급 / 수익</div><div class="pv">$850 · +20%</div></div><button class="bid">투자</button></div></div>
+   <div class="nft"><div class="art b4"><span class="tmr">D-33</span></div><h4>외식 #PB-1043</h4><div class="who"><span class="av"></span>PINGPAY 가맹점</div><div class="nbar"><i style="width:20%"></i></div><div class="ft"><div><div class="pl">선지급 / 수익</div><div class="pv">$520 · +20%</div></div><button class="bid">투자</button></div></div>
+  </div>
+ </section>
+
+ <section class="sec">
+  <div class="sh"><h2>인기 채권 풀</h2><button class="btn">전체 보기</button></div>
+  <div class="grid4">
+   <div class="nft"><div class="art b5"></div><h4>안정형 풀</h4><div class="who"><span class="av"></span>저위험 · 60일</div><div class="nbar"><i style="width:82%"></i></div><div class="ft"><div><div class="pl">APY / 충전</div><div class="pv">12.0% · 82%</div></div><button class="bid">예치</button></div></div>
+   <div class="nft"><div class="art b1"></div><h4>표준형 풀</h4><div class="who"><span class="av"></span>중위험 · 60일</div><div class="nbar"><i style="width:64%"></i></div><div class="ft"><div><div class="pl">APY / 충전</div><div class="pv">18.4% · 64%</div></div><button class="bid">예치</button></div></div>
+   <div class="nft"><div class="art b3"></div><h4>성장형 풀</h4><div class="who"><span class="av"></span>고수익 · 90일</div><div class="nbar"><i style="width:47%"></i></div><div class="ft"><div><div class="pl">APY / 충전</div><div class="pv">24.0% · 47%</div></div><button class="bid">예치</button></div></div>
+   <div class="nft"><div class="art b7"></div><h4>단기 풀</h4><div class="who"><span class="av"></span>초저위험 · 30일</div><div class="nbar"><i style="width:91%"></i></div><div class="ft"><div><div class="pl">APY / 충전</div><div class="pv">9.0% · 91%</div></div><button class="bid">예치</button></div></div>
+  </div>
+ </section>
+
+ <section class="sec">
+  <div class="sh"><h2>작동 방식</h2></div>
   <div class="steps">
-   <div class="step"><div class="n">01</div><h4>AI 한도 산정</h4><p>최근 60~90일 매출(거래건수·재구매율·성장률)을 AI가 분석해 선지급 한도를 자동 생성.</p></div>
-   <div class="step"><div class="n">02</div><h4>채권 발생</h4><p>월 매출 일정 비율 선지급. 60일 상환 스케줄 + 20% 이용료가 적용된 채권 발행.</p></div>
-   <div class="step"><div class="n">03</div><h4>RWA 토큰화</h4><p>채권을 분산·묶어 온체인 토큰화. 투자자는 풀에 예치해 분산 투자.</p></div>
-   <div class="step"><div class="n">04</div><h4>자동 상환·수익</h4><p>매출에서 일 5~10% 자동 차감 상환 → 현금흐름이 투자자 수익으로 분배.</p></div>
+   <div class="step"><div class="ic"><i class="ti ti-cpu"></i></div><h4>AI 한도 산정</h4><p>최근 60~90일 매출을 AI가 분석해 가맹점 선지급 한도를 자동 생성합니다.</p></div>
+   <div class="step"><div class="ic"><i class="ti ti-file-invoice"></i></div><h4>채권 발생</h4><p>월매출 일정 비율 선지급, 60일 상환 + 20% 이용료 채권이 발행됩니다.</p></div>
+   <div class="step"><div class="ic"><i class="ti ti-coins"></i></div><h4>RWA 토큰화</h4><p>채권을 분산·묶어 온체인 토큰화. 풀 예치로 분산 투자합니다.</p></div>
+   <div class="step"><div class="ic"><i class="ti ti-arrows-exchange"></i></div><h4>자동 상환·수익</h4><p>매출에서 일 5~10% 자동 차감 상환 → 투자자 수익으로 분배됩니다.</p></div>
   </div>
  </section>
 
- <section class="sec">
-  <div class="sh"><div><div class="e">MARKET</div><h2>채권 마켓</h2></div><a>전체 채권 →</a></div>
-  <div class="card mkt">
-   <div class="mh"><span>채권 ID</span><span>가맹점 업종</span><span>선지급액</span><span>수익률</span><span>상환 진행률</span><span>상태</span></div>
-   <div class="mr"><span class="id">#PB-1042</span><span class="ind"><span class="dot g3"></span>카페·F&B</span><span class="amt">$600</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:34%"></i></span><span>34%</span></span><span><span class="badge r">D-40</span></span></div>
-   <div class="mr"><span class="id">#PB-1041</span><span class="ind"><span class="dot g2"></span>리테일</span><span class="amt">$1,200</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:58%"></i></span><span>58%</span></span><span><span class="badge r">D-25</span></span></div>
-   <div class="mr"><span class="id">#PB-1040</span><span class="ind"><span class="dot g5"></span>뷰티</span><span class="amt">$850</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:81%"></i></span><span>81%</span></span><span><span class="badge r">D-11</span></span></div>
-   <div class="mr"><span class="id">#PB-1039</span><span class="ind"><span class="dot g4"></span>외식</span><span class="amt">$400</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:100%"></i></span><span>100%</span></span><span><span class="badge d">완료</span></span></div>
-  </div>
- </section>
-
- <section class="sec">
-  <div class="two">
-   <div class="card calc"><h3>수익 구조 예시</h3><p class="cs">가맹점 일평균 매출 $200 · 60일 채권</p>
-    <div class="ci"><span class="k">선지급 금액 (월매출 10%)</span><span class="v">$600</span></div>
-    <div class="ci"><span class="k">60일 이용료 (20%)</span><span class="v">$120</span></div>
-    <div class="ci"><span class="k">총 상환 금액</span><span class="v">$720</span></div>
-    <div class="ci"><span class="k">일평균 자동 상환</span><span class="v">$12</span></div>
-    <div class="ci hl"><span class="k">투자자 수익 원천 (이용료)</span><span class="v">$120</span></div>
-   </div>
-   <div class="card panel"><h3><i class="ti ti-crown"></i> 상위 투자자</h3>
-    <div class="tr"><span class="rn">1</span><span class="av"></span><span class="nm">0x7a…F9c2</span><span class="sv">182,400 USDT</span></div>
-    <div class="tr"><span class="rn">2</span><span class="av"></span><span class="nm">0x3b…A1d8</span><span class="sv">96,210 USDT</span></div>
-    <div class="tr"><span class="rn">3</span><span class="av"></span><span class="nm">0x9f…C4b1</span><span class="sv">74,050 USDT</span></div>
-    <div class="tr"><span class="rn">4</span><span class="av"></span><span class="nm">0x2e…B7a4</span><span class="sv">51,330 USDT</span></div>
-    <div class="tr"><span class="rn">5</span><span class="av"></span><span class="nm">0x18…7b3c</span><span class="sv">43,980 USDT</span></div>
-   </div>
-  </div>
- </section>
-
- <div class="cband"><h2>실물 매출채권에 지금 투자하세요</h2><p>지갑을 연결하고 분산된 RWA 채권 풀에 예치하면 됩니다.</p><button class="btn">지갑 연결하고 시작</button></div>
+ <div class="cband"><div><h2>실물 매출채권에 지금 투자하세요</h2><p>지갑을 연결하고 분산 RWA 풀에 예치하면 됩니다.</p></div><button class="btn">지갑 연결하고 시작</button></div>
 
  <footer>
-  <div><div class="logo"><span class="mk">P</span>PING<b>RWA</b></div><div class="desc">PINGPAY 매출채권을 토큰화한 실물자산(RWA) 투자 프로토콜.</div></div>
-  <div><h5>PROTOCOL</h5><a>투자 풀</a><a>채권 마켓</a><a>실적·통계</a><a>추천 보상</a></div>
-  <div><h5>RESOURCES</h5><a>작동 방식</a><a>문서</a><a>스마트컨트랙트</a><a>FAQ</a></div>
-  <div><h5>LEGAL</h5><a>이용약관</a><a>개인정보처리방침</a><a>KYC/AML</a><a>위험 고지</a></div>
+  <div><div class="logo"><span class="mk"><i class="ti ti-diamond"></i></span>PINGRWA</div><div class="desc">PINGPAY 매출채권을 토큰화한 실물자산(RWA) 투자 프로토콜.</div></div>
+  <div><h5>프로토콜</h5><a>채권 풀</a><a>채권 마켓</a><a>실적</a><a>추천</a></div>
+  <div><h5>리소스</h5><a>작동 방식</a><a>문서</a><a>FAQ</a></div>
+  <div><h5>정책</h5><a>이용약관</a><a>개인정보</a><a>KYC/AML</a></div>
  </footer>
 </div>
 </body>
