@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PINGRWA — Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Archivo:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050505;--pnl:#0b0b0d;--ink:#E8FFE3;--mut:#7d8a78;--mut2:#4d5749;--line:#1c2119;
+ --lime:#BFFF1C;--cy:#27E8FF;--mag:#FF2E97;--am:#FFB800;
+ --disp:'Archivo','Pretendard',sans-serif;--body:'Pretendard','JetBrains Mono',sans-serif;--mono:'JetBrains Mono',monospace}
+body{margin:0;font-family:var(--mono);color:var(--ink);background:var(--bg)}
+.page{position:relative}
+.page::before{content:"";position:fixed;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:40px 40px;opacity:.5;pointer-events:none;z-index:0}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px;position:relative;z-index:1}
+.tape{border-bottom:1px solid var(--line);background:#070806;overflow:hidden;white-space:nowrap}
+.tape .run{display:inline-block;padding:8px 0;font-size:12px;color:var(--mut);animation:mv 26s linear infinite}
+@keyframes mv{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tape b{color:var(--lime)}.tape .dn{color:var(--mag)}.tape span{margin:0 26px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line)}
+.logo{font-family:var(--disp);font-weight:900;font-size:22px;letter-spacing:-1px;display:flex;align-items:center;gap:8px}
+.logo .mk{font-family:var(--mono);font-weight:700;color:var(--bg);background:var(--lime);padding:3px 8px;font-size:14px}
+.logo b{color:var(--lime)}
+.menu{display:flex;gap:8px;font-size:13px}
+.menu span{padding:6px 12px;border:1px solid transparent;color:var(--mut);cursor:pointer}
+.menu .on{color:var(--ink);border-color:var(--line)}
+.menu span:hover{color:var(--lime)}
+.right{display:flex;align-items:center;gap:10px;font-size:12px}
+.net{color:var(--lime)}
+.btn{font-family:var(--mono);font-weight:700;font-size:13px;padding:10px 18px;cursor:pointer;border:1px solid var(--lime);background:transparent;color:var(--lime);text-transform:uppercase;letter-spacing:.5px}
+.btn:hover{background:var(--lime);color:var(--bg)}
+.btn.fill{background:var(--lime);color:var(--bg)}
+.btn.fill:hover{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--lime)}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;border:1px solid var(--line);border-top:0}
+.hl{padding:48px 36px;border-right:1px solid var(--line)}
+.tagln{font-size:12px;color:var(--lime);margin-bottom:20px}
+.tagln .c{display:inline-block;width:8px;height:14px;background:var(--lime);vertical-align:-2px;animation:bl 1s step-end infinite}
+@keyframes bl{50%{opacity:0}}
+.h1{font-family:var(--disp);font-size:54px;line-height:1.02;font-weight:900;letter-spacing:-2px;margin:0 0 18px;text-transform:uppercase}
+.h1 em{font-style:normal;color:var(--lime)}
+.lead{font-family:var(--body);font-size:15px;color:var(--mut);line-height:1.7;margin:0 0 26px;max-width:440px}
+.cta{display:flex;gap:12px}
+.hr{padding:0}
+.hr .cell{padding:22px 24px;border-bottom:1px solid var(--line)}
+.hr .cell:last-child{border-bottom:0}
+.hr .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.hr .v{font-family:var(--disp);font-weight:800;font-size:34px;margin-top:6px}
+.hr .v.lime{color:var(--lime)}.hr .v.cy{color:var(--cy)}
+.hr .v small{font-size:14px;color:var(--mut)}
+.sec{border:1px solid var(--line);border-top:0}
+.sb{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--line);background:#080906}
+.sb h2{font-family:var(--disp);font-weight:800;font-size:18px;margin:0;text-transform:uppercase;letter-spacing:.5px}
+.sb h2 span{color:var(--mut2);margin-right:8px}
+.sb a{font-size:12px;color:var(--lime);text-decoration:none}
+.pools{display:grid;grid-template-columns:repeat(3,1fr)}
+.pool{padding:24px;border-right:1px solid var(--line)}
+.pool:last-child{border-right:0}
+.pool .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.pool .nm{font-family:var(--disp);font-weight:700;font-size:16px;text-transform:uppercase}
+.rk{font-size:10px;padding:3px 8px;border:1px solid}
+.rk.a{color:var(--lime);border-color:var(--lime)}.rk.b{color:var(--cy);border-color:var(--cy)}.rk.c{color:var(--mag);border-color:var(--mag)}
+.pool .big{font-family:var(--disp);font-weight:900;font-size:48px;line-height:1;color:var(--lime)}
+.pool .bl{font-size:11px;color:var(--mut);margin:6px 0 18px}
+.pbar{height:8px;background:#111;border:1px solid var(--line);overflow:hidden}.pbar i{display:block;height:100%;background:var(--lime)}
+.pmeta{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:10px}.pmeta b{color:var(--ink)}
+.pool .btn{width:100%;margin-top:18px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr)}
+.step{padding:24px;border-right:1px solid var(--line)}.step:last-child{border-right:0}
+.step .n{font-size:12px;color:var(--lime);margin-bottom:12px}
+.step h4{font-family:var(--disp);font-size:15px;margin:0 0 8px;text-transform:uppercase;font-weight:700}
+.step p{font-family:var(--body);font-size:13px;color:var(--mut);line-height:1.6;margin:0}
+.mr,.mh{display:grid;grid-template-columns:1fr 1.1fr .7fr .6fr 1.5fr .7fr;gap:14px;align-items:center;padding:13px 24px}
+.mh{font-size:11px;color:var(--mut2);border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:1px}
+.mr{border-bottom:1px solid var(--line);font-size:13px}.mr:last-child{border-bottom:0}.mr:hover{background:#0a0c07}
+.mr .id{color:var(--cy)}
+.mr .amt{font-weight:700}.mr .yld{color:var(--lime);font-weight:700}
+.mprog{display:flex;align-items:center;gap:9px}.mprog .b{flex:1;height:6px;background:#111;border:1px solid var(--line);overflow:hidden}.mprog .b i{display:block;height:100%;background:var(--lime)}.mprog span{font-size:11px;color:var(--mut)}
+.badge{font-size:10px;padding:3px 8px;border:1px solid}.badge.r{color:var(--am);border-color:var(--am)}.badge.d{color:var(--lime);border-color:var(--lime)}
+.two{display:grid;grid-template-columns:1fr 1fr}
+.col{padding:24px}.col:first-child{border-right:1px solid var(--line)}
+.col h3{font-family:var(--disp);font-size:15px;margin:0 0 16px;text-transform:uppercase;font-weight:700;color:var(--lime)}
+.ci{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.ci:last-child{border-bottom:0}.ci .k{color:var(--mut)}.ci .v{font-weight:700}.ci.hl .v{color:var(--lime)}
+.tr{display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.tr:last-child{border-bottom:0}
+.tr .rn{color:var(--lime)}.tr .nm{color:var(--ink)}.tr .sv{color:var(--cy)}
+.cband{border:1px solid var(--line);border-top:0;text-align:center;padding:50px 20px;background:linear-gradient(180deg,#080a05,#050505)}
+.cband h2{font-family:var(--disp);font-size:36px;font-weight:900;text-transform:uppercase;letter-spacing:-1px;margin:0 0 12px}
+.cband h2 em{font-style:normal;color:var(--lime)}
+.cband p{color:var(--mut);font-size:14px;margin:0 0 24px}
+footer{border:1px solid var(--line);border-top:0;display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr}
+footer>div{padding:28px 24px;border-right:1px solid var(--line)}footer>div:last-child{border-right:0}
+footer .desc{font-family:var(--body);font-size:12px;color:var(--mut);line-height:1.7;margin-top:12px}
+footer h5{font-size:11px;color:var(--mut2);margin:0 0 12px;text-transform:uppercase;letter-spacing:1px}
+footer a{display:block;font-size:13px;color:var(--mut);margin-bottom:8px;text-decoration:none}footer a:hover{color:var(--lime)}
+.pad{padding:0 0 60px}
+@media(max-width:900px){.wrap{padding:0 14px}.menu{display:none}.hero,.pools,.steps,.two,footer{grid-template-columns:1fr}.hl{border-right:0;border-bottom:1px solid var(--line)}.pool,.step,.col:first-child,footer>div{border-right:0;border-bottom:1px solid var(--line)}.h1{font-size:36px}.mh span:nth-child(n+3),.mr>*:nth-child(n+5){display:none}.mh,.mr{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+ <div class="wrap pad">
+  <div class="tape"><span class="run"><span>TVL <b>$4,210,500</b></span><span>AVG_APY <b>18.4%</b></span><span>REPAY_RATE <b>99.2%</b></span><span>DEFAULT <span class="dn">0.8%</span></span><span>MERCHANTS <b>1,240</b></span><span>ACTIVE_BONDS <b>680</b></span><span>TVL <b>$4,210,500</b></span><span>AVG_APY <b>18.4%</b></span><span>REPAY_RATE <b>99.2%</b></span><span>DEFAULT <span class="dn">0.8%</span></span><span>MERCHANTS <b>1,240</b></span><span>ACTIVE_BONDS <b>680</b></span></span></div>
+  <nav>
+   <div class="logo"><span class="mk">$</span>PING<b>RWA</b></div>
+   <div class="menu"><span class="on">MARKET</span><span>POOLS</span><span>BONDS</span><span>STATS</span><span>DOCS</span></div>
+   <div class="right"><span class="net">◉ SOLANA</span><button class="btn fill">CONNECT</button></div>
+  </nav>
+
+  <section class="hero">
+   <div class="hl">
+    <div class="tagln">&gt; real_world_assets --yield --onchain<span class="c"></span></div>
+    <h1 class="h1">매출이 곧<br><em>수익</em>이다</h1>
+    <p class="lead">PINGPAY 가맹점 선지급 매출채권을 토큰화. 실제 매출에서 자동 상환되는 현금흐름을 분산 투자하고, 변동성 없는 RWA 수익을 확보하세요.</p>
+    <div class="cta"><button class="btn fill">INVEST_NOW</button><button class="btn">READ_DOCS</button></div>
+   </div>
+   <div class="hr">
+    <div class="cell"><div class="l">Total Value Locked</div><div class="v lime">$4.21<small>M</small></div></div>
+    <div class="cell"><div class="l">Standard pool APY</div><div class="v cy">18.4<small>%</small></div></div>
+    <div class="cell"><div class="l">Cumulative repaid</div><div class="v">$12.8<small>M</small></div></div>
+   </div>
+  </section>
+
+  <section class="sec">
+   <div class="sb"><h2><span>//</span>투자 풀</h2><a>VIEW_ALL →</a></div>
+   <div class="pools">
+    <div class="pool"><div class="ph"><span class="nm">STABLE</span><span class="rk a">LOW</span></div><div class="big">12.0%</div><div class="bl">APY / 60D</div><div class="pbar"><i style="width:82%"></i></div><div class="pmeta"><span>FILL <b>82%</b></span><span>BONDS <b>320</b></span></div><button class="btn">DEPOSIT</button></div>
+    <div class="pool"><div class="ph"><span class="nm">STANDARD</span><span class="rk b">MID</span></div><div class="big">18.4%</div><div class="bl">APY / 60D</div><div class="pbar"><i style="width:64%"></i></div><div class="pmeta"><span>FILL <b>64%</b></span><span>BONDS <b>210</b></span></div><button class="btn fill">DEPOSIT</button></div>
+    <div class="pool"><div class="ph"><span class="nm">GROWTH</span><span class="rk c">HIGH</span></div><div class="big">24.0%</div><div class="bl">APY / 90D</div><div class="pbar"><i style="width:47%"></i></div><div class="pmeta"><span>FILL <b>47%</b></span><span>BONDS <b>150</b></span></div><button class="btn">DEPOSIT</button></div>
+   </div>
+  </section>
+
+  <section class="sec">
+   <div class="sb"><h2><span>//</span>작동 방식</h2></div>
+   <div class="steps">
+    <div class="step"><div class="n">[01]</div><h4>AI 한도</h4><p>최근 60~90일 매출을 AI가 분석해 가맹점 선지급 한도 자동 생성.</p></div>
+    <div class="step"><div class="n">[02]</div><h4>채권 발생</h4><p>월매출 일정비율 선지급 + 60일 상환 + 20% 이용료 채권 발행.</p></div>
+    <div class="step"><div class="n">[03]</div><h4>토큰화</h4><p>채권 분산·번들 후 온체인 토큰화. 풀 예치로 분산 투자.</p></div>
+    <div class="step"><div class="n">[04]</div><h4>자동 상환</h4><p>매출에서 일 5~10% 자동 차감 → 현금흐름 수익 분배.</p></div>
+   </div>
+  </section>
+
+  <section class="sec">
+   <div class="sb"><h2><span>//</span>채권 마켓</h2><a>VIEW_ALL →</a></div>
+   <div class="mh"><span>BOND_ID</span><span>SECTOR</span><span>ADVANCE</span><span>YIELD</span><span>REPAY_PROGRESS</span><span>STATUS</span></div>
+   <div class="mr"><span class="id">#PB-1042</span><span>카페·F&B</span><span class="amt">$600</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:34%"></i></span><span>34%</span></span><span><span class="badge r">D-40</span></span></div>
+   <div class="mr"><span class="id">#PB-1041</span><span>리테일</span><span class="amt">$1,200</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:58%"></i></span><span>58%</span></span><span><span class="badge r">D-25</span></span></div>
+   <div class="mr"><span class="id">#PB-1040</span><span>뷰티</span><span class="amt">$850</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:81%"></i></span><span>81%</span></span><span><span class="badge r">D-11</span></span></div>
+   <div class="mr"><span class="id">#PB-1039</span><span>외식</span><span class="amt">$400</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:100%"></i></span><span>100%</span></span><span><span class="badge d">DONE</span></span></div>
+  </section>
+
+  <section class="sec">
+   <div class="two">
+    <div class="col"><h3>YIELD_MODEL.exe</h3>
+     <div class="ci"><span class="k">선지급 (월매출 10%)</span><span class="v">$600</span></div>
+     <div class="ci"><span class="k">이용료 60D (20%)</span><span class="v">$120</span></div>
+     <div class="ci"><span class="k">총 상환</span><span class="v">$720</span></div>
+     <div class="ci"><span class="k">일 자동상환 ($720/60)</span><span class="v">$12</span></div>
+     <div class="ci hl"><span class="k">투자자 수익 원천</span><span class="v">$120</span></div>
+    </div>
+    <div class="col"><h3>TOP_INVESTORS</h3>
+     <div class="tr"><span class="rn">01</span><span class="nm">0x7a…F9c2</span><span class="sv">182,400 USDT</span></div>
+     <div class="tr"><span class="rn">02</span><span class="nm">0x3b…A1d8</span><span class="sv">96,210 USDT</span></div>
+     <div class="tr"><span class="rn">03</span><span class="nm">0x9f…C4b1</span><span class="sv">74,050 USDT</span></div>
+     <div class="tr"><span class="rn">04</span><span class="nm">0x2e…B7a4</span><span class="sv">51,330 USDT</span></div>
+     <div class="tr"><span class="rn">05</span><span class="nm">0x18…7b3c</span><span class="sv">43,980 USDT</span></div>
+    </div>
+   </div>
+  </section>
+
+  <div class="cband"><h2>매출채권에 <em>지금</em> 투자하라</h2><p>&gt; connect_wallet &amp;&amp; deposit --pool standard</p><button class="btn fill">CONNECT_AND_START →</button></div>
+
+  <footer>
+   <div><div class="logo"><span class="mk">$</span>PING<b>RWA</b></div><div class="desc">PINGPAY 매출채권을 토큰화한 실물자산(RWA) 프로토콜.</div></div>
+   <div><h5>PROTOCOL</h5><a>Pools</a><a>Bonds</a><a>Stats</a><a>Referral</a></div>
+   <div><h5>RESOURCES</h5><a>How it works</a><a>Docs</a><a>Contracts</a><a>FAQ</a></div>
+   <div><h5>LEGAL</h5><a>Terms</a><a>Privacy</a><a>KYC/AML</a><a>Risk</a></div>
+  </footer>
+ </div>
+</div>
+</body>
+</html>
