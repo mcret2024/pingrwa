@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PINGRWA — Global RWA</title>
+<link rel="icon" type="image/svg+xml" href="../demo/img/logo-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#FAF8FF;--card:#fff;--ink:#160F26;--nv:#1C1235;--mut:#6A6280;--mut2:#9A93AC;--line:#ECE6F8;--soft:#F4F0FC;
+ --pri:#870AE0;--pri2:#A259FF;--pri-l:#F0E4FE;--teal:#0FB5A6;--ok:#16A34A;
+ --disp:'Plus Jakarta Sans','Pretendard',sans-serif;--body:'Pretendard','Plus Jakarta Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+ --g:linear-gradient(120deg,#870AE0,#A259FF)}
+body{margin:0;font-family:var(--body);color:var(--ink);background:var(--bg)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 40px}
+.top{background:var(--nv);color:#fff;font-size:12.5px}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;padding:8px 40px}
+.top .l{display:flex;align-items:center;gap:8px;color:#c9b6ec}.top .r{display:flex;gap:20px;color:#b7acd0}
+.top .r span{display:flex;align-items:center;gap:6px}
+.navw{position:sticky;top:0;z-index:40;background:rgba(250,248,255,.82);backdrop-filter:blur(14px);transition:.25s}
+.navw.scr{border-bottom:1px solid var(--line);box-shadow:0 6px 24px rgba(28,18,53,.06)}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand .bmk{width:50px;height:26px;background:var(--g);-webkit-mask:url('../demo/img/logo-mark.svg') left center/contain no-repeat;mask:url('../demo/img/logo-mark.svg') left center/contain no-repeat}
+.brand .bwm{width:62px;height:16px;background:var(--ink);-webkit-mask:url('../demo/img/logo-text.svg') left center/contain no-repeat;mask:url('../demo/img/logo-text.svg') left center/contain no-repeat}
+.brand .brwa{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--g);padding:3px 7px;border-radius:7px;letter-spacing:1px;margin-left:2px}
+.menu{display:flex;gap:26px;font-size:14px;color:var(--mut);font-weight:500}.menu .on{color:var(--ink)}.menu span{cursor:pointer}.menu span:hover{color:var(--pri)}
+.right{display:flex;align-items:center;gap:10px}
+.btn{font-family:var(--body);font-weight:600;font-size:14px;border-radius:11px;cursor:pointer;padding:11px 19px;border:1px solid var(--line);background:#fff;color:var(--ink);transition:.15s}
+.btn:hover{transform:translateY(-1px)}
+.pri-b{background:var(--g);color:#fff;border:0;box-shadow:0 8px 24px rgba(135,10,224,.32)}
+.hero{display:grid;grid-template-columns:1.04fr .96fr;gap:40px;align-items:center;padding:50px 0 30px}
+.eyb{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--pri);background:var(--pri-l);padding:6px 13px;border-radius:999px;margin-bottom:22px}
+.h1{font-family:var(--disp);font-size:54px;line-height:1.08;font-weight:800;letter-spacing:-1.6px;margin:0 0 18px;color:var(--nv)}
+.h1 em{font-style:normal;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:16.5px;color:var(--mut);line-height:1.75;margin:0 0 24px;max-width:490px}
+.regions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
+.rchip{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink);background:#fff;border:1px solid var(--line);padding:7px 13px;border-radius:999px}
+.rchip .d{width:8px;height:8px;border-radius:50%}.rchip.soon{color:var(--mut)}
+.cta{display:flex;gap:12px}
+.mapwrap{position:relative;background:linear-gradient(160deg,#fff,#F6F1FE);border:1px solid var(--line);border-radius:24px;padding:14px;box-shadow:0 20px 60px rgba(135,10,224,.1);height:420px}
+.mapwrap svg{width:100%;height:100%;display:block}
+.mlabel{font-family:var(--mono);font-size:11px;fill:var(--nv);font-weight:600}
+.mnode{animation:mp 2.4s ease-in-out infinite}@keyframes mp{0%,100%{r:5;opacity:.7}50%{r:7;opacity:1}}
+.fcard{position:absolute;right:24px;bottom:24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 14px 40px rgba(28,18,53,.14)}
+.fcard .l{font-size:11px;color:var(--mut);font-family:var(--mono)}.fcard .v{font-family:var(--disp);font-weight:800;font-size:24px;color:var(--nv)}.fcard .v small{font-size:13px;color:var(--ok)}
+.gstat{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
+.gs{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+.gs .v{font-family:var(--disp);font-weight:800;font-size:26px;color:var(--nv)}.gs .l{font-size:12.5px;color:var(--mut);margin-top:5px}.gs .src{font-family:var(--mono);font-size:10px;color:var(--mut2);margin-top:3px}
+.sec{padding:60px 0 0}
+.sh{text-align:center;max-width:620px;margin:0 auto 32px}
+.sh .e{font-family:var(--mono);font-size:12px;color:var(--pri);letter-spacing:2px;margin-bottom:10px}
+.sh h2{font-family:var(--disp);font-size:34px;font-weight:800;color:var(--nv);margin:0;letter-spacing:-.8px}
+.sh p{color:var(--mut);font-size:15px;margin:12px 0 0;line-height:1.7}
+.shl{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
+.shl .e{font-family:var(--mono);font-size:12px;color:var(--pri);letter-spacing:1px;margin-bottom:8px}
+.shl h2{font-family:var(--disp);font-size:30px;font-weight:800;color:var(--nv);margin:0;letter-spacing:-.6px}
+.shl a{font-size:13px;color:var(--pri);text-decoration:none;font-weight:600}
+.ctry{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.cc{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;transition:.18s}.cc:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(28,18,53,.08)}
+.cc .fl{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--disp);font-weight:800;font-size:15px;margin-bottom:14px}
+.cc .nm{font-family:var(--disp);font-weight:700;font-size:16px;color:var(--nv)}
+.cc .st{font-size:12px;margin-top:3px}.cc .st.live{color:var(--ok)}.cc .st.soon{color:var(--mut2)}
+.cc .mt{font-family:var(--mono);font-size:12px;color:var(--mut);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.cc .mt b{color:var(--nv)}
+.pools{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pool{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;transition:.18s;box-shadow:0 8px 30px rgba(28,18,53,.05)}.pool:hover{transform:translateY(-5px);box-shadow:0 20px 48px rgba(135,10,224,.12)}
+.pool.feat{border:2px solid var(--pri)}
+.pool .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.pool .nm{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--nv)}
+.rk{font-family:var(--mono);font-size:10px;padding:5px 9px;border-radius:7px;font-weight:600}.rk.a{background:#E7FBF1;color:#0F9D6A}.rk.b{background:var(--pri-l);color:var(--pri)}.rk.c{background:#FEF0E3;color:#C2620A}
+.pool .big{font-family:var(--disp);font-weight:800;font-size:42px;color:var(--nv);line-height:1}.pool .bl{font-family:var(--mono);font-size:11px;color:var(--mut);margin:6px 0 16px}
+.pbar{height:7px;border-radius:999px;background:var(--soft);overflow:hidden}.pbar i{display:block;height:100%;background:var(--g)}
+.pmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:10px}.pmeta b{color:var(--ink)}
+.pool .btn{width:100%;margin-top:18px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.step{padding:22px;background:#fff;border:1px solid var(--line);border-radius:16px}
+.step .ic{width:46px;height:46px;border-radius:13px;background:var(--pri-l);color:var(--pri);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.step .n{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-bottom:4px}
+.step h4{font-family:var(--disp);font-size:16px;margin:0 0 8px;font-weight:700;color:var(--nv)}.step p{font-size:13px;color:var(--mut);line-height:1.6;margin:0}
+.mkt{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.mh,.mr{display:grid;grid-template-columns:.9fr 1fr 1fr .8fr .7fr 1.3fr .8fr;gap:12px;align-items:center;padding:14px 22px}
+.mh{font-family:var(--mono);font-size:11px;color:var(--mut2);border-bottom:1px solid var(--line);letter-spacing:.5px;background:#FCFBFE}
+.mr{border-bottom:1px solid var(--line);font-size:13.5px}.mr:last-child{border-bottom:0}.mr:hover{background:#FCFBFE}
+.mr .id{font-family:var(--mono);font-size:12px;color:var(--pri)}
+.mr .ind{display:flex;align-items:center;gap:9px}.mr .th{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.mr .cf{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.mr .amt{font-family:var(--mono);font-weight:600}.mr .yld{font-family:var(--mono);color:var(--ok);font-weight:600}
+.mprog{display:flex;align-items:center;gap:9px}.mprog .b{flex:1;height:6px;border-radius:999px;background:var(--soft);overflow:hidden}.mprog .b i{display:block;height:100%;background:var(--g)}.mprog span{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.badge{font-family:var(--mono);font-size:10px;padding:5px 9px;border-radius:6px;font-weight:600}.badge.run{background:var(--pri-l);color:var(--pri)}.badge.done{background:#E7FBF1;color:#0F9D6A}
+.why{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.wc{padding:22px;background:#fff;border:1px solid var(--line);border-radius:16px}.wc .ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--pri-l),#fff);color:var(--pri);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:13px}
+.wc h4{font-family:var(--disp);font-size:15px;margin:0 0 7px;color:var(--nv);font-weight:700}.wc p{font-size:13px;color:var(--mut);line-height:1.6;margin:0}
+.cband{margin-top:60px;text-align:center;border-radius:24px;padding:56px 20px;background:radial-gradient(600px 300px at 50% 0,rgba(162,89,255,.35),transparent 70%),var(--g);color:#fff}
+.cband h2{font-family:var(--disp);font-size:36px;font-weight:800;margin:0 0 12px;letter-spacing:-.8px}.cband p{opacity:.86;font-size:15px;margin:0 0 26px}
+.cband .btn{background:#fff;color:var(--pri);border:0;font-weight:700;padding:14px 30px}
+footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
+.fgrid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:22px}
+.fgrid .desc{font-size:12.5px;color:var(--mut);line-height:1.7;margin-top:14px;max-width:280px}
+.fgrid h5{font-family:var(--mono);font-size:11px;color:var(--mut2);margin:0 0 13px;letter-spacing:.5px}
+.fgrid a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-decoration:none}.fgrid a:hover{color:var(--pri)}
+.fbot{margin-top:28px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mut2)}
+@media(max-width:940px){.wrap{padding:0 18px}.top .r span:nth-child(n+2){display:none}.menu{display:none}.hero{grid-template-columns:1fr}.h1{font-size:36px}.gstat,.pools,.steps,.why{grid-template-columns:1fr 1fr}.ctry{grid-template-columns:1fr 1fr}.mh span:nth-child(n+4),.mr>*:nth-child(n+5){display:none}.mh,.mr{grid-template-columns:1fr 1fr}.fgrid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><div class="l"><i class="ti ti-world" style="font-size:14px"></i> 동남아시아 · 동아시아 결제 네트워크 기반 RWA</div><div class="r"><span><i class="ti ti-building"></i> HQ Singapore</span><span><i class="ti ti-language"></i> 13개 언어</span><span><i class="ti ti-brand-solana"></i> Solana · USDT</span></div></div></div>
+<div class="navw" id="navw"><div class="wrap"><nav>
+ <a class="brand" href="#" aria-label="pingpay RWA"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a>
+ <div class="menu"><span class="on">마켓</span><span>투자 풀</span><span>지역</span><span>채권</span><span>문서</span></div>
+ <div class="right"><button class="btn">로그인</button><button class="btn pri-b">지갑 연결</button></div>
+</nav></div></div>
+
+<div class="wrap">
+ <section class="hero">
+  <div>
+   <span class="eyb"><i class="ti ti-map-pin"></i> VIETNAM · INDONESIA · MALAYSIA · KOREA</span>
+   <h1 class="h1">아시아의 실물 매출을<br><em>온체인 수익</em>으로</h1>
+   <p class="lead">PINGPAY는 동남아·동아시아 결제 네트워크에서 가맹점에 자금을 선지급합니다. 그 매출채권을 토큰화해, 전 세계 투자자가 실물 현금흐름에 분산 투자할 수 있습니다.</p>
+   <div class="regions">
+    <span class="rchip"><span class="d" style="background:#16A34A"></span>베트남</span>
+    <span class="rchip"><span class="d" style="background:#16A34A"></span>인도네시아</span>
+    <span class="rchip"><span class="d" style="background:#16A34A"></span>말레이시아</span>
+    <span class="rchip"><span class="d" style="background:#0FB5A6"></span>싱가포르 HQ</span>
+    <span class="rchip soon"><span class="d" style="background:#9A93AC"></span>한국 (예정)</span>
+   </div>
+   <div class="cta"><button class="btn pri-b">투자 시작하기</button><button class="btn">작동 방식 보기</button></div>
+  </div>
+  <div class="mapwrap">
+   <svg viewBox="0 0 480 420" fill="none">
+    <g stroke="#A259FF" stroke-opacity=".4" stroke-dasharray="4 6" fill="none">
+     <path d="M300 360 Q330 220 360 90"/><path d="M300 360 Q380 230 432 120"/><path d="M300 360 Q300 260 300 190"/><path d="M300 360 Q260 270 245 205"/><path d="M300 360 Q280 330 272 300"/><path d="M300 360 Q340 360 372 360"/>
+    </g>
+    <g fill="#870AE0">
+     <circle class="mnode" cx="360" cy="90" r="6"/><circle class="mnode" cx="432" cy="120" r="6" style="animation-delay:.5s"/><circle class="mnode" cx="300" cy="190" r="6" style="animation-delay:.8s"/><circle class="mnode" cx="245" cy="205" r="6" style="animation-delay:1.1s"/><circle class="mnode" cx="272" cy="300" r="6" style="animation-delay:.3s"/><circle class="mnode" cx="372" cy="360" r="6" style="animation-delay:1.4s"/>
+    </g>
+    <circle cx="300" cy="360" r="11" fill="#0FB5A6"/><circle cx="300" cy="360" r="20" fill="#0FB5A6" fill-opacity=".18"/>
+    <g class="mlabel"><text x="350" y="78">한국</text><text x="424" y="108">일본</text><text x="288" y="180">베트남</text><text x="206" y="198">태국</text><text x="240" y="296">말레이시아</text><text x="384" y="364">인도네시아</text><text x="316" y="364" fill="#0FB5A6">싱가포르 HQ</text></g>
+   </svg>
+   <div class="fcard"><div class="l">표준 채권 풀 · 60일</div><div class="v">18.4<small>% APY</small></div></div>
+  </div>
+ </section>
+
+ <div class="gstat">
+  <div class="gs"><div class="v">$57M+</div><div class="l">PINGPAY 카드 결제액</div><div class="src">PINGPAY 생태계</div></div>
+  <div class="gs"><div class="v">2M+</div><div class="l">앱 다운로드</div><div class="src">PINGPAY X</div></div>
+  <div class="gs"><div class="v">4개국</div><div class="l">운영 지역 (+한국 예정)</div><div class="src">SEA · EA</div></div>
+  <div class="gs"><div class="v">$4.21M</div><div class="l">RWA 누적 예치 (TVL)</div><div class="src">PINGRWA</div></div>
+ </div>
+
+ <section class="sec">
+  <div class="sh"><div class="e">GLOBAL NETWORK</div><h2>아시아 전역의 가맹점 매출</h2><p>각 시장의 실제 가맹점 결제에서 채권이 발생합니다. 지역 분산으로 단일 시장 리스크를 완화합니다.</p></div>
+  <div class="ctry">
+   <div class="cc"><div class="fl" style="background:linear-gradient(135deg,#DA251D,#FF6B5E)">VN</div><div class="nm">베트남</div><div class="st live">● 운영중</div><div class="mt">가맹점 <b>420</b> · 채권 <b>238</b></div></div>
+   <div class="cc"><div class="fl" style="background:linear-gradient(135deg,#CE1126,#FF5A6E)">ID</div><div class="nm">인도네시아</div><div class="st live">● 운영중</div><div class="mt">가맹점 <b>360</b> · 채권 <b>196</b></div></div>
+   <div class="cc"><div class="fl" style="background:linear-gradient(135deg,#0032A0,#4F86FF)">MY</div><div class="nm">말레이시아</div><div class="st live">● 운영중</div><div class="mt">가맹점 <b>280</b> · 채권 <b>154</b></div></div>
+   <div class="cc"><div class="fl" style="background:linear-gradient(135deg,#0FB5A6,#43E6C4)">SG</div><div class="nm">싱가포르</div><div class="st live">● HQ</div><div class="mt">본사 · 라이선스 <b>PAX</b></div></div>
+   <div class="cc"><div class="fl" style="background:linear-gradient(135deg,#6A6280,#9A93AC)">KR</div><div class="nm">한국</div><div class="st soon">● 출시 예정</div><div class="mt">2026 진출 <b>예정</b></div></div>
+  </div>
+ </section>
+
+ <section class="sec">
+  <div class="shl"><div><div class="e">INVEST</div><h2>투자 풀</h2></div><a>전체 풀 보기 →</a></div>
+  <div class="pools">
+   <div class="pool"><div class="ph"><span class="nm">안정형 풀</span><span class="rk a">저위험</span></div><div class="big">12.0%</div><div class="bl">APY · 60일 · 다국가 분산</div><div class="pbar"><i style="width:82%"></i></div><div class="pmeta"><span>충전율 <b>82%</b></span><span>채권 <b>320</b></span></div><button class="btn">예치하기</button></div>
+   <div class="pool feat"><div class="ph"><span class="nm">표준형 풀</span><span class="rk b">중위험</span></div><div class="big">18.4%</div><div class="bl">APY · 60일 · 다국가 분산</div><div class="pbar"><i style="width:64%"></i></div><div class="pmeta"><span>충전율 <b>64%</b></span><span>채권 <b>210</b></span></div><button class="btn pri-b">예치하기</button></div>
+   <div class="pool"><div class="ph"><span class="nm">성장형 풀</span><span class="rk c">고수익</span></div><div class="big">24.0%</div><div class="bl">APY · 90일 · 신흥시장</div><div class="pbar"><i style="width:47%"></i></div><div class="pmeta"><span>충전율 <b>47%</b></span><span>채권 <b>150</b></span></div><button class="btn">예치하기</button></div>
+  </div>
+ </section>
+
+ <section class="sec">
+  <div class="sh"><div class="e">HOW IT WORKS</div><h2>작동 방식</h2></div>
+  <div class="steps">
+   <div class="step"><div class="ic"><i class="ti ti-cpu"></i></div><div class="n">STEP 01</div><h4>AI 한도 산정</h4><p>각 지역 가맹점의 최근 60~90일 결제 매출을 AI가 분석해 선지급 한도를 자동 생성.</p></div>
+   <div class="step"><div class="ic"><i class="ti ti-file-invoice"></i></div><div class="n">STEP 02</div><h4>채권 발생</h4><p>월 매출 일정 비율을 USDT로 선지급. 60일 상환 + 20% 이용료 채권 발행.</p></div>
+   <div class="step"><div class="ic"><i class="ti ti-coins"></i></div><div class="n">STEP 03</div><h4>RWA 토큰화</h4><p>다국가 채권을 묶어 Solana 위에 토큰화. 글로벌 투자자가 풀에 예치.</p></div>
+   <div class="step"><div class="ic"><i class="ti ti-arrows-exchange"></i></div><div class="n">STEP 04</div><h4>자동 상환·수익</h4><p>가맹점 결제 매출에서 자동 차감 상환 → 현금흐름이 투자자에게 분배.</p></div>
+  </div>
+ </section>
+
+ <section class="sec">
+  <div class="shl"><div><div class="e">MARKET</div><h2>채권 마켓</h2></div><a>전체 채권 →</a></div>
+  <div class="mkt">
+   <div class="mh"><span>채권 ID</span><span>지역</span><span>업종</span><span>선지급</span><span>수익률</span><span>상환 진행률</span><span>상태</span></div>
+   <div class="mr"><span class="id">#PB-1042</span><span class="cf">🇻🇳 베트남</span><span class="ind"><span class="th" style="background:linear-gradient(135deg,#870AE0,#A259FF)"><i class="ti ti-coffee"></i></span>카페·F&B</span><span class="amt">$600</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:34%"></i></span><span>34%</span></span><span><span class="badge run">D-40</span></span></div>
+   <div class="mr"><span class="id">#PB-1041</span><span class="cf">🇮🇩 인니</span><span class="ind"><span class="th" style="background:linear-gradient(135deg,#5B1AA8,#A259FF)"><i class="ti ti-building-store"></i></span>리테일</span><span class="amt">$1,200</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:58%"></i></span><span>58%</span></span><span><span class="badge run">D-25</span></span></div>
+   <div class="mr"><span class="id">#PB-1040</span><span class="cf">🇲🇾 말련</span><span class="ind"><span class="th" style="background:linear-gradient(135deg,#A21CAF,#E8459B)"><i class="ti ti-sparkles"></i></span>뷰티</span><span class="amt">$850</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:81%"></i></span><span>81%</span></span><span><span class="badge run">D-11</span></span></div>
+   <div class="mr"><span class="id">#PB-1039</span><span class="cf">🇻🇳 베트남</span><span class="ind"><span class="th" style="background:linear-gradient(135deg,#3B2FCF,#6979F8)"><i class="ti ti-tools-kitchen-2"></i></span>외식</span><span class="amt">$400</span><span class="yld">+20%</span><span class="mprog"><span class="b"><i style="width:100%"></i></span><span>100%</span></span><span><span class="badge done">완료</span></span></div>
+  </div>
+ </section>
+
+ <section class="sec">
+  <div class="sh"><div class="e">WHY PINGRWA</div><h2>왜 PINGRWA인가</h2></div>
+  <div class="why">
+   <div class="wc"><div class="ic"><i class="ti ti-building-bank"></i></div><h4>실물 매출 담보</h4><p>실제 가맹점 결제에서 발생한 채권. 가상자산 변동성과 무관한 현금흐름.</p></div>
+   <div class="wc"><div class="ic"><i class="ti ti-world"></i></div><h4>지역 분산</h4><p>베트남·인니·말련 등 다국가 채권에 분산되어 단일 시장 리스크 완화.</p></div>
+   <div class="wc"><div class="ic"><i class="ti ti-brand-solana"></i></div><h4>Solana · USDT</h4><p>PINGPAY 결제 인프라 위에서 USDT로 정산·상환되는 온체인 투명성.</p></div>
+   <div class="wc"><div class="ic"><i class="ti ti-shield-lock"></i></div><h4>싱가포르 라이선스</h4><p>싱가포르 본사(PAX Global Gateway) · KYC/AML 적용.</p></div>
+  </div>
+ </section>
+
+ <div class="cband"><h2>아시아 실물 매출채권에 투자하세요</h2><p>지갑을 연결하고 다국가로 분산된 RWA 채권 풀에 예치하면 됩니다.</p><button class="btn">지갑 연결하고 시작</button></div>
+</div>
+
+<footer><div class="wrap">
+ <div class="fgrid">
+  <div><a class="brand" href="#" aria-label="pingpay RWA"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a><div class="desc">PINGPAY 동남아·동아시아 결제 네트워크의 가맹점 매출채권을 토큰화한 실물자산(RWA) 투자 프로토콜.</div></div>
+  <div><h5>PROTOCOL</h5><a>투자 풀</a><a>채권 마켓</a><a>지역 네트워크</a><a>추천 보상</a></div>
+  <div><h5>RESOURCES</h5><a>작동 방식</a><a>문서 (Docs)</a><a>스마트컨트랙트</a><a>FAQ</a></div>
+  <div><h5>COMPANY</h5><a>PINGPAY 소개</a><a>이용약관</a><a>개인정보처리방침</a><a>KYC / AML</a></div>
+ </div>
+ <div class="fbot"><span>© 2026 PINGRWA · Powered by PINGPAY (PAX Global Gateway Pte. Ltd., Singapore)</span><span>EN · 한국어 · 中文 · Tiếng Việt · Bahasa</span></div>
+</div></footer>
+<script>
+(function(){var n=document.getElementById('navw');addEventListener('scroll',function(){n.classList.toggle('scr',scrollY>8)});})();
+</script>
+</body>
+</html>
