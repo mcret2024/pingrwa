@@ -12,11 +12,8 @@
          index.html(대시보드) 가 잠시 깜빡인 후 landing 으로 redirect 되던 FOUC
          제거. 기본 href 를 landing.html 로 두고, core.js 가 지갑 연결 감지 시
          index.html 로 swap (logged-in 사용자는 바로 대시보드 진입). -->
-    <a class="brand" href="trade.html" data-href-connected="index.html" aria-label="Go to home" data-no-i18n="1" translate="no">
-      <img src="assets/images/logo_W.png" alt="SilicaChain">
-      <div>
-        <div class="title">SILICACHAIN RWA</div>
-      </div>
+    <a class="brand" href="trade.html" data-href-connected="index.html" aria-label="PINGPAY RWA - Go to home" data-no-i18n="1" translate="no">
+      <span class="pp-mk" aria-hidden="true"></span><span class="pp-wm" aria-hidden="true"></span><span class="pp-rwa">RWA</span>
     </a>
 
     <nav class="nav" aria-label="Main menu">
@@ -235,7 +232,7 @@
 <div id="mobileBackdrop" class="mobile-backdrop" aria-hidden="true"></div>
 <aside id="mobileDrawer" class="mobile-drawer" role="dialog" aria-modal="true" aria-label="메뉴" aria-hidden="true">
   <div class="mobile-drawer-head">
-    <div class="mobile-drawer-brand">SILICACHAIN RWA</div>
+    <div class="mobile-drawer-brand"><span class="pp-mk" aria-hidden="true"></span><span class="pp-wm" aria-hidden="true"></span><span class="pp-rwa">RWA</span></div>
     <button id="mobileDrawerClose" class="mobile-drawer-close" type="button" aria-label="Close menu">✕</button>
   </div>
   <div class="mobile-drawer-scroll">
@@ -1024,3 +1021,34 @@
   //   (bindMobileDrawer) and invoked from ensureHeader() right after
   //   the markup lands, same pattern as bindUserLangToggle.
 </script>
+
+<style id="ppBrandDark">
+/* ===== PINGPAY dark brand re-skin (branding-only; functions untouched) 2026-06-20 ===== */
+.site-header{background:rgba(11,9,24,.82)!important;border-bottom:1px solid rgba(255,255,255,.08)!important}
+.site-header .brand{gap:11px}
+.site-header .pp-mk{width:54px;height:28px;display:block;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
+.site-header .pp-wm{width:84px;height:18px;display:block;background:#fff;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+.site-header .pp-rwa{font-family:'Space Grotesk','Inter',sans-serif;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(92deg,#870AE0,#A259FF);padding:3px 7px;border-radius:7px;letter-spacing:1px}
+.site-header .nav a{color:rgba(237,233,255,.78)!important}
+.site-header .nav a:hover{color:#fff!important;background:rgba(162,89,255,.16)!important}
+.site-header .nav a[aria-current="page"],.site-header .nav a.active{color:#fff!important;background:linear-gradient(92deg,#870AE0,#A259FF)!important;box-shadow:none!important}
+.site-header .nav-caret,.site-header .nav-caret span::before{color:rgba(237,233,255,.6)!important}
+.site-header .nav-sub{background:#15102b!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 16px 40px rgba(0,0,0,.5)!important}
+.site-header .nav-sub a{color:#EDE9FF!important}
+.site-header .nav-sub a:hover{color:#fff!important;background:linear-gradient(92deg,#870AE0,#A259FF)!important}
+.site-header .lang-toggle{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.12)!important}
+.site-header .lang-btn{color:rgba(237,233,255,.7)!important}
+.site-header .lang-btn.active,.site-header .lang-btn.is-active,.site-header .lang-btn[aria-pressed="true"]{background:linear-gradient(92deg,#870AE0,#A259FF)!important;color:#fff!important}
+.site-header #walletBtn,.site-header .btn.primary{background:linear-gradient(92deg,#870AE0,#A259FF)!important;border:0!important;color:#fff!important;box-shadow:0 8px 22px rgba(135,10,224,.4)!important}
+.site-header #walletPill{background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.14)!important;color:#EDE9FF!important}
+#mobileDrawer{background:#0d0a1e!important}
+#mobileDrawer .mobile-drawer-head{border-bottom:1px solid rgba(255,255,255,.1)!important}
+#mobileDrawer .mobile-drawer-brand{display:flex;align-items:center;gap:9px}
+#mobileDrawer .pp-mk{width:46px;height:24px;display:block;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
+#mobileDrawer .pp-wm{width:72px;height:15px;display:block;background:#fff;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+#mobileDrawer .pp-rwa{font-family:'Space Grotesk','Inter',sans-serif;font-size:10px;font-weight:700;color:#fff;background:linear-gradient(92deg,#870AE0,#A259FF);padding:2px 6px;border-radius:6px;letter-spacing:1px}
+#mobileDrawer .mobile-drawer-close{background:rgba(255,255,255,.08)!important;color:#fff!important}
+#mobileDrawer .mobile-link{color:rgba(237,233,255,.82)!important}
+#mobileDrawer .mobile-link:hover,#mobileDrawer .mobile-link:active{color:#fff!important;background:rgba(162,89,255,.16)!important}
+#mobileDrawer .mobile-section-label{color:#A259FF!important}
+</style>
