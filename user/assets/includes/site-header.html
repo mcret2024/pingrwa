@@ -20,13 +20,14 @@
 
     <nav class="nav" aria-label="Main menu">
       <!-- (2026-06-17 v923) 운영자: Trade 를 헤더 맨 처음으로, About 은 IR 하위로 이동. -->
-      <a id="navTrade" href="trade.html">Trade</a>
-      <a id="navAssets" href="assets.html">Invest</a>
+      <a id="navTrade" href="trade.html" data-no-i18n="1">거래</a>
+      <a id="navAssets" href="assets.html" data-no-i18n="1">투자</a>
 
       <!--
         (2026-05-07) Swap 은 STO ↔ Silica 내부 변환, Trade 는 호가 / 체결 기반 거래 페이지.
       -->
-      <a id="navSwap" href="swap.html">Swap</a>
+      <a id="navSwap" href="swap.html" data-no-i18n="1">스왑</a>
+      <a id="navHistory" href="history.html" data-no-i18n="1">히스토리</a>
 
       <!-- (2026-05-19 v591) 운영자 요청 — Claim 을 Staking 하위 메뉴로 통합.
            폰트 +5px 적용 후 메뉴 9개 가 한 줄에 안 들어가 wrap 발생 → 그룹화로
@@ -41,12 +42,12 @@
       </div>
 
       <div class="nav-item has-sub" data-nav-group="wallet">
-        <a id="navDeposit" class="nav-link" href="deposit.html">Wallet</a>
+        <a id="navDeposit" class="nav-link" href="deposit.html" data-no-i18n="1">지갑</a>
         <button type="button" class="nav-caret" aria-label="Open Wallet submenu" aria-haspopup="true" aria-expanded="false"><span aria-hidden="true"></span></button>
         <div class="nav-sub" aria-label="Wallet submenu">
-          <a href="deposit.html">Deposit</a>
-          <a id="navWithdraw" href="withdraw.html">Withdraw</a>
-          <a href="history.html">Transaction History</a>
+          <a href="deposit.html" data-no-i18n="1">입금</a>
+          <a id="navWithdraw" href="withdraw.html" data-no-i18n="1">출금</a>
+          <a href="history.html" data-no-i18n="1">거래내역</a>
         </div>
       </div>
 
@@ -100,7 +101,7 @@
         <span class="addr" data-no-i18n="1" translate="no">-</span>
       </div>
       <button id="ppLoginBtn" class="btn" type="button" onclick="var w=document.getElementById('walletBtn'); if(w) w.click();">로그인</button>
-      <button id="walletBtn" class="btn primary" type="button">Connect Wallet</button>
+      <button id="walletBtn" class="btn primary" type="button" data-no-i18n="1">지갑 연결</button>
       <button id="otpSetupBtn" class="btn small hidden" type="button">OTP Setup</button>
       <button id="otpVerifyBtn" class="btn small hidden" type="button">OTP Verify</button>
     </div>
@@ -1026,45 +1027,42 @@
 </script>
 
 <style id="ppBrandDark">
-/* ===== PINGPAY header — SAME design as main page (size/font/concept), BLACK ===== */
+/* ===== PINGPAY header = main page header (LIGHT), 6 menu, login + connect ===== */
 :root{--pp-g:linear-gradient(120deg,#870AE0,#A259FF)}
-.site-header{background:#0b0a14!important;border-bottom:1px solid rgba(255,255,255,.08)!important;backdrop-filter:blur(16px)!important}
+.site-header{background:rgba(255,255,255,.92)!important;border-bottom:1px solid #ECE6F8!important;backdrop-filter:blur(16px)!important}
 .site-header .container{max-width:1200px!important;padding:0 40px!important}
-.site-header .header-inner{gap:16px!important;padding:16px 0!important;justify-content:space-between!important;font-family:'Pretendard','Plus Jakarta Sans',sans-serif!important}
-/* brand lockup — match main size */
+.site-header .header-inner{gap:16px!important;padding:14px 0!important;font-family:'Pretendard','Plus Jakarta Sans',sans-serif!important}
 .site-header .brand{gap:11px!important}
-.site-header .pp-mk{width:58px;height:30px;display:block;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
-.site-header .pp-wm{width:90px;height:23px;display:block;background:#fff;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+.site-header .pp-mk{width:56px;height:29px;display:block;background:linear-gradient(135deg,#A259FF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
+.site-header .pp-wm{width:88px;height:22px;display:block;background:#160F26;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
 .site-header .pp-rwa{font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--pp-g);padding:4px 8px;border-radius:7px;letter-spacing:1px}
-/* nav — match main menu (font/size/spacing/hover) */
-.site-header .nav{gap:24px!important;margin:0 auto!important;flex:0 1 auto!important}
-.site-header .nav a,.site-header .nav .nav-link{font-family:'Pretendard','Plus Jakarta Sans',sans-serif!important;font-size:14px!important;font-weight:500!important;color:rgba(244,242,255,.6)!important;padding:6px 2px!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
-.site-header .nav a:hover,.site-header .nav .nav-link:hover{color:#fff!important;background:transparent!important}
-.site-header .nav a[aria-current="page"],.site-header .nav a.active{color:#fff!important;background:transparent!important;box-shadow:none!important}
-.site-header .nav-item.has-sub{gap:3px}
-.site-header .nav-caret,.site-header .nav-caret span::before{color:rgba(244,242,255,.5)!important}
-.site-header .nav-sub{background:#15102b!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:12px!important;padding:6px!important;box-shadow:0 14px 34px rgba(0,0,0,.5)!important;min-width:160px!important}
-.site-header .nav-sub a{font-family:'Pretendard',sans-serif!important;font-size:13px!important;font-weight:500!important;color:#EDE9FF!important;padding:9px 12px!important;border-radius:8px!important}
-.site-header .nav-sub a:hover{color:#fff!important;background:rgba(162,89,255,.18)!important}
-/* right actions */
+/* nav: 6 items, grouped right like main */
+.site-header .nav{gap:26px!important;margin-left:auto!important;margin-right:24px!important;flex:0 1 auto!important}
+.site-header .nav a,.site-header .nav .nav-link{font-family:'Pretendard','Plus Jakarta Sans',sans-serif!important;font-size:14px!important;font-weight:500!important;color:#5A5570!important;padding:6px 2px!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.site-header .nav a:hover,.site-header .nav .nav-link:hover{color:#160F26!important;background:transparent!important}
+.site-header .nav a[aria-current="page"],.site-header .nav a.active{color:#160F26!important;background:transparent!important;box-shadow:none!important}
+.site-header .nav-caret,.site-header .nav-caret span::before{color:#9A93AC!important}
+.site-header .nav-sub{background:#fff!important;border:1px solid #ECE6F8!important;border-radius:12px!important;padding:6px!important;box-shadow:0 14px 34px rgba(28,18,53,.14)!important;min-width:160px!important}
+.site-header .nav-sub a{font-family:'Pretendard',sans-serif!important;font-size:13px!important;font-weight:500!important;color:#2A2440!important;padding:9px 12px!important;border-radius:8px!important}
+.site-header .nav-sub a:hover{color:#870AE0!important;background:#F4F0FC!important}
+/* show only 6, reorder to 투자·거래·스왑·지갑·히스토리·IR */
+.site-header .nav-item[data-nav-group="staking"],.site-header .nav-item[data-nav-group="portfolio"]{display:none!important}
+.site-header #navAssets{order:1}.site-header #navTrade{order:2}.site-header #navSwap{order:3}.site-header .nav-item[data-nav-group="wallet"]{order:4}.site-header #navHistory{order:5}.site-header .nav-item[data-nav-group="ir"]{order:6}
+.site-header .nav-item[data-nav-group="ir"] .nav-caret,.site-header .nav-item[data-nav-group="ir"] .nav-sub{display:none!important}
+/* right actions: login + connect only */
 .site-header .header-actions{gap:10px!important;margin-left:0!important;flex:0 0 auto!important}
-.site-header .lang-toggle{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:10px!important}
-.site-header .lang-btn{font-family:'Space Grotesk',sans-serif!important;color:rgba(244,242,255,.7)!important}
-.site-header .lang-btn.active,.site-header .lang-btn.is-active,.site-header .lang-btn[aria-pressed="true"]{background:var(--pp-g)!important;color:#fff!important}
-.site-header .btn{font-family:'Pretendard',sans-serif!important;font-weight:600!important;font-size:14px!important;border-radius:11px!important;text-transform:none!important;letter-spacing:0!important}
-.site-header #walletBtn,.site-header .btn.primary{padding:11px 19px!important;background:var(--pp-g)!important;border:0!important;color:#fff!important;box-shadow:0 8px 22px rgba(135,10,224,.4)!important}
-.site-header .btn:not(.primary){background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.14)!important;color:#EDE9FF!important}
-.site-header #walletPill{background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.14)!important;color:#EDE9FF!important;border-radius:11px!important}
-.site-header #kycHeaderCta{background:var(--pp-g)!important;border-radius:8px!important;font-family:'Space Grotesk',sans-serif!important}
-/* mobile drawer — dark + main fonts */
-#mobileDrawer{background:#0b0a14!important;font-family:'Pretendard',sans-serif!important}
-#mobileDrawer .mobile-drawer-head{border-bottom:1px solid rgba(255,255,255,.1)!important}
+.site-header .lang-toggle{display:none!important}
+.site-header #kycHeaderCta,.site-header #otpSetupBtn,.site-header #otpVerifyBtn{display:none!important}
+.site-header .btn{font-family:'Pretendard',sans-serif!important;font-weight:600!important;font-size:14px!important;border-radius:11px!important;text-transform:none!important;letter-spacing:0!important;padding:11px 19px!important}
+.site-header #walletBtn,.site-header .btn.primary{background:var(--pp-g)!important;border:0!important;color:#fff!important;box-shadow:0 8px 22px rgba(135,10,224,.32)!important}
+.site-header #ppLoginBtn,.site-header .btn:not(.primary){background:#fff!important;border:1px solid #E2DCF0!important;color:#160F26!important;box-shadow:none!important}
+.site-header #walletPill{background:#F4F0FC!important;border:1px solid #E2DCF0!important;color:#2A2440!important;border-radius:11px!important}
+/* mobile drawer: light */
+#mobileDrawer{background:#fff!important;font-family:'Pretendard',sans-serif!important}
+#mobileDrawer .mobile-drawer-head{border-bottom:1px solid #ECE6F8!important}
 #mobileDrawer .mobile-drawer-brand{display:flex;align-items:center;gap:9px}
-#mobileDrawer .pp-mk{width:50px;height:26px;display:block;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
-#mobileDrawer .pp-wm{width:78px;height:16px;display:block;background:#fff;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+#mobileDrawer .pp-mk{width:50px;height:26px;display:block;background:linear-gradient(135deg,#A259FF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
+#mobileDrawer .pp-wm{width:78px;height:16px;display:block;background:#160F26;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
 #mobileDrawer .pp-rwa{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:#fff;background:var(--pp-g);padding:2px 6px;border-radius:6px;letter-spacing:1px}
-#mobileDrawer .mobile-drawer-close{background:rgba(255,255,255,.08)!important;color:#fff!important}
-#mobileDrawer .mobile-link{font-family:'Pretendard',sans-serif!important;color:rgba(244,242,255,.82)!important}
-#mobileDrawer .mobile-link:hover,#mobileDrawer .mobile-link:active{color:#fff!important;background:rgba(162,89,255,.16)!important}
-#mobileDrawer .mobile-section-label{color:#A259FF!important;font-family:'Space Grotesk',sans-serif!important}
+#mobileDrawer .mobile-link{font-family:'Pretendard',sans-serif!important}
 </style>
