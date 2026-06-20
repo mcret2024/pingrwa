@@ -151,9 +151,8 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
   </div>
   <div class="mapwrap">
    <span class="gpill"><span class="d"></span>전 세계 · 실시간 상환</span>
-   <div class="gstage"><canvas id="globe" class="globe"></canvas><div class="gmarks" id="gmarks"></div></div>
+   <div class="gstage"><canvas id="globe" class="globe"></canvas></div>
    <div class="fcard"><div class="l">표준 채권 풀 · 60일</div><div class="v">18.4<small>% APY</small></div></div>
-   <div class="gcard" id="gcard"><div class="gimg" id="gcimg"><span class="pat"></span><i id="gcicon" class="ti"></i><span class="gflag" id="gcflag"></span></div><div class="gbody"><div class="gc" id="gcloc"></div><div class="gm" id="gcname"></div><div class="gtag" id="gctag"></div></div></div>
   </div>
  </section>
 
@@ -236,54 +235,20 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
 import createGlobe from "https://cdn.jsdelivr.net/npm/cobe@0.6.3/+esm";
 (function(){
  const cv=document.getElementById('globe');if(!cv)return;
- const marksEl=document.getElementById('gmarks'),card=document.getElementById('gcard'),stage=cv.parentElement;
- const CAT={'카페':['ti-coffee','linear-gradient(135deg,#870AE0,#A259FF)'],'외식':['ti-tools-kitchen-2','linear-gradient(135deg,#D97706,#F5A524)'],'리테일':['ti-building-store','linear-gradient(135deg,#2554D6,#4F86FF)'],'편의점':['ti-building-store','linear-gradient(135deg,#0FB5A6,#43E6C4)'],'디저트':['ti-cup','linear-gradient(135deg,#A21CAF,#E8459B)'],'베이커리':['ti-cake','linear-gradient(135deg,#A21CAF,#E8459B)']};
  const M=[
-  ['SG','싱가포르','Singapore','Maxwell Food Centre','외식',1.35,103.82,1],
-  ['VN','베트남','Ho Chi Minh','Cộng Cà Phê','카페',10.82,106.63,0],
-  ['ID','인도네시아','Jakarta','Kopi Kenangan','카페',-6.2,106.85,0],
-  ['MY','말레이시아','Kuala Lumpur','Mydin Mart','리테일',3.14,101.69,0],
-  ['TH','태국','Bangkok','After You','디저트',13.75,100.5,0],
-  ['PH','필리핀','Manila','Jollibee Cubao','외식',14.6,120.98,0],
-  ['JP','일본','Tokyo','Lawson Shibuya','편의점',35.68,139.69,0],
-  ['IN','인도','Mumbai','Chaayos','카페',19.07,72.88,0],
-  ['HK','홍콩','Hong Kong','Tsui Wah','외식',22.32,114.17,0],
-  ['TW','대만','Taipei','Chun Shui Tang','카페',25.03,121.56,0],
-  ['AE','아랍에미리트','Dubai','Zaroob','외식',25.2,55.27,0],
-  ['SA','사우디','Riyadh','Half Million','카페',24.71,46.67,0],
-  ['GB','영국','London','Pret A Manger','카페',51.51,-0.13,0],
-  ['FR','프랑스','Paris','Paul Boulangerie','베이커리',48.85,2.35,0],
-  ['DE','독일','Berlin','dean&david','카페',52.52,13.4,0],
-  ['ES','스페인','Madrid','100 Montaditos','외식',40.42,-3.7,0],
-  ['IT','이탈리아','Rome','Antico Forno','베이커리',41.9,12.5,0],
-  ['NL','네덜란드','Amsterdam','Albert Heijn','리테일',52.37,4.9,0],
-  ['TR','튀르키예','Istanbul','Mado','디저트',41.01,28.98,0],
-  ['NG','나이지리아','Lagos','Chicken Republic','외식',6.52,3.38,0],
-  ['EG','이집트','Cairo','Cilantro Cafe','카페',30.04,31.24,0],
-  ['ZA','남아프리카','Johannesburg','Nandos','외식',-26.2,28.04,0],
-  ['KE','케냐','Nairobi','Java House','카페',-1.29,36.82,0],
-  ['US','미국','New York','Joe Coffee','카페',40.71,-74.01,0],
-  ['US','미국','Los Angeles','Blue Bottle','카페',34.05,-118.24,0],
-  ['CA','캐나다','Toronto','Tim Hortons','카페',43.65,-79.38,0],
-  ['MX','멕시코','Mexico City','Cielito Querido','카페',19.43,-99.13,0],
-  ['BR','브라질','São Paulo','Bella Paulista','베이커리',-23.55,-46.63,0],
-  ['AR','아르헨티나','Buenos Aires','Havanna','카페',-34.6,-58.38,0],
-  ['CO','콜롬비아','Bogotá','Juan Valdez','카페',4.71,-74.07,0],
-  ['CL','칠레','Santiago','Castaño','베이커리',-33.45,-70.66,0],
-  ['AU','호주','Sydney','Guzman y Gomez','외식',-33.87,151.21,0],
-  ['NZ','뉴질랜드','Auckland','Mojo Coffee','카페',-36.85,174.76,0]
+  [1.35,103.82,1],[21.03,105.85,0],[-6.21,106.85,0],[3.14,101.69,0],[13.75,100.50,0],[14.60,120.98,0],[35.68,139.69,0],[28.61,77.21,0],[39.90,116.40,0],[24.45,54.38,0],[24.71,46.67,0],[39.93,32.86,0],
+  [51.51,-0.13,0],[48.85,2.35,0],[52.52,13.40,0],[40.42,-3.70,0],[41.90,12.50,0],[52.37,4.90,0],[52.23,21.01,0],[55.75,37.62,0],
+  [9.08,7.40,0],[30.04,31.24,0],[-25.74,28.19,0],[-1.29,36.82,0],
+  [38.91,-77.04,0],[45.42,-75.70,0],[19.43,-99.13,0],[-15.79,-47.88,0],[-34.60,-58.38,0],[4.71,-74.07,0],[-33.45,-70.66,0],[-12.05,-77.04,0],
+  [-35.28,149.13,0],[-41.29,174.78,0]
  ];
- let phi=4.2,theta=0.26,w=0,paused=false,drag=null,R=0;
- const onR=()=>{w=cv.offsetWidth;R=w*0.455;};window.addEventListener('resize',onR);onR();
- cv.addEventListener('pointerdown',e=>{drag=e.clientX;cv.style.cursor='grabbing';card.classList.remove('on');});
+ let phi=4.2,theta=0.26,w=0,drag=null;
+ const onR=()=>{w=cv.offsetWidth;};window.addEventListener('resize',onR);onR();
+ cv.addEventListener('pointerdown',e=>{drag=e.clientX;cv.style.cursor='grabbing';});
  window.addEventListener('pointerup',()=>{if(drag!==null){drag=null;cv.style.cursor='grab';}});
  window.addEventListener('pointermove',e=>{if(drag!==null){phi+=(e.clientX-drag)/170;drag=e.clientX;}});
- createGlobe(cv,{devicePixelRatio:2,width:w*2,height:w*2,phi:0,theta:theta,dark:0,diffuse:1.1,mapSamples:16000,mapBrightness:5.6,baseColor:[0.93,0.89,1],markerColor:[0.53,0.04,0.88],glowColor:[0.88,0.82,1],markers:M.map(m=>({location:[m[5],m[6]],size:m[7]===1?0.09:0.05})),onRender:(state)=>{state.phi=phi;if(!paused&&drag===null)phi+=0.004;state.width=w*2;state.height=w*2;}});
+ createGlobe(cv,{devicePixelRatio:2,width:w*2,height:w*2,phi:0,theta:theta,dark:0,diffuse:1.1,mapSamples:16000,mapBrightness:5.6,baseColor:[0.93,0.89,1],markerColor:[0.53,0.04,0.88],glowColor:[0.88,0.82,1],markers:M.map(m=>({location:[m[0],m[1]],size:m[2]?0.09:0.05})),onRender:(state)=>{state.phi=phi;if(drag===null)phi+=0.004;state.width=w*2;state.height=w*2;}});
  setTimeout(()=>{cv.style.opacity=1;},250);
- function proj(lat,lng){const la=lat*Math.PI/180,u=lng*Math.PI/180+phi,ct=Math.cos(theta),st=Math.sin(theta),cl=Math.cos(la);const x=cl*Math.sin(u),yb=Math.sin(la),zb=cl*Math.cos(u);return[w/2+R*x,w/2-(yb*ct-zb*st)*R,yb*st+zb*ct];}
- cv.addEventListener('mousemove',e=>{if(drag!==null)return;const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let bi=-1,bd=22;for(let i=0;i<M.length;i++){const p=proj(M[i][5],M[i][6]);if(p[2]<=0.06)continue;const dd=Math.hypot(p[0]-mx,p[1]-my);if(dd<bd){bd=dd;bi=i;}}if(bi>=0){paused=true;cv.style.cursor='pointer';showCard(M[bi],mx,my);}else{paused=false;cv.style.cursor='grab';card.classList.remove('on');}});
- cv.addEventListener('mouseleave',()=>{paused=false;card.classList.remove('on');});
- function showCard(m,x,y){const ci=CAT[m[4]]||CAT['외식'];document.getElementById('gcimg').style.background=ci[1];document.getElementById('gcicon').className='ti '+ci[0];document.getElementById('gcflag').textContent=m[0];document.getElementById('gcloc').textContent=m[1]+' · '+m[2];document.getElementById('gcname').textContent=m[3];document.getElementById('gctag').textContent=m[4]+' · 대표 가맹점';const cw=214,chh=172;let px=x+16,py=y-12;if(px+cw>w)px=x-cw-16;if(px<0)px=4;if(py+chh>w)py=w-chh-4;if(py<0)py=4;card.style.left=(stage.offsetLeft+px)+'px';card.style.top=(stage.offsetTop+py)+'px';card.classList.add('on');}
 })();
 </script>
 </body>
