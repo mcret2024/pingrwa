@@ -35,7 +35,8 @@ RewriteRule \.(sql|md)$ - [F,L]
 #   landing.html 로 redirect 되는 FOUC 깜빡임을 제거하기 위해, 루트 진입을
 #   직접 landing.html 로 보낸다. 지갑 연결한 사용자는 랜딩의 "Connect Wallet"
 #   버튼을 누르면 자동으로 index.html (대시보드) 로 이동한다.
-RewriteRule ^/?$ /user/trade.html [L,R=302]
+# (2026-06-20) 루트(/)는 새 메인 랜딩(index.html)을 DirectoryIndex로 서빙.
+# 기존 /user/trade.html 리다이렉트는 제거됨 (앱은 /user/, /admin/ 그대로 접근).
 
 # Security headers
 <IfModule mod_headers.c>
