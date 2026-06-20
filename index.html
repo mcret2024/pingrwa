@@ -129,6 +129,9 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
 .fgrid h5{font-family:var(--mono);font-size:11px;color:var(--mut2);margin:0 0 13px;letter-spacing:.5px}
 .fgrid a{display:block;font-size:13px;color:var(--mut);margin-bottom:9px;text-decoration:none}.fgrid a:hover{color:var(--pri)}
 .fbot{margin-top:28px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mut2)}
+.langsw{display:inline-flex;align-items:center;gap:2px;background:#F4F0FC;border:1px solid #E2DCF0;border-radius:999px;padding:3px;margin-right:2px}
+.langsw button{font-family:var(--mono);font-size:11px;font-weight:700;color:#8A83A0;background:transparent;border:0;padding:5px 10px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+.langsw button.on{background:var(--g);color:#fff}
 @media(max-width:940px){.wrap{padding:0 18px}.top .r span:nth-child(n+2){display:none}.menu{display:none}.hero{grid-template-columns:1fr}.h1{font-size:36px}.gstat,.pools,.steps,.why{grid-template-columns:1fr 1fr}.ctry{grid-template-columns:1fr 1fr}.mh span:nth-child(n+4),.mr>*:nth-child(n+5){display:none}.mh,.mr{grid-template-columns:1fr 1fr}.fgrid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -137,7 +140,7 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
 <div class="navw" id="navw"><div class="wrap"><nav>
  <a class="brand" href="#" aria-label="pingpay RWA"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a>
  <div class="menu"><a href="/user/assets.html">투자</a><a href="/user/trade.html">거래</a><a href="/user/swap.html">스왑</a><div class="mdrop"><span class="mtrig">지갑 <i class="ti ti-chevron-down"></i></span><div class="mmenu"><a href="/user/deposit.html"><i class="ti ti-arrow-down-circle"></i>입금</a><a href="/user/withdraw.html"><i class="ti ti-arrow-up-circle"></i>출금</a></div></div><a href="/user/history.html">히스토리</a><a href="/user/ir.html">IR</a></div>
- <div class="right"><button class="btn">로그인</button><button class="btn pri-b">지갑 연결</button></div>
+ <div class="right"><div class="langsw" id="langsw"><button data-l="ko" class="on">KO</button><button data-l="en">EN</button></div><button class="btn">로그인</button><button class="btn pri-b">지갑 연결</button></div>
 </nav></div></div>
 
 <div class="wrap">
@@ -234,6 +237,47 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
  </div>
  <div class="fbot"><span>© 2026 PINGRWA · Powered by PINGPAY (PAX Global Gateway Pte. Ltd., Singapore)</span><span>EN · 中文 · Tiếng Việt · Bahasa · العربية · Español</span></div>
 </div></footer>
+<script>
+(function(){
+ const DICT={
+  "전 세계 결제 네트워크 기반 RWA":"Global payment-network RWA","13개 언어":"13 languages",
+  "투자":"Invest","거래":"Trade","스왑":"Swap","지갑":"Wallet","입금":"Deposit","출금":"Withdraw","히스토리":"History","로그인":"Login","지갑 연결":"Connect Wallet",
+  "전 세계 실물 매출을":"Turn real-world sales into","온체인 수익":"on-chain yield","으로":"",
+  "PINGPAY는 전 세계 결제 네트워크에서 가맹점에 자금을 선지급합니다. 그 매출채권을 토큰화해, 글로벌 투자자가 실물 현금흐름에 분산 투자할 수 있습니다.":"PINGPAY advances funds to merchants across the global payment network. Those receivables are tokenized so global investors can diversify into real-world cash flows.",
+  "아시아·태평양":"Asia-Pacific","유럽":"Europe","북미·중남미":"Americas","중동·아프리카":"Middle East & Africa","싱가포르 HQ":"Singapore HQ",
+  "투자 시작하기":"Start investing","작동 방식 보기":"How it works","전 세계 · 실시간 상환":"Global · live repayments","표준 채권 풀 · 60일":"Standard pool · 60 days",
+  "PINGPAY 카드 결제액":"PINGPAY card volume","PINGPAY 생태계":"PINGPAY ecosystem","앱 다운로드":"App downloads","운영 국가":"Countries","RWA 누적 예치 (TVL)":"RWA TVL",
+  "전 세계 가맹점 매출":"Merchant sales worldwide","전 세계 가맹점 결제에서 채권이 발생합니다. 대륙·국가 분산으로 단일 시장 리스크를 완화합니다.":"Receivables are generated from real merchant payments worldwide. Diversifying across continents and countries mitigates single-market risk.",
+  "북미":"North America","중남미":"Latin America","오세아니아":"Oceania","운영중":"Live","가맹점":"Merchants","· 채권":"· Bonds","채권":"Bonds",
+  "베트남":"Vietnam","인도네시아":"Indonesia","말레이시아":"Malaysia","싱가포르":"Singapore","태국":"Thailand","필리핀":"Philippines","일본":"Japan","인도":"India","홍콩":"Hong Kong","대만":"Taiwan","미국":"USA","캐나다":"Canada","멕시코":"Mexico","브라질":"Brazil","아르헨티나":"Argentina","콜롬비아":"Colombia","칠레":"Chile","영국":"UK","독일":"Germany","프랑스":"France","스페인":"Spain","이탈리아":"Italy","네덜란드":"Netherlands","폴란드":"Poland","튀르키예":"Türkiye","사우디":"Saudi Arabia","이집트":"Egypt","나이지리아":"Nigeria","남아공":"South Africa","케냐":"Kenya","호주":"Australia","뉴질랜드":"New Zealand",
+  "투자 풀":"Investment pools","전체 풀 보기 →":"View all pools →","안정형 풀":"Stable pool","표준형 풀":"Standard pool","성장형 풀":"Growth pool","저위험":"Low risk","중위험":"Mid risk","고수익":"High yield","APY · 60일 · 다국가 분산":"APY · 60d · multi-country","APY · 90일 · 신흥시장":"APY · 90d · emerging","충전율":"Filled","예치하기":"Deposit",
+  "작동 방식":"How it works","AI 한도 산정":"AI limit sizing","채권 발생":"Bond issuance","RWA 토큰화":"RWA tokenization","자동 상환·수익":"Auto repay & yield",
+  "각 지역 가맹점의 최근 60~90일 결제 매출을 AI가 분석해 선지급 한도를 자동 생성.":"AI analyzes each merchant's last 60–90 days of payment sales to auto-set an advance limit.",
+  "월 매출 일정 비율을 USDT로 선지급. 60일 상환 + 20% 이용료 채권 발행.":"A share of monthly sales is advanced in USDT. A 60-day repayment bond with a 20% fee is issued.",
+  "다국가 채권을 묶어 Solana 위에 토큰화. 글로벌 투자자가 풀에 예치.":"Multi-country bonds are bundled and tokenized on Solana. Global investors deposit into pools.",
+  "가맹점 결제 매출에서 자동 차감 상환 → 현금흐름이 투자자에게 분배.":"Repaid automatically from merchant sales → cash flow distributed to investors.",
+  "채권 마켓":"Bond market","전체 채권 →":"View all bonds →","채권 ID":"Bond ID","지역":"Region","업종":"Sector","선지급":"Advance","수익률":"Yield","상환 진행률":"Repayment","상태":"Status",
+  "카페·F&B":"Cafe · F&B","리테일":"Retail","뷰티":"Beauty","외식":"Dining","완료":"Done",
+  "왜 PINGRWA인가":"Why PINGRWA","실물 매출 담보":"Real-sales backed","글로벌 분산":"Global diversification","싱가포르 라이선스":"Singapore licensed",
+  "실제 가맹점 결제에서 발생한 채권. 가상자산 변동성과 무관한 현금흐름.":"Bonds from real merchant payments — cash flow independent of crypto volatility.",
+  "전 세계 다국가·다대륙 채권에 분산되어 단일 시장 리스크 완화.":"Diversified across countries and continents worldwide to reduce single-market risk.",
+  "PINGPAY 결제 인프라 위에서 USDT로 정산·상환되는 온체인 투명성.":"On-chain transparency, settled and repaid in USDT on PINGPAY's rails.",
+  "싱가포르 본사(PAX Global Gateway) · KYC/AML 적용.":"Singapore HQ (PAX Global Gateway) · KYC/AML applied.",
+  "전 세계 실물 매출채권에 투자하세요":"Invest in real-world receivables worldwide","지갑을 연결하고 전 세계로 분산된 RWA 채권 풀에 예치하면 됩니다.":"Connect your wallet and deposit into globally diversified RWA bond pools.","지갑 연결하고 시작":"Connect wallet to start",
+  "PINGPAY 글로벌 결제 네트워크의 가맹점 매출채권을 토큰화한 실물자산(RWA) 투자 프로토콜.":"An RWA protocol tokenizing merchant receivables from PINGPAY's global payment network.",
+  "지역 네트워크":"Regional network","추천 보상":"Referral rewards","문서 (Docs)":"Docs","스마트컨트랙트":"Smart contracts","PINGPAY 소개":"About PINGPAY","이용약관":"Terms of Service","개인정보처리방침":"Privacy Policy"
+ };
+ const items=[];
+ const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null);
+ let n;while(n=w.nextNode()){const t=n.nodeValue.trim();if(t&&Object.prototype.hasOwnProperty.call(DICT,t))items.push({node:n,ko:n.nodeValue,key:t});}
+ const KEY='rwa_lang_user_v1';
+ function apply(l){items.forEach(o=>{o.node.nodeValue=(l==='en')?o.ko.replace(o.key,DICT[o.key]):o.ko;});document.documentElement.lang=l;document.querySelectorAll('#langsw button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));}
+ let cur;try{cur=localStorage.getItem(KEY)||'ko';}catch(e){cur='ko';}
+ if(cur!=='ko'&&cur!=='en')cur='ko';
+ apply(cur);
+ document.querySelectorAll('#langsw button').forEach(b=>b.addEventListener('click',()=>{const l=b.dataset.l;try{localStorage.setItem(KEY,l);}catch(e){}apply(l);}));
+})();
+</script>
 <script>
 (function(){var n=document.getElementById('navw');addEventListener('scroll',function(){n.classList.toggle('scr',scrollY>8)});})();
 </script>
