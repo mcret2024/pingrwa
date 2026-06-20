@@ -48,6 +48,16 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0
 .gpill .d{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .fcard{position:absolute;right:24px;bottom:24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 14px 40px rgba(28,18,53,.14)}
 .fcard .l{font-size:11px;color:var(--mut);font-family:var(--mono)}.fcard .v{font-family:var(--disp);font-weight:800;font-size:24px;color:var(--nv)}.fcard .v small{font-size:13px;color:var(--ok)}
+.gcard{position:absolute;z-index:7;pointer-events:none;width:214px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 48px rgba(28,18,53,.22);overflow:hidden;opacity:0;transform:translateY(6px) scale(.98);transition:opacity .14s,transform .14s}
+.gcard.on{opacity:1;transform:none}
+.gcard .gimg{height:94px;position:relative;display:flex;align-items:center;justify-content:center;color:#fff}
+.gcard .gimg i{font-size:34px;opacity:.95;position:relative}
+.gcard .gimg .pat{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.28) 1px,transparent 1px);background-size:13px 13px;opacity:.55}
+.gcard .gflag{position:absolute;top:9px;left:9px;font-family:var(--mono);font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.3);padding:3px 7px;border-radius:6px}
+.gcard .gbody{padding:12px 14px}
+.gcard .gc{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.gcard .gm{font-family:var(--disp);font-weight:700;font-size:15px;color:var(--nv);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcard .gtag{font-size:11px;color:var(--pri);margin-top:6px;font-weight:600}
 .gstat{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
 .gs{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
 .gs .v{font-family:var(--disp);font-weight:800;font-size:26px;color:var(--nv)}.gs .l{font-size:12.5px;color:var(--mut);margin-top:5px}.gs .src{font-family:var(--mono);font-size:10px;color:var(--mut2);margin-top:3px}
@@ -137,6 +147,7 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
    <span class="gpill"><span class="d"></span>전 세계 · 실시간 상환</span>
    <canvas id="globe" class="globe"></canvas>
    <div class="fcard"><div class="l">표준 채권 풀 · 60일</div><div class="v">18.4<small>% APY</small></div></div>
+   <div class="gcard" id="gcard"><div class="gimg" id="gcimg"><span class="pat"></span><i id="gcicon" class="ti"></i><span class="gflag" id="gcflag"></span></div><div class="gbody"><div class="gc" id="gcloc"></div><div class="gm" id="gcname"></div><div class="gtag" id="gctag"></div></div></div>
   </div>
  </section>
 
@@ -215,31 +226,75 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
 <script>
 (function(){var n=document.getElementById('navw');addEventListener('scroll',function(){n.classList.toggle('scr',scrollY>8)});})();
 </script>
-<script type="module">
-import createGlobe from "https://cdn.jsdelivr.net/npm/cobe@0.6.3/+esm";
-const cv=document.getElementById('globe');
-if(cv){
- let phi=4.2,w=0,drag=null,rot=0.003;
- const onResize=()=>{w=cv.offsetWidth};window.addEventListener('resize',onResize);onResize();
- cv.addEventListener('pointerdown',e=>{drag=e.clientX;cv.style.cursor='grabbing'});
- window.addEventListener('pointerup',()=>{drag=null;cv.style.cursor='grab'});
- window.addEventListener('pointermove',e=>{if(drag!==null){phi+=(e.clientX-drag)/200;drag=e.clientX}});
- createGlobe(cv,{
-  devicePixelRatio:2,width:w*2,height:w*2,phi:0,theta:0.26,dark:0,diffuse:1.1,
-  mapSamples:16000,mapBrightness:5.6,baseColor:[0.93,0.89,1],markerColor:[0.53,0.04,0.88],glowColor:[0.88,0.82,1],
-  markers:[
-   {location:[1.35,103.82],size:0.1},
-   {location:[10.82,106.63],size:0.05},{location:[-6.2,106.85],size:0.05},{location:[3.14,101.69],size:0.05},{location:[13.75,100.5],size:0.045},{location:[14.6,120.98],size:0.045},{location:[35.68,139.69],size:0.05},{location:[19.07,72.88],size:0.05},{location:[28.61,77.21],size:0.045},{location:[25.2,55.27],size:0.045},{location:[22.32,114.17],size:0.045},{location:[31.23,121.47],size:0.045},{location:[25.03,121.56],size:0.04},{location:[24.86,67.0],size:0.04},{location:[23.81,90.41],size:0.04},{location:[24.71,46.67],size:0.04},{location:[41.01,28.98],size:0.045},
-   {location:[51.51,-0.13],size:0.05},{location:[48.85,2.35],size:0.045},{location:[52.52,13.4],size:0.045},{location:[40.42,-3.7],size:0.04},{location:[41.9,12.5],size:0.04},{location:[52.37,4.9],size:0.04},{location:[55.75,37.62],size:0.045},{location:[52.23,21.01],size:0.04},
-   {location:[6.52,3.38],size:0.045},{location:[30.04,31.24],size:0.045},{location:[-26.2,28.04],size:0.04},{location:[-1.29,36.82],size:0.04},{location:[33.57,-7.59],size:0.04},
-   {location:[40.71,-74.01],size:0.055},{location:[34.05,-118.24],size:0.05},{location:[41.88,-87.63],size:0.04},{location:[43.65,-79.38],size:0.04},{location:[19.43,-99.13],size:0.045},
-   {location:[-23.55,-46.63],size:0.05},{location:[-34.6,-58.38],size:0.045},{location:[4.71,-74.07],size:0.04},{location:[-12.04,-77.04],size:0.04},{location:[-33.45,-70.66],size:0.04},
-   {location:[-33.87,151.21],size:0.045},{location:[-36.85,174.76],size:0.04}
-  ],
-  onRender:(state)=>{state.phi=phi;phi+=rot;state.width=w*2;state.height=w*2}
- });
- setTimeout(()=>{cv.style.opacity=1},250);
-}
+<script>
+(function(){
+ const cv=document.getElementById('globe');if(!cv)return;
+ const ctx=cv.getContext('2d'),card=document.getElementById('gcard');
+ const CAT={'카페':['ti-coffee','linear-gradient(135deg,#870AE0,#A259FF)'],'외식':['ti-tools-kitchen-2','linear-gradient(135deg,#D97706,#F5A524)'],'리테일':['ti-building-store','linear-gradient(135deg,#2554D6,#4F86FF)'],'편의점':['ti-building-store','linear-gradient(135deg,#0FB5A6,#43E6C4)'],'디저트':['ti-cup','linear-gradient(135deg,#A21CAF,#E8459B)'],'베이커리':['ti-cake','linear-gradient(135deg,#A21CAF,#E8459B)']};
+ const M=[
+  ['SG','싱가포르','Singapore','Maxwell Food Centre','외식',1.35,103.82,1],
+  ['VN','베트남','Ho Chi Minh','Cộng Cà Phê','카페',10.82,106.63,0],
+  ['ID','인도네시아','Jakarta','Kopi Kenangan','카페',-6.2,106.85,0],
+  ['MY','말레이시아','Kuala Lumpur','Mydin Mart','리테일',3.14,101.69,0],
+  ['TH','태국','Bangkok','After You','디저트',13.75,100.5,0],
+  ['PH','필리핀','Manila','Jollibee Cubao','외식',14.6,120.98,0],
+  ['JP','일본','Tokyo','Lawson Shibuya','편의점',35.68,139.69,0],
+  ['IN','인도','Mumbai','Chaayos','카페',19.07,72.88,0],
+  ['HK','홍콩','Hong Kong','Tsui Wah','외식',22.32,114.17,0],
+  ['TW','대만','Taipei','Chun Shui Tang','카페',25.03,121.56,0],
+  ['AE','아랍에미리트','Dubai','Zaroob','외식',25.2,55.27,0],
+  ['SA','사우디','Riyadh','Half Million','카페',24.71,46.67,0],
+  ['GB','영국','London','Pret A Manger','카페',51.51,-0.13,0],
+  ['FR','프랑스','Paris','Paul Boulangerie','베이커리',48.85,2.35,0],
+  ['DE','독일','Berlin','dean&david','카페',52.52,13.4,0],
+  ['ES','스페인','Madrid','100 Montaditos','외식',40.42,-3.7,0],
+  ['IT','이탈리아','Rome','Antico Forno','베이커리',41.9,12.5,0],
+  ['NL','네덜란드','Amsterdam','Albert Heijn','리테일',52.37,4.9,0],
+  ['TR','튀르키예','Istanbul','Mado','디저트',41.01,28.98,0],
+  ['NG','나이지리아','Lagos','Chicken Republic','외식',6.52,3.38,0],
+  ['EG','이집트','Cairo','Cilantro Cafe','카페',30.04,31.24,0],
+  ['ZA','남아프리카','Johannesburg','Nandos','외식',-26.2,28.04,0],
+  ['KE','케냐','Nairobi','Java House','카페',-1.29,36.82,0],
+  ['US','미국','New York','Joe Coffee','카페',40.71,-74.01,0],
+  ['US','미국','Los Angeles','Blue Bottle','카페',34.05,-118.24,0],
+  ['CA','캐나다','Toronto','Tim Hortons','카페',43.65,-79.38,0],
+  ['MX','멕시코','Mexico City','Cielito Querido','카페',19.43,-99.13,0],
+  ['BR','브라질','São Paulo','Bella Paulista','베이커리',-23.55,-46.63,0],
+  ['AR','아르헨티나','Buenos Aires','Havanna','카페',-34.6,-58.38,0],
+  ['CO','콜롬비아','Bogotá','Juan Valdez','카페',4.71,-74.07,0],
+  ['CL','칠레','Santiago','Castaño','베이커리',-33.45,-70.66,0],
+  ['AU','호주','Sydney','Guzman y Gomez','외식',-33.87,151.21,0],
+  ['NZ','뉴질랜드','Auckland','Mojo Coffee','카페',-36.85,174.76,0]
+ ];
+ const N=820,dots=[];
+ for(let i=0;i<N;i++){const y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),t=Math.PI*(3-Math.sqrt(5))*i;dots.push([Math.cos(t)*r,y,Math.sin(t)*r]);}
+ let cssW=0,cssH=0,R=0,cx=0,cy=0,dpr=Math.min(2,window.devicePixelRatio||1);
+ function resize(){cssW=cv.offsetWidth;cssH=cssW;cv.width=cssW*dpr;cv.height=cssH*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);R=cssW*0.4;cx=cssW/2;cy=cssH/2;}
+ window.addEventListener('resize',resize);resize();
+ const ax=0.35;let ay=-1.8,paused=false,hov=null,mk=[];
+ const ca=Math.cos(ax),sa=Math.sin(ax);
+ function proj(lat,lng,c,s){const la=lat*Math.PI/180,u=lng*Math.PI/180;const x0=Math.cos(la)*Math.sin(u),y0=Math.sin(la),z0=Math.cos(la)*Math.cos(u);const x1=x0*c+z0*s,z1=z0*c-x0*s;const y2=y0*ca-z1*sa,z2=y0*sa+z1*ca;return[cx+R*x1,cy-R*y2,z2];}
+ function frame(){
+  const c=Math.cos(ay),s=Math.sin(ay);
+  ctx.clearRect(0,0,cssW,cssH);
+  const g=ctx.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.15,cx,cy,R);g.addColorStop(0,'rgba(162,89,255,.12)');g.addColorStop(1,'rgba(162,89,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
+  for(let i=0;i<N;i++){const d=dots[i];const x1=d[0]*c+d[2]*s,z1=d[2]*c-d[0]*s,y1=d[1];const y2=y1*ca-z1*sa,z2=y1*sa+z1*ca;if(z2<=0)continue;ctx.fillStyle='rgba(135,10,224,'+(0.04+0.16*z2).toFixed(3)+')';ctx.beginPath();ctx.arc(cx+R*x1,cy-R*y2,1,0,7);ctx.fill();}
+  mk=[];
+  for(const m of M){const p=proj(m[5],m[6],c,s);if(p[2]<=0.02)continue;const hub=m[7]===1,rad=hub?5.2:3.4;
+   ctx.fillStyle=hub?'rgba(15,181,166,.22)':'rgba(135,10,224,.2)';ctx.beginPath();ctx.arc(p[0],p[1],rad*2.3,0,7);ctx.fill();
+   ctx.fillStyle=hub?'#0FB5A6':'#870AE0';ctx.beginPath();ctx.arc(p[0],p[1],rad,0,7);ctx.fill();
+   ctx.fillStyle='rgba(255,255,255,.92)';ctx.beginPath();ctx.arc(p[0],p[1],rad*0.4,0,7);ctx.fill();
+   mk.push({x:p[0],y:p[1],z:p[2],m:m});}
+  if(hov){ctx.strokeStyle='#870AE0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(hov.x,hov.y,10,0,7);ctx.stroke();}
+ }
+ function loop(){if(!paused)ay+=0.0024;frame();requestAnimationFrame(loop);}
+ loop();setTimeout(()=>{cv.style.opacity=1},150);
+ function showCard(m,x,y){const ci=CAT[m[4]]||CAT['외식'];const img=document.getElementById('gcimg');img.style.background=ci[1];document.getElementById('gcicon').className='ti '+ci[0];document.getElementById('gcflag').textContent=m[0];document.getElementById('gcloc').textContent=m[1]+' · '+m[2];document.getElementById('gcname').textContent=m[3];document.getElementById('gctag').textContent=m[4]+' · 대표 가맹점';
+  let px=x+18,py=y-12;const cw=214,chh=172;if(px+cw>cssW)px=x-cw-18;if(px<0)px=4;if(py+chh>cssH)py=cssH-chh-4;if(py<0)py=4;
+  card.style.left=(cv.offsetLeft+px)+'px';card.style.top=(cv.offsetTop+py)+'px';card.classList.add('on');}
+ cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let best=null,bd=15;for(const k of mk){if(k.z<0.1)continue;const dd=Math.hypot(k.x-mx,k.y-my);if(dd<bd){bd=dd;best=k;}}if(best){hov=best;paused=true;cv.style.cursor='pointer';showCard(best.m,mx,my);}else{if(hov){hov=null;paused=false;card.classList.remove('on');}cv.style.cursor='grab';}});
+ cv.addEventListener('mouseleave',()=>{hov=null;paused=false;card.classList.remove('on');});
+})();
 </script>
 </body>
 </html>
