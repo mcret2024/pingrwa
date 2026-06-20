@@ -27,7 +27,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0
 .brand .bmk{width:58px;height:30px;background:var(--g);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
 .brand .bwm{width:90px;height:23px;background:var(--ink);-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
 .brand .brwa{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--g);padding:4px 8px;border-radius:7px;letter-spacing:1px;margin-left:2px}
-.menu{display:flex;gap:26px;font-size:14px;color:var(--mut);font-weight:500}.menu .on{color:var(--ink)}.menu span{cursor:pointer}.menu span:hover{color:var(--pri)}
+.menu{display:flex;gap:26px;font-size:14px;color:var(--mut);font-weight:500;align-items:center}
+.menu a{color:var(--mut);text-decoration:none;cursor:pointer}.menu a:hover{color:var(--pri)}
+.mdrop{position:relative}
+.mtrig{display:flex;align-items:center;gap:4px;cursor:pointer}.mtrig i{font-size:14px}.mdrop:hover .mtrig{color:var(--pri)}
+.mmenu{position:absolute;top:100%;left:50%;transform:translateX(-50%) translateY(4px);margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(28,18,53,.14);padding:6px;min-width:128px;opacity:0;visibility:hidden;transition:.15s;z-index:50}
+.mdrop:hover .mmenu{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.mmenu a{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--ink)}
+.mmenu a:hover{background:var(--soft);color:var(--pri)}.mmenu a i{font-size:15px;color:var(--pri)}
 .right{display:flex;align-items:center;gap:10px}
 .btn{font-family:var(--body);font-weight:600;font-size:14px;border-radius:11px;cursor:pointer;padding:11px 19px;border:1px solid var(--line);background:#fff;color:var(--ink);transition:.15s}
 .btn:hover{transform:translateY(-1px)}
@@ -129,7 +136,7 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
 <div class="top"><div class="wrap"><div class="l"><i class="ti ti-world" style="font-size:14px"></i> 전 세계 결제 네트워크 기반 RWA</div><div class="r"><span><i class="ti ti-building"></i> HQ Singapore</span><span><i class="ti ti-language"></i> 13개 언어</span><span><i class="ti ti-brand-solana"></i> Solana · USDT</span></div></div></div>
 <div class="navw" id="navw"><div class="wrap"><nav>
  <a class="brand" href="#" aria-label="pingpay RWA"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a>
- <div class="menu"><span class="on">마켓</span><span>투자 풀</span><span>지역</span><span>채권</span><span>문서</span></div>
+ <div class="menu"><a href="/user/assets.html">투자</a><a href="/user/trade.html">거래</a><a href="/user/swap.html">스왑</a><div class="mdrop"><span class="mtrig">지갑 <i class="ti ti-chevron-down"></i></span><div class="mmenu"><a href="/user/deposit.html"><i class="ti ti-arrow-down-circle"></i>입금</a><a href="/user/withdraw.html"><i class="ti ti-arrow-up-circle"></i>출금</a></div></div><a href="/user/history.html">히스토리</a><a href="/user/ir.html">IR</a></div>
  <div class="right"><button class="btn">로그인</button><button class="btn pri-b">지갑 연결</button></div>
 </nav></div></div>
 
