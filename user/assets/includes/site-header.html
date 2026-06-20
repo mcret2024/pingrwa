@@ -99,6 +99,7 @@
         <span class="dot"></span>
         <span class="addr" data-no-i18n="1" translate="no">-</span>
       </div>
+      <button id="ppLoginBtn" class="btn" type="button" onclick="var w=document.getElementById('walletBtn'); if(w) w.click();">로그인</button>
       <button id="walletBtn" class="btn primary" type="button">Connect Wallet</button>
       <button id="otpSetupBtn" class="btn small hidden" type="button">OTP Setup</button>
       <button id="otpVerifyBtn" class="btn small hidden" type="button">OTP Verify</button>
@@ -1029,14 +1030,14 @@
 :root{--pp-g:linear-gradient(120deg,#870AE0,#A259FF)}
 .site-header{background:#0b0a14!important;border-bottom:1px solid rgba(255,255,255,.08)!important;backdrop-filter:blur(16px)!important}
 .site-header .container{max-width:1200px!important;padding:0 40px!important}
-.site-header .header-inner{gap:0!important;padding:16px 0!important;font-family:'Pretendard','Plus Jakarta Sans',sans-serif!important}
+.site-header .header-inner{gap:16px!important;padding:16px 0!important;justify-content:space-between!important;font-family:'Pretendard','Plus Jakarta Sans',sans-serif!important}
 /* brand lockup — match main size */
 .site-header .brand{gap:11px!important}
 .site-header .pp-mk{width:58px;height:30px;display:block;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
 .site-header .pp-wm{width:90px;height:23px;display:block;background:#fff;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
 .site-header .pp-rwa{font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--pp-g);padding:4px 8px;border-radius:7px;letter-spacing:1px}
 /* nav — match main menu (font/size/spacing/hover) */
-.site-header .nav{gap:26px!important;margin-left:48px!important;margin-right:0!important}
+.site-header .nav{gap:24px!important;margin:0 auto!important;flex:0 1 auto!important}
 .site-header .nav a,.site-header .nav .nav-link{font-family:'Pretendard','Plus Jakarta Sans',sans-serif!important;font-size:14px!important;font-weight:500!important;color:rgba(244,242,255,.6)!important;padding:6px 2px!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
 .site-header .nav a:hover,.site-header .nav .nav-link:hover{color:#fff!important;background:transparent!important}
 .site-header .nav a[aria-current="page"],.site-header .nav a.active{color:#fff!important;background:transparent!important;box-shadow:none!important}
@@ -1046,7 +1047,7 @@
 .site-header .nav-sub a{font-family:'Pretendard',sans-serif!important;font-size:13px!important;font-weight:500!important;color:#EDE9FF!important;padding:9px 12px!important;border-radius:8px!important}
 .site-header .nav-sub a:hover{color:#fff!important;background:rgba(162,89,255,.18)!important}
 /* right actions */
-.site-header .header-actions{gap:10px!important}
+.site-header .header-actions{gap:10px!important;margin-left:0!important;flex:0 0 auto!important}
 .site-header .lang-toggle{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:10px!important}
 .site-header .lang-btn{font-family:'Space Grotesk',sans-serif!important;color:rgba(244,242,255,.7)!important}
 .site-header .lang-btn.active,.site-header .lang-btn.is-active,.site-header .lang-btn[aria-pressed="true"]{background:var(--pp-g)!important;color:#fff!important}
