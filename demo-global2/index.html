@@ -43,7 +43,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0
 .cta{display:flex;gap:12px}
 .mapwrap{position:relative;height:460px;display:flex;align-items:center;justify-content:center}
 .mapwrap::before{content:"";position:absolute;width:430px;height:430px;border-radius:50%;background:radial-gradient(circle,rgba(162,89,255,.22),rgba(15,181,166,.08) 55%,transparent 70%);filter:blur(4px)}
-.globe{width:100%;max-width:480px;aspect-ratio:1;position:relative;opacity:0;transition:opacity 1.2s ease;cursor:grab}
+.gstage{position:relative;width:100%;max-width:480px;aspect-ratio:1;margin:0 auto}
+.globe{width:100%;height:100%;display:block;opacity:0;transition:opacity 1.2s ease;cursor:grab}
+.gmarks{position:absolute;inset:0;pointer-events:none}
+.gmark{position:absolute;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;display:none;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer;will-change:transform,opacity}
+.gmark .dt{width:9px;height:9px;border-radius:50%;background:#870AE0;box-shadow:0 0 10px 2px rgba(135,10,224,.55);transition:transform .12s}
+.gmark.hub .dt{width:12px;height:12px;background:#0FB5A6;box-shadow:0 0 13px 3px rgba(15,181,166,.55)}
+.gmark:hover .dt{transform:scale(1.5)}
 .gpill{position:absolute;left:8px;top:14px;display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--pri);background:rgba(255,255,255,.85);border:1px solid var(--line);padding:6px 11px;border-radius:999px;backdrop-filter:blur(6px)}
 .gpill .d{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .fcard{position:absolute;right:24px;bottom:24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 14px 40px rgba(28,18,53,.14)}
@@ -145,7 +151,7 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
   </div>
   <div class="mapwrap">
    <span class="gpill"><span class="d"></span>전 세계 · 실시간 상환</span>
-   <canvas id="globe" class="globe"></canvas>
+   <div class="gstage"><canvas id="globe" class="globe"></canvas><div class="gmarks" id="gmarks"></div></div>
    <div class="fcard"><div class="l">표준 채권 풀 · 60일</div><div class="v">18.4<small>% APY</small></div></div>
    <div class="gcard" id="gcard"><div class="gimg" id="gcimg"><span class="pat"></span><i id="gcicon" class="ti"></i><span class="gflag" id="gcflag"></span></div><div class="gbody"><div class="gc" id="gcloc"></div><div class="gm" id="gcname"></div><div class="gtag" id="gctag"></div></div></div>
   </div>
@@ -226,10 +232,11 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
 <script>
 (function(){var n=document.getElementById('navw');addEventListener('scroll',function(){n.classList.toggle('scr',scrollY>8)});})();
 </script>
-<script>
+<script type="module">
+import createGlobe from "https://cdn.jsdelivr.net/npm/cobe@0.6.3/+esm";
 (function(){
  const cv=document.getElementById('globe');if(!cv)return;
- const ctx=cv.getContext('2d'),card=document.getElementById('gcard');
+ const marksEl=document.getElementById('gmarks'),card=document.getElementById('gcard'),stage=cv.parentElement;
  const CAT={'카페':['ti-coffee','linear-gradient(135deg,#870AE0,#A259FF)'],'외식':['ti-tools-kitchen-2','linear-gradient(135deg,#D97706,#F5A524)'],'리테일':['ti-building-store','linear-gradient(135deg,#2554D6,#4F86FF)'],'편의점':['ti-building-store','linear-gradient(135deg,#0FB5A6,#43E6C4)'],'디저트':['ti-cup','linear-gradient(135deg,#A21CAF,#E8459B)'],'베이커리':['ti-cake','linear-gradient(135deg,#A21CAF,#E8459B)']};
  const M=[
   ['SG','싱가포르','Singapore','Maxwell Food Centre','외식',1.35,103.82,1],
@@ -266,34 +273,15 @@ footer{margin-top:56px;padding:40px 0;border-top:1px solid var(--line)}
   ['AU','호주','Sydney','Guzman y Gomez','외식',-33.87,151.21,0],
   ['NZ','뉴질랜드','Auckland','Mojo Coffee','카페',-36.85,174.76,0]
  ];
- const N=820,dots=[];
- for(let i=0;i<N;i++){const y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),t=Math.PI*(3-Math.sqrt(5))*i;dots.push([Math.cos(t)*r,y,Math.sin(t)*r]);}
- let cssW=0,cssH=0,R=0,cx=0,cy=0,dpr=Math.min(2,window.devicePixelRatio||1);
- function resize(){cssW=cv.offsetWidth;cssH=cssW;cv.width=cssW*dpr;cv.height=cssH*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);R=cssW*0.4;cx=cssW/2;cy=cssH/2;}
- window.addEventListener('resize',resize);resize();
- const ax=0.35;let ay=-1.8,paused=false,hov=null,mk=[];
- const ca=Math.cos(ax),sa=Math.sin(ax);
- function proj(lat,lng,c,s){const la=lat*Math.PI/180,u=lng*Math.PI/180;const x0=Math.cos(la)*Math.sin(u),y0=Math.sin(la),z0=Math.cos(la)*Math.cos(u);const x1=x0*c+z0*s,z1=z0*c-x0*s;const y2=y0*ca-z1*sa,z2=y0*sa+z1*ca;return[cx+R*x1,cy-R*y2,z2];}
- function frame(){
-  const c=Math.cos(ay),s=Math.sin(ay);
-  ctx.clearRect(0,0,cssW,cssH);
-  const g=ctx.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.15,cx,cy,R);g.addColorStop(0,'rgba(162,89,255,.12)');g.addColorStop(1,'rgba(162,89,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
-  for(let i=0;i<N;i++){const d=dots[i];const x1=d[0]*c+d[2]*s,z1=d[2]*c-d[0]*s,y1=d[1];const y2=y1*ca-z1*sa,z2=y1*sa+z1*ca;if(z2<=0)continue;ctx.fillStyle='rgba(135,10,224,'+(0.04+0.16*z2).toFixed(3)+')';ctx.beginPath();ctx.arc(cx+R*x1,cy-R*y2,1,0,7);ctx.fill();}
-  mk=[];
-  for(const m of M){const p=proj(m[5],m[6],c,s);if(p[2]<=0.02)continue;const hub=m[7]===1,rad=hub?5.2:3.4;
-   ctx.fillStyle=hub?'rgba(15,181,166,.22)':'rgba(135,10,224,.2)';ctx.beginPath();ctx.arc(p[0],p[1],rad*2.3,0,7);ctx.fill();
-   ctx.fillStyle=hub?'#0FB5A6':'#870AE0';ctx.beginPath();ctx.arc(p[0],p[1],rad,0,7);ctx.fill();
-   ctx.fillStyle='rgba(255,255,255,.92)';ctx.beginPath();ctx.arc(p[0],p[1],rad*0.4,0,7);ctx.fill();
-   mk.push({x:p[0],y:p[1],z:p[2],m:m});}
-  if(hov){ctx.strokeStyle='#870AE0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(hov.x,hov.y,10,0,7);ctx.stroke();}
- }
- function loop(){if(!paused)ay+=0.0024;frame();requestAnimationFrame(loop);}
- loop();setTimeout(()=>{cv.style.opacity=1},150);
- function showCard(m,x,y){const ci=CAT[m[4]]||CAT['외식'];const img=document.getElementById('gcimg');img.style.background=ci[1];document.getElementById('gcicon').className='ti '+ci[0];document.getElementById('gcflag').textContent=m[0];document.getElementById('gcloc').textContent=m[1]+' · '+m[2];document.getElementById('gcname').textContent=m[3];document.getElementById('gctag').textContent=m[4]+' · 대표 가맹점';
-  let px=x+18,py=y-12;const cw=214,chh=172;if(px+cw>cssW)px=x-cw-18;if(px<0)px=4;if(py+chh>cssH)py=cssH-chh-4;if(py<0)py=4;
-  card.style.left=(cv.offsetLeft+px)+'px';card.style.top=(cv.offsetTop+py)+'px';card.classList.add('on');}
- cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let best=null,bd=15;for(const k of mk){if(k.z<0.1)continue;const dd=Math.hypot(k.x-mx,k.y-my);if(dd<bd){bd=dd;best=k;}}if(best){hov=best;paused=true;cv.style.cursor='pointer';showCard(best.m,mx,my);}else{if(hov){hov=null;paused=false;card.classList.remove('on');}cv.style.cursor='grab';}});
- cv.addEventListener('mouseleave',()=>{hov=null;paused=false;card.classList.remove('on');});
+ let phi=4.2,theta=0.26,w=0,paused=false,hovI=-1;
+ const els=[];
+ M.forEach((m,i)=>{const e=document.createElement('div');e.className='gmark'+(m[7]===1?' hub':'');e.innerHTML='<span class="dt"></span>';e.addEventListener('mouseenter',()=>{paused=true;hovI=i;showCard(m);});e.addEventListener('mouseleave',()=>{paused=false;hovI=-1;card.classList.remove('on');});marksEl.appendChild(e);els.push(e);});
+ const onR=()=>{w=cv.offsetWidth;};window.addEventListener('resize',onR);onR();
+ createGlobe(cv,{devicePixelRatio:2,width:w*2,height:w*2,phi:0,theta:theta,dark:0,diffuse:1.1,mapSamples:16000,mapBrightness:5.6,baseColor:[0.93,0.89,1],markerColor:[0.53,0.04,0.88],glowColor:[0.88,0.82,1],markers:[],onRender:(state)=>{state.phi=phi;if(!paused)phi+=0.004;state.width=w*2;state.height=w*2;updateMarks();}});
+ setTimeout(()=>{cv.style.opacity=1;},250);
+ function updateMarks(){const S=w,R=S*0.46,cx=S/2,cy=S/2,ct=Math.cos(theta),st=Math.sin(theta);for(let i=0;i<M.length;i++){const m=M[i],la=m[5]*Math.PI/180,u=m[6]*Math.PI/180+phi;const x=Math.cos(la)*Math.sin(u),yb=Math.sin(la),zb=Math.cos(la)*Math.cos(u);const y=yb*ct-zb*st,z=yb*st+zb*ct,el=els[i];if(z<=0){el.style.display='none';continue;}const sx=cx+R*x,sy=cy-R*y;el.style.display='flex';el.style.transform='translate('+sx+'px,'+sy+'px)';el.style.opacity=(0.3+0.7*z).toFixed(2);el.style.zIndex=String(100+Math.round(z*100));if(i===hovI)posCard(sx,sy);}}
+ function showCard(m){const ci=CAT[m[4]]||CAT['외식'];document.getElementById('gcimg').style.background=ci[1];document.getElementById('gcicon').className='ti '+ci[0];document.getElementById('gcflag').textContent=m[0];document.getElementById('gcloc').textContent=m[1]+' · '+m[2];document.getElementById('gcname').textContent=m[3];document.getElementById('gctag').textContent=m[4]+' · 대표 가맹점';card.classList.add('on');}
+ function posCard(x,y){const cw=214,chh=172;let px=x+16,py=y-12;if(px+cw>w)px=x-cw-16;if(px<0)px=4;if(py+chh>w)py=w-chh-4;if(py<0)py=4;card.style.left=(stage.offsetLeft+px)+'px';card.style.top=(stage.offsetTop+py)+'px';}
 })();
 </script>
 </body>
