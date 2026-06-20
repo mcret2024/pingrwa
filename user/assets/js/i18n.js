@@ -4315,8 +4315,8 @@
   function getLang() {
     // ★ 기본 언어: 영어 (사용자 명시적 KO 선택 시에만 한국어)
     //   HTML 소스는 한국어 그대로 두고, applyText()가 자동으로 영어로 번역
-    const raw = String(localStorage.getItem(STORAGE_KEY) || "en").trim().toLowerCase();
-    return ["ko", "en"].includes(raw) ? raw : "en";
+    const raw = String(localStorage.getItem(STORAGE_KEY) || "ko").trim().toLowerCase();
+    return ["ko", "en"].includes(raw) ? raw : "ko";
   }
 
   function setLang(lang) {
