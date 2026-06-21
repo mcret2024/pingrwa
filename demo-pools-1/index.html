@@ -7,13 +7,15 @@
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-:root{--bg:#0a0913;--panel:#11101d;--panel2:#16142552;--line:rgba(255,255,255,.08);--lineA:rgba(162,89,255,.35);--ink:#F2F0FA;--mut:rgba(242,240,250,.55);--mut2:rgba(242,240,250,.34);--pri:#A259FF;--mag:#E8459B;--ok:#2BD67B;--warn:#F5A524;--disp:'Space Grotesk',sans-serif;--body:'Pretendard',sans-serif;--mono:'Space Mono',monospace;--g:linear-gradient(96deg,#870AE0,#A259FF)}
-body{margin:0;font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+:root{--bg:#0a0913;--panel:#11101d;--panel2:#16142552;--line:rgba(255,255,255,.08);--lineA:rgba(162,89,255,.35);--ink:#F2F0FA;--mut:rgba(242,240,250,.55);--mut2:rgba(242,240,250,.34);--pri:#A259FF;--mag:#E8459B;--ok:#2BD67B;--warn:#F5A524;--disp:'Space Grotesk',sans-serif;--body:'Pretendard',sans-serif;--mono:'Space Mono',monospace;--g:linear-gradient(96deg,#870AE0,#A259FF);--modalbg:#14122a}
+html[data-theme="light"]{--bg:#F6F3FE;--panel:#fff;--panel2:#F4EEFC;--line:#ECE6F8;--lineA:rgba(135,10,224,.22);--ink:#160F26;--mut:#6A6280;--mut2:#9990AE;--pri:#870AE0;--modalbg:#fff}
+body{margin:0;font-family:var(--body);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+.themebtn{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(127,127,127,.08);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
 .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
 .side{background:var(--panel);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .brand{display:flex;align-items:center;gap:9px;padding:4px 8px 22px}
 .bmk{width:46px;height:24px;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
-.bwm{width:70px;height:18px;background:#fff;-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+.bwm{width:70px;height:18px;background:var(--ink);-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
 .snav{display:flex;flex-direction:column;gap:3px;margin-top:6px}
 .snav a{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:11px;color:var(--mut);font-size:14px;font-weight:500;text-decoration:none}
 .snav a i{font-size:19px}.snav a.on{background:rgba(162,89,255,.14);color:#fff}.snav a.on i{color:var(--pri)}
@@ -54,12 +56,12 @@ body{margin:0;font-family:var(--body);background:var(--bg);color:var(--ink);-web
 .chk .i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}.chk.ok .i{background:rgba(43,214,123,.18);color:var(--ok)}.chk.todo .i{background:rgba(245,165,36,.2);color:var(--warn)}.chk .v{margin-left:auto;font-family:var(--mono);font-size:12px;color:#fff}.acard .btn{width:100%;margin-top:8px}
 /* modal */
 .ov{position:fixed;inset:0;background:rgba(4,2,12,.72);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}.ov.on{display:flex}
-.modal{width:min(440px,100%);background:#14122a;border:1px solid var(--lineA);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.7)}
+.modal{width:min(440px,100%);background:var(--modalbg);border:1px solid var(--lineA);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.7)}
 .mhd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}.mhd h3{font-family:var(--disp);font-size:17px;margin:0;font-weight:600}.mx{background:none;border:0;font-size:18px;color:var(--mut);cursor:pointer}.mbd{padding:22px}.mfoot{padding:16px 22px;border-top:1px solid var(--line)}.mfoot .btn{width:100%}
 .field{margin-bottom:16px}.field label{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-bottom:7px}.field label b{font-family:var(--mono);color:#fff}
-.amt{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;padding:0 14px;background:rgba(255,255,255,.04)}.amt input{flex:1;border:0;background:transparent;font-family:var(--disp);font-weight:700;font-size:22px;color:#fff;padding:14px 0;outline:none;width:100%}.amt .cur{font-family:var(--mono);font-weight:700;color:var(--mut)}.amt .max{font-family:var(--mono);font-size:11px;color:var(--pri);border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:8px;padding:6px 9px;cursor:pointer;margin-left:8px}
-.recv{display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(162,89,255,.16);border:1px solid var(--lineA);border-radius:12px;font-size:13px;color:#e6c9ff;margin-bottom:8px}.recv b{font-family:var(--disp);font-size:18px;color:#fff}
-.signbox{text-align:center;padding:18px 0}.spin{width:46px;height:46px;border-radius:50%;border:4px solid rgba(255,255,255,.08);border-top-color:var(--pri);margin:0 auto 14px;animation:sp .9s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.okmark{width:54px;height:54px;border-radius:50%;background:rgba(43,214,123,.18);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}.signbox h4{font-family:var(--disp);font-size:17px;margin:0 0 6px}.signbox p{font-size:13px;color:var(--mut);margin:0;line-height:1.6}.signbox p b{color:#fff}.txline{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:12px;word-break:break-all}.note{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:10px;text-align:center}
+.amt{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;padding:0 14px;background:rgba(255,255,255,.04)}.amt input{flex:1;border:0;background:transparent;font-family:var(--disp);font-weight:700;font-size:22px;color:var(--ink);padding:14px 0;outline:none;width:100%}.amt .cur{font-family:var(--mono);font-weight:700;color:var(--mut)}.amt .max{font-family:var(--mono);font-size:11px;color:var(--pri);border:1px solid var(--line);background:rgba(127,127,127,.06);border-radius:8px;padding:6px 9px;cursor:pointer;margin-left:8px}
+.recv{display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(162,89,255,.16);border:1px solid var(--lineA);border-radius:12px;font-size:13px;color:var(--pri);margin-bottom:8px}.recv b{font-family:var(--disp);font-size:18px;color:var(--ink)}
+.signbox{text-align:center;padding:18px 0}.spin{width:46px;height:46px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--pri);margin:0 auto 14px;animation:sp .9s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.okmark{width:54px;height:54px;border-radius:50%;background:rgba(43,214,123,.18);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}.signbox h4{font-family:var(--disp);font-size:17px;margin:0 0 6px}.signbox p{font-size:13px;color:var(--mut);margin:0;line-height:1.6}.signbox p b{color:#fff}.txline{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:12px;word-break:break-all}.note{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:10px;text-align:center}
 @media(max-width:880px){.app{grid-template-columns:1fr}.side{display:none}.stats{grid-template-columns:1fr 1fr}.thead{display:none}.prow{grid-template-columns:1fr 1fr;gap:8px}.two{grid-template-columns:1fr}}
 </style></head><body>
 <div class="app">
@@ -77,7 +79,7 @@ body{margin:0;font-family:var(--body);background:var(--bg);color:var(--ink);-web
   <div class="swallet"><div class="a"><span class="d"></span>0x7a…F9c2</div><div class="b">잔액 5,000 USDT · 1,000 RWA</div></div>
  </aside>
  <main class="main">
-  <div class="topbar"><div><h1>투자 풀</h1><div class="sub">PINGPAY 매출채권 RWA · 표준형 풀 모집 중</div></div><button class="btn pri"><span style="color:#fff">지갑 연결됨</span></button></div>
+  <div class="topbar"><div><h1>투자 풀</h1><div class="sub">PINGPAY 매출채권 RWA · 표준형 풀 모집 중</div></div><div style="display:flex;gap:10px;align-items:center"><button class="themebtn" onclick="toggleTheme()" title="라이트/다크 전환"><i class="ti ti-sun"></i></button><button class="btn pri"><span style="color:#fff">지갑 연결됨</span></button></div></div>
   <div class="stats">
    <div class="stat"><div class="l">TVL</div><div class="v">$4.21M</div></div>
    <div class="stat"><div class="l">표준형 APY</div><div class="v">18.4<small>%</small></div></div>
@@ -101,6 +103,9 @@ body{margin:0;font-family:var(--body);background:var(--bg);color:var(--ink);-web
 </div>
 <div class="ov" id="ov"><div class="modal"><div class="mhd"><h3 id="mTitle"></h3><button class="mx" onclick="closeOv()">✕</button></div><div class="mbd" id="mBody"></div><div class="mfoot" id="mFoot"></div></div></div>
 <script>
+function _setIcon(){var l=document.documentElement.getAttribute('data-theme')==='light';document.querySelectorAll('.themebtn i').forEach(function(i){i.className=l?'ti ti-moon':'ti ti-sun';});}
+function toggleTheme(){var h=document.documentElement;if(h.getAttribute('data-theme')==='light'){h.removeAttribute('data-theme');try{localStorage.setItem('rwa_pools_theme','dark')}catch(e){}}else{h.setAttribute('data-theme','light');try{localStorage.setItem('rwa_pools_theme','light')}catch(e){}}_setIcon();}
+try{if(localStorage.getItem('rwa_pools_theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}_setIcon();
 const ov=document.getElementById('ov'),mTitle=document.getElementById('mTitle'),mBody=document.getElementById('mBody'),mFoot=document.getElementById('mFoot');
 function closeOv(){ov.classList.remove('on')}ov.addEventListener('click',e=>{if(e.target===ov)closeOv()});
 function openInvest(){mTitle.textContent='표준형 풀 투자';mBody.innerHTML=`<div class="field"><label>투자 금액 <b>잔액 5,000 USDT</b></label><div class="amt"><input id="amt" type="number" value="1000"><span class="cur">USDT</span><button class="max" onclick="document.getElementById('amt').value=5000;syncRecv()">MAX</button></div></div><div class="recv"><span>받게 될 RWA 토큰 (증빙)</span><b><span id="recv">1,000</span> RWA</b></div><div class="note">1 USDT = 1 RWA · 표준형 · 60일 · APY 18.4%</div>`;mFoot.innerHTML=`<button class="btn pri" onclick="signInvest()">지갑으로 서명하고 투자</button>`;document.getElementById('amt').oninput=syncRecv;ov.classList.add('on');}
