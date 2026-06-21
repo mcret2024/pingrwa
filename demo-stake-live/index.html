@@ -1,0 +1,217 @@
+<!DOCTYPE html><html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PINGRWA — 스테이킹 (devnet 실연동)</title>
+<link rel="icon" type="image/svg+xml" href="/brand/logo-mark.svg">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0a0913;--panel:#11101d;--panel2:#16142566;--line:rgba(255,255,255,.09);--lineA:rgba(162,89,255,.4);--ink:#F2F0FA;--mut:rgba(242,240,250,.6);--mut2:rgba(242,240,250,.38);--pri:#A259FF;--pri2:#870AE0;--usdt:#26A17B;--ok:#2BD67B;--warn:#F5A524;--err:#FF6B6B;--disp:'Plus Jakarta Sans',sans-serif;--body:'Pretendard',sans-serif;--mono:'IBM Plex Mono',monospace;--g:linear-gradient(120deg,#870AE0,#A259FF)}
+html[data-theme="light"]{--bg:#F4F1FC;--panel:#fff;--panel2:#F3EDFC;--line:#E5DCF4;--lineA:rgba(135,10,224,.32);--ink:#0B0712;--mut:#2E2740;--mut2:#564E6C;--pri:#7A09CC;--pri2:#870AE0}
+body{margin:0;font-family:var(--body);background-color:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:22px 22px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px}
+.brand{display:flex;align-items:center;gap:9px}
+.bmk{width:46px;height:24px;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
+.bwm{width:70px;height:18px;background:var(--ink);-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+.tact{display:flex;gap:8px;align-items:center}
+.themebtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:rgba(127,127,127,.08);color:var(--ink);cursor:pointer;font-size:17px}
+.btn{font-family:var(--body);font-weight:600;font-size:14px;border-radius:11px;cursor:pointer;padding:11px 16px;border:1px solid var(--line);background:rgba(127,127,127,.06);color:var(--ink);display:inline-flex;align-items:center;gap:7px}
+.btn.pri{background:var(--g);color:#fff;border:0;box-shadow:0 8px 22px rgba(135,10,224,.4)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.flag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--pri);background:var(--panel2);border:1px solid var(--lineA);padding:5px 11px;border-radius:999px;margin-bottom:14px}
+h1{font-family:var(--disp);font-size:23px;font-weight:800;letter-spacing:-.5px;margin:6px 0 4px}
+.sub{color:var(--mut);font-size:13px;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card h3{font-family:var(--mono);font-size:11px;color:var(--mut2);text-transform:uppercase;letter-spacing:.5px;margin:0 0 12px}
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;font-size:14px}
+.kv .l{color:var(--mut)}.kv .v{font-family:var(--disp);font-weight:700}
+.kv .v.usdt{color:var(--usdt)}.kv .v.ping{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar{height:7px;border-radius:99px;background:rgba(127,127,127,.15);overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:var(--g)}
+.swap{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}
+.tabs{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:16px}
+.tab{flex:1;text-align:center;padding:10px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mut)}
+.tab.on{background:var(--g);color:#fff}
+.field label{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-bottom:7px}.field label b{font-family:var(--mono);color:var(--ink)}
+.amt{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:13px;padding:0 14px;background:var(--panel2)}
+.amt input{flex:1;border:0;background:transparent;font-family:var(--disp);font-weight:800;font-size:26px;color:var(--ink);padding:15px 0;outline:none;width:100%}
+.amt .cur{font-family:var(--mono);font-weight:700;color:var(--mut)}.amt .max{font-family:var(--mono);font-size:11px;color:var(--pri);border:1px solid var(--line);border-radius:8px;padding:6px 9px;cursor:pointer;margin-left:8px;background:transparent}
+.recv{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--panel2);border:1px solid var(--lineA);border-radius:12px;font-size:13px;color:var(--mut);margin:14px 0}.recv b{font-family:var(--disp);font-size:18px;color:var(--ink)}
+.swap .btn.pri{width:100%;padding:14px;justify-content:center;font-size:15px}
+.status{margin-top:14px;font-size:13px;border-radius:12px;padding:0;max-height:0;overflow:hidden;transition:.2s}
+.status.on{padding:14px;max-height:240px;border:1px solid var(--line)}
+.status.ok{border-color:rgba(43,214,123,.5);background:rgba(43,214,123,.08)}
+.status.err{border-color:rgba(255,107,107,.5);background:rgba(255,107,107,.08)}
+.status .tx{font-family:var(--mono);font-size:11px;word-break:break-all;margin-top:8px}
+.status a{color:var(--pri)}
+.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--pri);border-radius:50%;display:inline-block;animation:s .8s linear infinite;vertical-align:-3px;margin-right:6px}@keyframes s{to{transform:rotate(360deg)}}
+.note{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:18px;line-height:1.6}
+.addr{font-family:var(--mono);font-size:12px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="wrap">
+ <div class="top"><a class="brand" href="/"><span class="bmk"></span><span class="bwm"></span></a>
+  <div class="tact"><button class="themebtn" onclick="toggleTheme()"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><i class="ti ti-wallet"></i> 지갑 연결</button></div></div>
+ <span class="flag"><i class="ti ti-flask"></i> DEVNET 실연동 · Phantom 서명 · 온체인 프로그램 호출</span>
+ <h1>스테이킹 (USDT ⇄ PINGRWA)</h1>
+ <p class="sub">실제 devnet 스마트컨트랙트(<a id="pidLink" class="addr" target="_blank" style="color:var(--pri)"></a>)를 호출합니다. 스테이킹 = USDT를 PINGRWA로 1:1 스왑.</p>
+
+ <div class="grid">
+  <div class="card"><h3>내 지갑</h3>
+   <div class="kv"><span class="l">USDT</span><span class="v usdt" id="myUsdt">—</span></div>
+   <div class="kv"><span class="l">PINGRWA (스테이킹)</span><span class="v ping" id="myPing">—</span></div>
+   <div class="kv"><span class="l">SOL (가스)</span><span class="v" id="mySol">—</span></div>
+   <div class="kv"><span class="l">주소</span><span class="v addr" id="myAddr" style="font-weight:500">미연결</span></div>
+  </div>
+  <div class="card"><h3>풀 / 유동성</h3>
+   <div class="kv"><span class="l">총 스테이킹</span><span class="v" id="totalStaked">—</span></div>
+   <div class="kv"><span class="l">유동성 상한(loan_total)</span><span class="v" id="loanTotal">—</span></div>
+   <div class="bar"><i id="capBar" style="width:0%"></i></div>
+   <div class="kv" style="margin-top:6px"><span class="l">풀 PINGRWA</span><span class="v ping" id="poolPing">—</span></div>
+   <div class="kv"><span class="l">풀 USDT</span><span class="v usdt" id="poolUsdt">—</span></div>
+  </div>
+ </div>
+
+ <div class="swap">
+  <div class="tabs"><div class="tab on" id="tabStake" onclick="setMode('stake')">스테이킹 (USDT→PINGRWA)</div><div class="tab" id="tabUnstake" onclick="setMode('unstake')">언스테이킹 (PINGRWA→USDT)</div></div>
+  <div class="field"><label><span id="inLabel">스테이킹 금액</span> <b id="balHint">잔액 —</b></label>
+   <div class="amt"><input id="amt" type="number" value="100" min="0"><span class="cur" id="inCur">USDT</span><button class="max" onclick="setMax()">MAX</button></div></div>
+  <div class="recv"><span id="outLabel">받게 될 PINGRWA</span><b><span id="recv">100</span> <span id="outCur">PINGRWA</span></b></div>
+  <button class="btn pri" id="actBtn" onclick="execSwap()" disabled><i class="ti ti-arrows-exchange"></i> 지갑 연결 필요</button>
+  <div class="status" id="status"></div>
+ </div>
+
+ <p class="note">※ devnet 테스트입니다. 스테이킹하려면 연결한 지갑에 <b>테스트 USDT</b>와 약간의 <b>devnet SOL</b>이 필요합니다. 지갑 연결 후 주소를 알려주시면 테스트 USDT/SOL을 지급해 드립니다. 첫 스테이킹 시 PINGRWA 토큰계정이 자동 생성됩니다(소액 SOL).</p>
+</div>
+
+<script type="module">
+import { Buffer } from "https://esm.sh/buffer@6.0.3";
+window.Buffer = Buffer;
+import * as web3 from "https://esm.sh/@solana/web3.js@1.95.3";
+import * as spl from "https://esm.sh/@solana/spl-token@0.4.8?deps=@solana/web3.js@1.95.3";
+
+const RPC = "https://api.devnet.solana.com";
+const PID = new web3.PublicKey("6H27P7bUQhbSBGvoK6WZb5KwZsrNxfAcAdv2VEHtKLH");
+const CONFIG = new web3.PublicKey("DFQkBdyfSZzPnp7z3VUPVSSPq4KsRo7cfYeoMJkhc99E");
+const USDT_VAULT = new web3.PublicKey("GAp2bGiuEXFJtJTHbkoPbtAtTzVwe3osTT967X1HvDKa");
+const PINGRWA_VAULT = new web3.PublicKey("qQUXjiVsV7ECq6P8VHzwwBT5EMiwXtSDnaMVgohE5hE");
+const USDT_MINT = new web3.PublicKey("9pVi4Z94PwBhVY8VBMB7k4xjVvfmbtFvTd1QoUDcgcFV");
+const PINGRWA_MINT = new web3.PublicKey("B5b7n8eHj3cYKS7w1bAyuJJLWFQ6WcKn7Aa5B1usdCBU");
+const TOKEN_PROGRAM = spl.TOKEN_PROGRAM_ID;
+const DISC = { stake:[206,176,202,18,200,209,179,108], unstake:[90,95,107,42,205,124,50,225] };
+const DEC = 1e6;
+const conn = new web3.Connection(RPC, "confirmed");
+
+let provider=null, user=null, uUsdt=null, uPing=null, mode="stake", bals={usdt:0,ping:0};
+document.getElementById("pidLink").textContent = PID.toBase58();
+document.getElementById("pidLink").href = "https://explorer.solana.com/address/"+PID.toBase58()+"?cluster=devnet";
+
+window.toggleTheme=()=>{const h=document.documentElement;h.getAttribute("data-theme")==="light"?h.removeAttribute("data-theme"):h.setAttribute("data-theme","light");document.querySelectorAll(".themebtn i").forEach(i=>i.className=h.getAttribute("data-theme")==="light"?"ti ti-moon":"ti ti-sun");};
+
+function getProvider(){ const p = window.phantom?.solana || window.solana; return (p&&p.isPhantom)?p:null; }
+function short(a){return a.slice(0,4)+"…"+a.slice(-4);}
+async function tokBal(ata){ try{ const b=await conn.getTokenAccountBalance(ata); return b.value.uiAmount||0; }catch{ return 0; } }
+
+window.connect=async()=>{
+  provider=getProvider();
+  if(!provider){ alert("Phantom 지갑이 필요합니다. (devnet 네트워크로 설정해 주세요)"); window.open("https://phantom.app/","_blank"); return; }
+  const r=await provider.connect();
+  user=new web3.PublicKey(r.publicKey.toString());
+  uUsdt=await spl.getAssociatedTokenAddress(USDT_MINT,user);
+  uPing=await spl.getAssociatedTokenAddress(PINGRWA_MINT,user);
+  document.getElementById("myAddr").textContent=short(user.toBase58());
+  document.getElementById("connectBtn").innerHTML='<i class="ti ti-circle-check"></i> '+short(user.toBase58());
+  document.getElementById("actBtn").disabled=false;
+  refresh();
+};
+
+async function refresh(){
+  // pool
+  document.getElementById("poolPing").textContent=(await tokBal(PINGRWA_VAULT)).toLocaleString();
+  document.getElementById("poolUsdt").textContent=(await tokBal(USDT_VAULT)).toLocaleString();
+  try{
+    const ai=await conn.getAccountInfo(CONFIG); const d=ai.data;
+    const dv=new DataView(d.buffer,d.byteOffset,d.byteLength);
+    const ts=Number(dv.getBigUint64(168,true))/DEC, lt=Number(dv.getBigUint64(176,true))/DEC;
+    document.getElementById("totalStaked").textContent=ts.toLocaleString();
+    document.getElementById("loanTotal").textContent=lt.toLocaleString();
+    document.getElementById("capBar").style.width=Math.min(100,lt>0?ts/lt*100:0)+"%";
+  }catch(e){}
+  if(user){
+    bals.usdt=await tokBal(uUsdt); bals.ping=await tokBal(uPing);
+    const sol=(await conn.getBalance(user))/web3.LAMPORTS_PER_SOL;
+    document.getElementById("myUsdt").textContent=bals.usdt.toLocaleString();
+    document.getElementById("myPing").textContent=bals.ping.toLocaleString();
+    document.getElementById("mySol").textContent=sol.toFixed(4);
+    updHint();
+  }
+}
+function updHint(){
+  const isStake=mode==="stake";
+  document.getElementById("balHint").textContent="잔액 "+(isStake?bals.usdt.toLocaleString()+" USDT":bals.ping.toLocaleString()+" PINGRWA");
+}
+window.setMode=(m)=>{
+  mode=m; const isStake=m==="stake";
+  document.getElementById("tabStake").classList.toggle("on",isStake);
+  document.getElementById("tabUnstake").classList.toggle("on",!isStake);
+  document.getElementById("inLabel").textContent=isStake?"스테이킹 금액":"언스테이킹 금액";
+  document.getElementById("inCur").textContent=isStake?"USDT":"PINGRWA";
+  document.getElementById("outLabel").textContent=isStake?"받게 될 PINGRWA":"받게 될 USDT";
+  document.getElementById("outCur").textContent=isStake?"PINGRWA":"USDT";
+  document.getElementById("actBtn").innerHTML='<i class="ti ti-arrows-exchange"></i> '+(isStake?"스테이킹 (서명)":"언스테이킹 (서명)");
+  syncRecv(); updHint();
+};
+function syncRecv(){ document.getElementById("recv").textContent=(+document.getElementById("amt").value||0).toLocaleString(); }
+document.getElementById("amt").addEventListener("input",syncRecv);
+window.setMax=()=>{ document.getElementById("amt").value=(mode==="stake"?bals.usdt:bals.ping); syncRecv(); };
+
+function u64le(n){ const b=new Uint8Array(8); new DataView(b.buffer).setBigUint64(0,BigInt(Math.round(n*DEC)),true); return b; }
+function setStatus(cls,html){ const s=document.getElementById("status"); s.className="status on "+cls; s.innerHTML=html; }
+
+window.execSwap=async()=>{
+  if(!user){ return connect(); }
+  const amount=+document.getElementById("amt").value||0;
+  if(amount<=0){ setStatus("err","금액을 입력하세요."); return; }
+  const isStake=mode==="stake";
+  const btn=document.getElementById("actBtn"); btn.disabled=true;
+  setStatus("","<span class='spin'></span> 트랜잭션 준비 중…");
+  try{
+    const disc=isStake?DISC.stake:DISC.unstake;
+    const data=Buffer.from([...disc,...u64le(amount)]);
+    const keys=[
+      {pubkey:user,isSigner:true,isWritable:true},
+      {pubkey:CONFIG,isSigner:false,isWritable:true},
+      {pubkey:USDT_VAULT,isSigner:false,isWritable:true},
+      {pubkey:PINGRWA_VAULT,isSigner:false,isWritable:true},
+      {pubkey:uUsdt,isSigner:false,isWritable:true},
+      {pubkey:uPing,isSigner:false,isWritable:true},
+      {pubkey:TOKEN_PROGRAM,isSigner:false,isWritable:false},
+    ];
+    const tx=new web3.Transaction();
+    // ensure ATAs exist (idempotent) — first stake creates user's PINGRWA account
+    tx.add(spl.createAssociatedTokenAccountIdempotentInstruction(user,uPing,user,PINGRWA_MINT));
+    tx.add(spl.createAssociatedTokenAccountIdempotentInstruction(user,uUsdt,user,USDT_MINT));
+    tx.add(new web3.TransactionInstruction({programId:PID,keys,data}));
+    tx.feePayer=user;
+    tx.recentBlockhash=(await conn.getLatestBlockhash()).blockhash;
+    setStatus("","<span class='spin'></span> 지갑에서 서명해 주세요…");
+    const sig=(await provider.signAndSendTransaction(tx)).signature;
+    setStatus("","<span class='spin'></span> 온체인 확정 대기 중…<div class='tx'>"+sig+"</div>");
+    await conn.confirmTransaction(sig,"confirmed");
+    setStatus("ok","✅ "+(isStake?"스테이킹":"언스테이킹")+" 완료 ("+amount.toLocaleString()+(isStake?" USDT → PINGRWA":" PINGRWA → USDT")+")<div class='tx'><a target='_blank' href='https://explorer.solana.com/tx/"+sig+"?cluster=devnet'>탐색기에서 보기 ↗</a></div>");
+    await refresh();
+  }catch(e){
+    console.error(e);
+    let m=e.message||String(e);
+    if(/insufficient|0x1\b/i.test(m)) m="잔액 부족 — 테스트 USDT/SOL이 필요합니다. (주소를 알려주시면 지급해 드립니다)";
+    setStatus("err","❌ 실패: "+m);
+  }finally{ btn.disabled=false; }
+};
+
+// init
+toggleTheme(); toggleTheme(); // set icon
+refresh();
+setInterval(()=>{ if(document.visibilityState==="visible") refresh(); }, 15000);
+</script></body></html>
