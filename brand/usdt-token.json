@@ -1,0 +1,6 @@
+{
+  "name": "USD Tether (Devnet)",
+  "symbol": "USDT",
+  "description": "Test USDT used by the PINGRWA devnet environment.",
+  "image": "https://rwa.kolstoken.com/brand/usdt-token.svg"
+}
