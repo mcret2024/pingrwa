@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PINGRWA — 투자 풀 (시안)</title>
+<link rel="icon" type="image/svg+xml" href="/brand/logo-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#FAF8FF;--card:#fff;--ink:#160F26;--nv:#1C1235;--mut:#6A6280;--mut2:#9A93AC;--line:#ECE6F8;--soft:#F4F0FC;--pri:#870AE0;--pri2:#A259FF;--pri-l:#F0E4FE;--ok:#16A34A;--warn:#D97706;
+ --disp:'Plus Jakarta Sans','Pretendard',sans-serif;--body:'Pretendard','Plus Jakarta Sans',sans-serif;--mono:'IBM Plex Mono',monospace;--g:linear-gradient(120deg,#870AE0,#A259FF)}
+body{margin:0;font-family:var(--body);color:var(--ink);background:var(--bg)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 32px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--line);background:rgba(255,255,255,.9);backdrop-filter:blur(14px);position:sticky;top:0;z-index:20}
+.nav-in{max-width:1100px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.bmk{width:50px;height:26px;background:var(--g);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
+.bwm{width:78px;height:20px;background:var(--ink);-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+.brwa{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--g);padding:3px 7px;border-radius:7px;letter-spacing:1px}
+.menu{display:flex;gap:24px;font-size:14px;color:var(--mut);font-weight:500}.menu .on{color:var(--ink)}
+.nact{display:flex;align-items:center;gap:10px}
+.wchip{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--soft);border:1px solid var(--line);padding:7px 12px;border-radius:999px}
+.wchip .d{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.btn{font-family:var(--body);font-weight:600;font-size:14px;border-radius:11px;cursor:pointer;padding:11px 18px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+.btn.pri{background:var(--g);color:#fff;border:0;box-shadow:0 8px 22px rgba(135,10,224,.3)}
+.btn:disabled{cursor:not-allowed;opacity:.55}
+.head{padding:40px 0 8px}
+.head .e{font-family:var(--mono);font-size:12px;color:var(--pri);letter-spacing:1px}
+.head h1{font-family:var(--disp);font-size:34px;font-weight:800;color:var(--nv);margin:8px 0 6px;letter-spacing:-.6px}
+.head p{color:var(--mut);font-size:15px;margin:0}
+.pools{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+.pool{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 30px rgba(28,18,53,.05)}
+.pool.feat{border:2px solid var(--pri)}
+.pool.off{filter:grayscale(.5);opacity:.72}
+.pool .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.pool .nm{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--nv)}
+.rk{font-family:var(--mono);font-size:10px;padding:5px 9px;border-radius:7px;font-weight:600}
+.rk.a{background:#E7FBF1;color:#0F9D6A}.rk.b{background:var(--pri-l);color:var(--pri)}.rk.c{background:#FEF0E3;color:#C2620A}
+.pool .big{font-family:var(--disp);font-weight:800;font-size:40px;color:var(--nv);line-height:1}
+.pool .bl{font-family:var(--mono);font-size:11px;color:var(--mut);margin:6px 0 16px}
+.pbar{height:7px;border-radius:999px;background:var(--soft);overflow:hidden}.pbar i{display:block;height:100%;background:var(--g)}
+.pmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin:10px 0 0}.pmeta b{color:var(--ink)}
+.pool .btn{width:100%;margin-top:18px}
+.offtag{position:absolute;top:14px;right:14px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--mut);background:#EEE9F5;border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+.flow{margin-top:34px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px}
+.flow h3{font-family:var(--disp);font-size:18px;margin:0 0 18px;color:var(--nv);font-weight:700}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stp{position:relative;padding:16px;background:var(--soft);border-radius:14px}
+.stp .n{font-family:var(--mono);font-size:11px;color:var(--pri)}
+.stp .ic{font-size:22px;color:var(--pri);margin:6px 0 8px;display:block}
+.stp h4{font-family:var(--disp);font-size:14px;margin:0 0 5px;color:var(--nv);font-weight:700}
+.stp p{font-size:12px;color:var(--mut);line-height:1.55;margin:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.acard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px}
+.acard h3{font-family:var(--disp);font-size:17px;margin:0 0 4px;color:var(--nv);font-weight:700;display:flex;align-items:center;gap:8px}.acard h3 i{color:var(--pri)}
+.acard .sub{font-size:13px;color:var(--mut);margin:0 0 16px}
+.chk{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:13px}
+.chk .i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.chk.ok .i{background:#E7FBF1;color:var(--ok)}.chk.todo .i{background:#FEF0E3;color:var(--warn)}
+.chk .v{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink)}
+.acard .btn{width:100%;margin-top:8px}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(20,12,40,.45);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.ov.on{display:flex}
+.modal{width:min(440px,100%);background:#fff;border-radius:20px;box-shadow:0 30px 80px rgba(20,12,40,.4);overflow:hidden}
+.mhd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.mhd h3{font-family:var(--disp);font-size:17px;margin:0;font-weight:700}
+.mx{background:none;border:0;font-size:18px;color:var(--mut);cursor:pointer}
+.mbd{padding:22px}
+.field{margin-bottom:16px}
+.field label{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-bottom:7px}
+.field label b{font-family:var(--mono);color:var(--ink)}
+.amt{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;padding:0 14px;background:var(--soft)}
+.amt input{flex:1;border:0;background:transparent;font-family:var(--disp);font-weight:700;font-size:22px;color:var(--nv);padding:14px 0;outline:none;width:100%}
+.amt .cur{font-family:var(--mono);font-weight:700;color:var(--mut)}
+.amt .max{font-family:var(--mono);font-size:11px;color:var(--pri);border:1px solid var(--lineA,#E2DCF0);background:#fff;border-radius:7px;padding:5px 8px;cursor:pointer;margin-left:8px}
+.recv{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--pri-l);border-radius:12px;font-size:13px;color:var(--pri);margin-bottom:8px}
+.recv b{font-family:var(--disp);font-size:18px}
+.mfoot{padding:16px 22px;border-top:1px solid var(--line);background:#FBFAFE}
+.mfoot .btn{width:100%}
+.signbox{text-align:center;padding:18px 0}
+.spin{width:46px;height:46px;border-radius:50%;border:4px solid var(--soft);border-top-color:var(--pri);margin:0 auto 14px;animation:sp 0.9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.okmark{width:54px;height:54px;border-radius:50%;background:#E7FBF1;color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}
+.signbox h4{font-family:var(--disp);font-size:17px;margin:0 0 6px}
+.signbox p{font-size:13px;color:var(--mut);margin:0;line-height:1.6}
+.txline{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:12px;word-break:break-all}
+.note{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:10px;text-align:center}
+@media(max-width:860px){.pools,.steps{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.menu,.wchip{display:none}}
+</style>
+</head>
+<body>
+<nav><div class="nav-in">
+ <a class="brand" href="/"><span class="bmk"></span><span class="bwm"></span><span class="brwa">RWA</span></a>
+ <div class="menu"><span>투자</span><span>거래</span><span>스왑</span><span class="on">투자 풀</span><span>히스토리</span><span>IR</span></div>
+ <div class="nact"><span class="wchip"><span class="d"></span>0x7a…F9c2</span><button class="btn pri">지갑 연결됨</button></div>
+</div></nav>
+
+<div class="wrap">
+ <div class="head">
+  <div class="e">INVESTMENT POOLS</div>
+  <h1>투자 풀</h1>
+  <p>USDT로 투자하고 증빙용 <b>RWA 토큰</b>을 지급받습니다. 현재 <b>표준형 풀</b>만 모집 중입니다.</p>
+ </div>
+
+ <div class="pools">
+  <div class="pool off"><span class="offtag">준비 중</span>
+   <div class="ph"><span class="nm">안정형 풀</span><span class="rk a">저위험</span></div>
+   <div class="big">12.0%</div><div class="bl">APY · 60일 만기</div>
+   <div class="pbar"><i style="width:82%"></i></div><div class="pmeta"><span>충전율 <b>82%</b></span><span>채권 <b>320</b></span></div>
+   <button class="btn" disabled>비활성화</button>
+  </div>
+
+  <div class="pool feat">
+   <div class="ph"><span class="nm">표준형 풀</span><span class="rk b">중위험 · 모집중</span></div>
+   <div class="big">18.4%</div><div class="bl">APY · 60일 만기 · 다국가 분산</div>
+   <div class="pbar"><i style="width:64%"></i></div><div class="pmeta"><span>충전율 <b>64%</b></span><span>채권 <b>210</b></span></div>
+   <button class="btn pri" onclick="openInvest()">투자하기</button>
+  </div>
+
+  <div class="pool off"><span class="offtag">준비 중</span>
+   <div class="ph"><span class="nm">성장형 풀</span><span class="rk c">고수익</span></div>
+   <div class="big">24.0%</div><div class="bl">APY · 90일 만기</div>
+   <div class="pbar"><i style="width:47%"></i></div><div class="pmeta"><span>충전율 <b>47%</b></span><span>채권 <b>150</b></span></div>
+   <button class="btn" disabled>비활성화</button>
+  </div>
+ </div>
+
+ <div class="flow">
+  <h3>투자 절차</h3>
+  <div class="steps">
+   <div class="stp"><div class="n">STEP 01</div><i class="ti ti-coin ic"></i><h4>USDT 투자</h4><p>표준형 풀에 투자할 USDT 금액을 입력합니다.</p></div>
+   <div class="stp"><div class="n">STEP 02</div><i class="ti ti-signature ic"></i><h4>지갑 서명</h4><p>지갑에서 트랜잭션에 서명해 투자를 승인합니다.</p></div>
+   <div class="stp"><div class="n">STEP 03</div><i class="ti ti-certificate ic"></i><h4>RWA 토큰 지급</h4><p>투자 증빙으로 RWA 토큰을 지갑으로 받습니다.</p></div>
+   <div class="stp"><div class="n">STEP 04</div><i class="ti ti-cash ic"></i><h4>이자 · 만기 회수</h4><p>RWA 보유 기준 이자 수령, 만기엔 RWA 반납 후 USDT 회수.</p></div>
+  </div>
+ </div>
+
+ <div class="two">
+  <div class="acard">
+   <h3><i class="ti ti-cash-banknote"></i> 이자 받기</h3>
+   <p class="sub">지갑의 <b>RWA 토큰 보유</b>와 <b>지갑주소</b>를 확인해 이자를 지급합니다.</p>
+   <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 지갑 연결 <span class="v">0x7a…F9c2</span></div>
+   <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> RWA 토큰 보유 <span class="v">1,000 RWA</span></div>
+   <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 누적 이자 <span class="v">+50 USDT</span></div>
+   <button class="btn pri" onclick="openClaim()">이자 청구하기</button>
+  </div>
+
+  <div class="acard">
+   <h3><i class="ti ti-arrow-back-up"></i> 투자 회수 (만기)</h3>
+   <p class="sub">지갑주소 확인 후 <b>RWA 토큰을 반납</b>하면 원금 USDT를 회수합니다.</p>
+   <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 지갑주소 확인 <span class="v">0x7a…F9c2</span></div>
+   <div class="chk todo"><span class="i"><i class="ti ti-arrow-back-up"></i></span> RWA 토큰 반납 <span class="v">1,000 RWA</span></div>
+   <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 회수 예정액 <span class="v">1,000 USDT</span></div>
+   <button class="btn pri" onclick="openWithdraw()">RWA 반납하고 USDT 회수</button>
+  </div>
+ </div>
+
+ <p class="note" style="margin:26px 0 50px">※ 디자인 시안입니다 — 실제 서명/체인 연동 전 UI 흐름 미리보기. 안정형·성장형 풀은 비활성(준비 중) 상태로 표기.</p>
+</div>
+
+<div class="ov" id="ov">
+ <div class="modal">
+  <div class="mhd"><h3 id="mTitle">표준형 풀 투자</h3><button class="mx" onclick="closeOv()">✕</button></div>
+  <div class="mbd" id="mBody"></div>
+  <div class="mfoot" id="mFoot"></div>
+ </div>
+</div>
+
+<script>
+const ov=document.getElementById('ov'),mTitle=document.getElementById('mTitle'),mBody=document.getElementById('mBody'),mFoot=document.getElementById('mFoot');
+function closeOv(){ov.classList.remove('on')}
+ov.addEventListener('click',e=>{if(e.target===ov)closeOv()});
+
+function openInvest(){
+ mTitle.textContent='표준형 풀 투자';
+ mBody.innerHTML=`
+  <div class="field"><label>투자 금액 <b>잔액 5,000 USDT</b></label>
+   <div class="amt"><input id="amt" type="number" value="1000"><span class="cur">USDT</span><button class="max" onclick="document.getElementById('amt').value=5000;syncRecv()">MAX</button></div></div>
+  <div class="recv"><span>받게 될 RWA 토큰 (증빙)</span><b><span id="recv">1,000</span> RWA</b></div>
+  <div class="note">1 USDT = 1 RWA · 표준형 풀 · 60일 · 예상 APY 18.4%</div>`;
+ mFoot.innerHTML=`<button class="btn pri" onclick="signInvest()"><i class="ti ti-signature"></i> 지갑으로 서명하고 투자</button>`;
+ const a=document.getElementById('amt');a.oninput=syncRecv;
+ ov.classList.add('on');
+}
+function syncRecv(){const v=+document.getElementById('amt').value||0;document.getElementById('recv').textContent=v.toLocaleString();}
+function signInvest(){
+ const amt=(+document.getElementById('amt').value||0).toLocaleString();
+ mBody.innerHTML=`<div class="signbox"><div class="spin"></div><h4>지갑 서명 요청 중…</h4><p>지갑 앱에서 투자 트랜잭션에 서명해 주세요.<br>${amt} USDT 투자 승인</p></div>`;
+ mFoot.innerHTML='';
+ setTimeout(()=>{
+  mBody.innerHTML=`<div class="signbox"><div class="okmark"><i class="ti ti-check"></i></div><h4>투자 완료</h4>
+   <p>${amt} USDT 투자가 승인되었습니다.<br>증빙용 <b>${amt} RWA</b> 토큰이 지갑으로 지급되었습니다.</p>
+   <div class="txline">tx 0x9f3a…c41d · RWA mint 0x7c2b…a90f</div></div>`;
+  mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">확인</button>`;
+ },1700);
+}
+function openClaim(){
+ mTitle.textContent='이자 청구';
+ mBody.innerHTML=`<div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 지갑주소 확인 <span class="v">0x7a…F9c2</span></div>
+  <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> RWA 토큰 보유 <span class="v">1,000 RWA</span></div>
+  <div class="recv"><span>청구 가능 이자</span><b>+50 USDT</b></div>`;
+ mFoot.innerHTML=`<button class="btn pri" onclick="signClaim()"><i class="ti ti-signature"></i> 서명하고 이자 받기</button>`;
+ ov.classList.add('on');
+}
+function signClaim(){
+ mBody.innerHTML=`<div class="signbox"><div class="spin"></div><h4>지갑 서명 요청 중…</h4><p>이자 수령을 위해 서명해 주세요.</p></div>`;mFoot.innerHTML='';
+ setTimeout(()=>{mBody.innerHTML=`<div class="signbox"><div class="okmark"><i class="ti ti-check"></i></div><h4>이자 지급 완료</h4><p><b>50 USDT</b>가 지갑으로 지급되었습니다.</p><div class="txline">tx 0x12ab…77e0</div></div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">확인</button>`;},1500);
+}
+function openWithdraw(){
+ mTitle.textContent='투자 회수 (RWA 반납)';
+ mBody.innerHTML=`<div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 지갑주소 확인 <span class="v">0x7a…F9c2</span></div>
+  <div class="chk todo"><span class="i"><i class="ti ti-arrow-back-up"></i></span> 반납할 RWA <span class="v">1,000 RWA</span></div>
+  <div class="recv"><span>회수할 원금</span><b>1,000 USDT</b></div>
+  <div class="note">RWA 토큰을 반납(소각)하면 원금 USDT가 지갑으로 회수됩니다.</div>`;
+ mFoot.innerHTML=`<button class="btn pri" onclick="signWithdraw()"><i class="ti ti-signature"></i> 서명하고 RWA 반납 · USDT 회수</button>`;
+ ov.classList.add('on');
+}
+function signWithdraw(){
+ mBody.innerHTML=`<div class="signbox"><div class="spin"></div><h4>지갑 서명 요청 중…</h4><p>RWA 토큰 반납 + USDT 회수에 서명해 주세요.</p></div>`;mFoot.innerHTML='';
+ setTimeout(()=>{mBody.innerHTML=`<div class="signbox"><div class="okmark"><i class="ti ti-check"></i></div><h4>회수 완료</h4><p>RWA 1,000 토큰이 반납되고<br><b>1,000 USDT</b> 원금이 지갑으로 회수되었습니다.</p><div class="txline">burn 0x55de…1a2c · payout 0x8a01…b3f4</div></div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">확인</button>`;},1700);
+}
+</script>
+</body>
+</html>
