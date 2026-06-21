@@ -86,6 +86,13 @@ h1{font-family:var(--disp);font-size:23px;font-weight:700;margin:6px 0 16px}
   <button class="btn pri sub-btn" onclick="doSetAdmin()"><i class="ti ti-transfer"></i> 권한 이전 (지갑 서명)</button>
   <div class="st" id="stAdmin"></div>
  </div>
+
+ <div class="card"><h3><i class="ti ti-refresh-alert"></i> 참여 초기화 (테스트용 · admin_reset)</h3>
+  <div class="banner warn"><i class="ti ti-alert-triangle"></i> 테스트 전용: <b>total_staked</b> 카운터를 강제로 설정합니다(보통 0). 토큰 잔액은 건드리지 않으며, 회원/추천 데이터는 백엔드에서 별도 초기화합니다.</div>
+  <div class="fld"><label>total_staked 값 (USDT) — 보통 0</label><input id="fReset" type="number" value="0"></div>
+  <button class="btn pri sub-btn" onclick="doReset()"><i class="ti ti-rotate"></i> 카운터 초기화 (지갑 서명)</button>
+  <div class="st" id="stReset"></div>
+ </div>
 </div>
 
 <script type="module">
@@ -101,7 +108,7 @@ const PINGRWA_VAULT=new web3.PublicKey("qQUXjiVsV7ECq6P8VHzwwBT5EMiwXtSDnaMVgohE
 const USDT_VAULT=new web3.PublicKey("GAp2bGiuEXFJtJTHbkoPbtAtTzVwe3osTT967X1HvDKa");
 const PINGRWA_MINT=new web3.PublicKey("B5b7n8eHj3cYKS7w1bAyuJJLWFQ6WcKn7Aa5B1usdCBU");
 const TOKEN_PROGRAM=spl.TOKEN_PROGRAM_ID;
-const DISC={set_params:[27,234,178,52,147,2,187,141],set_admin:[251,163,0,52,91,194,187,92]};
+const DISC={set_params:[27,234,178,52,147,2,187,141],set_admin:[251,163,0,52,91,194,187,92],admin_reset:[124,61,81,202,222,3,202,199]};
 const DEC=1e6;
 const conn=new web3.Connection(RPC,"confirmed");
 let provider=null,user=null,adminPk=null;
@@ -179,6 +186,11 @@ window.doSetAdmin=()=>{
   const data=Buffer.from([...DISC.set_admin,...na.toBytes()]);
   const ix=new web3.TransactionInstruction({programId:PID,keys:[{pubkey:user,isSigner:true,isWritable:false},{pubkey:CONFIG,isSigner:false,isWritable:true}],data});
   sendIx("stAdmin",ix,"권한 이전 완료");
+};
+window.doReset=()=>{
+  const data=Buffer.from([...DISC.admin_reset,...u64le((+$("fReset").value||0)*DEC)]);
+  const ix=new web3.TransactionInstruction({programId:PID,keys:[{pubkey:user,isSigner:true,isWritable:false},{pubkey:CONFIG,isSigner:false,isWritable:true}],data});
+  sendIx("stReset",ix,"참여 초기화 완료");
 };
 window.doFund=async()=>{
   if(!user)return connect();
