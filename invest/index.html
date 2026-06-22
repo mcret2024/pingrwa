@@ -51,7 +51,7 @@ body{margin:0;font-family:var(--body);background-color:var(--bg);color:var(--ink
 .apy{font-family:var(--disp);font-weight:700;font-size:18px;background:linear-gradient(96deg,#870AE0,#E8459B);-webkit-background-clip:text;background-clip:text;color:transparent}
 .term{font-size:13px;color:var(--mut)}
 .bar{height:7px;border-radius:99px;background:rgba(127,127,127,.15);overflow:hidden}.bar i{display:block;height:100%;background:var(--g)}
-.barlbl{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:5px}
+.barlbl{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tag{font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
 .tag.hot{background:rgba(232,69,155,.16);color:#ff9ed0;border-color:transparent}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
@@ -242,7 +242,7 @@ async function refresh(){
     $("stStaked").textContent=fmt(ts);
     if($("stApr"))$("stApr").innerHTML=(dv.getUint16(312,true)/100).toFixed(1)+'<small>%</small>';
     const pct=lt>0?Math.min(100,ts/lt*100):0;
-    $("featBar").style.width=pct+"%"; $("featLbl").textContent="충전율 "+pct.toFixed(1)+"% · 상한 "+fmt(lt)+" USDT";
+    $("featBar").style.width=pct+"%"; $("featLbl").textContent="충전율 "+pct.toFixed(1)+"% · 상한 "+fmt(lt);
   }catch(e){}
   if(user){
     bals.usdt=await tokBal(uUsdt);bals.ping=await tokBal(uPing);bals.sol=(await conn.getBalance(user))/web3.LAMPORTS_PER_SOL;
