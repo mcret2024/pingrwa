@@ -205,6 +205,7 @@ function delete_route(string $pattern, callable $handler): void {
 
 // ====== Load All Route Files ======
 require_once __DIR__ . '/routes/public.php';
+require_once __DIR__ . '/routes/members.php';
 require_once __DIR__ . '/routes/auth.php';
 require_once __DIR__ . '/routes/otp.php';
 require_once __DIR__ . '/routes/assets.php';
