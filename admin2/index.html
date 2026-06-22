@@ -5,7 +5,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/fonts/tabler-icons.woff2?v3.5.0">
+<script>(function(){function r(){document.documentElement.classList.add('icons-ready')}try{if(document.fonts&&document.fonts.load){document.fonts.load('16px "tabler-icons"').then(r,r);document.fonts.ready&&document.fonts.ready.then(r);setTimeout(r,2500)}else{r()}}catch(e){r()}})();</script>
 <style>
+.ti{opacity:0;transition:opacity .12s linear}html.icons-ready .ti{opacity:1}
 *{box-sizing:border-box}
 :root{--bg:#0a0913;--panel:#11101d;--panel2:#16142566;--line:rgba(255,255,255,.09);--lineA:rgba(162,89,255,.4);--ink:#F2F0FA;--mut:rgba(242,240,250,.6);--mut2:rgba(242,240,250,.38);--pri:#A259FF;--ok:#2BD67B;--warn:#F5A524;--err:#FF6B6B;--disp:'Space Grotesk',sans-serif;--body:'Pretendard',sans-serif;--mono:'Space Mono',monospace;--g:linear-gradient(96deg,#870AE0,#A259FF)}
 html[data-theme="light"]{--bg:#F4F1FC;--panel:#fff;--panel2:#F3EDFC;--line:#E5DCF4;--lineA:rgba(135,10,224,.32);--ink:#0B0712;--mut:#2E2740;--mut2:#564E6C;--pri:#7A09CC}
