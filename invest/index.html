@@ -270,7 +270,7 @@ async function signMsg(m){const {signature}=await provider.signMessage(new TextE
 function spinner(t,s){mBody.innerHTML=`<div class="signbox"><div class="spin"></div><h4>${t}</h4><p>${s}</p></div>`;mFoot.innerHTML="";}
 function done(t,s,sig){mBody.innerHTML=`<div class="signbox"><div class="okmark"><i class="ti ti-check"></i></div><h4>${t}</h4><p>${s}</p>${sig?`<div class="txline"><a target="_blank" href="https://explorer.solana.com/tx/${sig}?cluster=devnet">탐색기에서 보기 ↗</a></div>`:""}</div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">확인</button>`;}
 function fail(msg){mBody.innerHTML=`<div class="signbox"><div class="errmark"><i class="ti ti-x"></i></div><h4>실패</h4><p>${msg}</p></div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">닫기</button>`;}
-function emsg(e){let m=e.message||String(e);if(/RefInactive|6008/i.test(m))m="추천인이 활성 참여자(≥100 USDT 스테이킹)가 아닙니다.";if(/\bCap\b|6002/i.test(m))m="유동성 상한을 초과합니다.";if(/NotActive|6010/i.test(m))m="추천 보너스는 본인 스테이킹 ≥100 USDT일 때 받을 수 있습니다.";if(/NotMatured|6016/i.test(m))m="아직 30일(스테이킹 기간)을 채우지 않았습니다.";if(/Nothing|6013/i.test(m))m="청구할 금액이 없습니다.";if(/insufficient|0x1\b/i.test(m))m="잔액 부족 — 테스트 USDT/SOL이 필요합니다(주소 알려주세요).";return m;}
+function emsg(e){let m=e.message||String(e);if(/RefInactive|6008/i.test(m))m="추천인이 활성 참여자(≥100 USDT 스테이킹)가 아닙니다.";if(/\bCap\b|6002/i.test(m))m="유동성 상한을 초과합니다.";if(/NotActive|6010/i.test(m))m="추천 보너스는 본인 스테이킹 ≥100 USDT일 때 받을 수 있습니다.";if(/NotMatured|6016/i.test(m))m="아직 30일(스테이킹 기간)을 채우지 않았습니다.";if(/Nothing|6013/i.test(m))m="청구할 금액이 없습니다.";if(/insufficient|0x1\b/i.test(m))m="잔액이 부족합니다. USDT 잔액과 가스(SOL)를 확인해 주세요.";return m;}
 let MIN_INVEST=50;
 window.syncRecv=()=>{const v=+$("amt").value||0;if($("recv"))$("recv").textContent=fmt(v);};
 window.updFirstBtn=()=>{const b=$("firstBtn"); if(!b)return; const a=+($("amt")?.value)||0; b.disabled=!($("agree")?.checked && a>=MIN_INVEST);};
@@ -286,15 +286,15 @@ window.openInvest=async()=>{
   const defAmt=Math.max(100,MIN_INVEST);
   const amtField=`<div class="field"><label>투자 금액 <b>최소 ${fmt(MIN_INVEST)} · 잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" min="${MIN_INVEST}" step="any" value="${defAmt}"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div>`;
   if(member&&member.registered){ // already a member → invest a new tranche
-    mTitle.textContent="추가 투자 (새 스테이킹 묶음)";
+    mTitle.textContent="추가 투자";
     mBody.innerHTML=`${amtField}<div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">${fmt(defAmt)}</span> PINGRWA</b></div><div class="note">최소 투자금액 <b>${fmt(MIN_INVEST)} USDT</b> · USDT는 재단 귀속(환매 없음) · 새 묶음의 30일 카운트 시작</div>`;
     mFoot.innerHTML=`<button class="btn pri" onclick="signInvest()">지갑으로 서명하고 투자</button>`;
     $("amt").oninput=window.amtIn; ov.classList.add("on"); return;
   }
   // first invest → signup + register + invest
   const piiHtml=Object.keys(SIGNUP_FIELDS).filter(k=>SIGNUP_FIELDS[k]).map(k=>`<div class="field"><label>${SIGNUP_LABELS[k]||k}</label><div class="amt"><input id="pii_${k}" type="${k==='email'?'email':'text'}" style="font-size:16px" placeholder="${SIGNUP_LABELS[k]||k}"></div></div>`).join("");
-  mTitle.textContent="회원가입 + 첫 투자";
-  mBody.innerHTML=`<div class="note" style="margin:0 0 12px;text-align:left">첫 투자에는 간단한 가입 정보 입력과 <b>전자 투자계약 동의</b>가 필요합니다.</div>
+  mTitle.textContent="회원가입";
+  mBody.innerHTML=`<div class="note" style="margin:0 0 12px;text-align:left">간단한 가입 정보와 <b>전자 투자계약 동의</b>가 필요합니다.</div>
     ${piiHtml}
     <div class="field"><label>추천인 주소 (선택)</label><div class="amt"><input id="refAddr" type="text" style="font-size:14px" placeholder="추천인 지갑 주소 (없으면 비움)"></div></div>
     ${amtField}
