@@ -137,6 +137,6 @@ post('/api/admin/members/list', function () {
     membersEnsureTable();
     $body = getJsonBody();
     membersVerifyAdmin($body, 'list_members');
-    $rows = DB::fetchAll("SELECT address,nickname,email,name,phone,referrer,created_at FROM members ORDER BY created_at DESC LIMIT 500");
-    jsonOk(['members' => $rows, 'count' => count($rows)]);
+    $rows = DB::fetchAll("SELECT address,nickname,email,name,phone,referrer,contract_version,contract_signed_at,contract_sig,created_at FROM members ORDER BY created_at DESC LIMIT 500");
+    jsonOk(['members' => $rows, 'count' => count($rows), 'labels' => membersFieldDefs()]);
 });

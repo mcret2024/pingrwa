@@ -114,6 +114,12 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
   <div class="st" id="stSignup"></div>
  </div>
 
+ <div class="card"><h3><i class="ti ti-file-certificate"></i> 회원 · 전자계약 서명 기록</h3>
+  <button class="btn pri sub-btn" onclick="loadMembers()"><i class="ti ti-refresh"></i> 회원·계약 기록 불러오기 (서명)</button>
+  <div class="st" id="stMembers"></div>
+  <div id="memBox" style="margin-top:12px"></div>
+ </div>
+
  <div class="card"><h3><i class="ti ti-tool"></i> 운영 도구</h3>
   <div class="grid">
    <div class="fld"><label>관리 권한 이전 — 새 admin 주소 (set_admin)</label><div class="row2"><input id="aAdmin" type="text" placeholder="새 admin 주소"><button class="btn" onclick="doSetAdmin()">이전</button></div></div>
@@ -287,6 +293,27 @@ window.saveSignupFields=async()=>{
     setSt("stSignup","ok","✅ 저장됨 — 수집 항목: "+on+" · 최소투자 "+res.min_invest+" USDT");
     await loadSignupFields();
   }catch(e){ setSt("stSignup","err","❌ "+(e.message||e)); }
+};
+window.loadMembers=async()=>{
+  if(!user)return connect();
+  const ts=Date.now(); const message=`PINGRWA-ADMIN|list_members|ts=${ts}`;
+  setSt("stMembers","run",'<span class="spin"></span> Phantom에서 서명…');
+  try{
+    const sig=await signMsg(message);
+    const res=await (await fetch('/api/admin/members/list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:user.toBase58(),ts,message,sig})})).json();
+    if(!res.ok) throw new Error(res.message||'실패');
+    const L=res.labels||{}; const rows=res.members||[];
+    const esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    setSt("stMembers","ok","✅ 총 "+res.count+"명");
+    if(!rows.length){ $("memBox").innerHTML='<div class="hint" style="font-size:12px;color:var(--mut2)">아직 가입·서명한 회원이 없습니다.</div>'; return; }
+    const head=`<div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1.1fr 1.4fr;gap:8px;padding:8px 6px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--mut2)"><span>지갑</span><span>${L.nickname||'닉네임'}</span><span>${L.email||'이메일'}</span><span>계약(서명일)</span><span>서명값</span></div>`;
+    const body=rows.map(m=>{
+      const signed = m.contract_signed_at ? `<span style="color:var(--ok)">${esc(m.contract_version||'-')} · ${esc(m.contract_signed_at)}</span>` : '<span style="color:var(--warn)">미서명</span>';
+      const sig = m.contract_sig ? `<span title="${esc(m.contract_sig)}" style="cursor:help">${esc(m.contract_sig).slice(0,10)}…</span>` : '—';
+      return `<div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1.1fr 1.4fr;gap:8px;padding:9px 6px;border-bottom:1px solid var(--line);font-size:12px;align-items:center"><span class="v" style="font-family:var(--mono);font-size:11px;word-break:break-all">${esc(m.address).slice(0,4)}…${esc(m.address).slice(-4)}</span><span>${esc(m.nickname)||'-'}</span><span style="word-break:break-all">${esc(m.email)||'-'}</span><span style="font-size:11px;font-family:var(--mono)">${signed}</span><span style="font-family:var(--mono);font-size:11px;word-break:break-all">${sig}</span></div>`;
+    }).join('');
+    $("memBox").innerHTML=`<div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2)">${head}${body}</div><div class="hint" style="font-size:11px;color:var(--mut2);margin-top:6px">※ 서명값에 마우스를 올리면 전체 값이 보입니다. PII(이름·전화)는 DB에 저장되어 있습니다.</div>`;
+  }catch(e){ setSt("stMembers","err","❌ "+(e.message||e)); $("memBox").innerHTML=''; }
 };
 refresh();
 loadSignupFields();
