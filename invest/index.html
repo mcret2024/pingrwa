@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PINGRWA — 투자 (devnet 실연동)</title>
+<title>PINGRWA — 투자</title>
 <link rel="icon" type="image/svg+xml" href="/brand/logo-mark.svg">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
@@ -96,7 +96,7 @@ body{margin:0;font-family:var(--body);background-color:var(--bg);color:var(--ink
   <div class="swallet" id="swallet"><div class="a"><span class="d"></span><span id="swAddr">미연결</span></div><div class="b" id="swBal">지갑을 연결하세요</div></div>
  </aside>
  <main class="main">
-  <div class="topbar"><div><h1>투자 풀 <span class="flag"><i class="ti ti-flask"></i> DEVNET 실연동</span></h1><div class="sub">PINGPAY 매출채권 RWA · 표준형 풀 모집 중 · USDT 투자 → PINGRWA 스테이킹 (입금별 30일)</div></div><div style="display:flex;gap:10px;align-items:center"><button class="btn" onclick="openContract()" title="전자 투자계약서"><i class="ti ti-file-text"></i> 계약서</button><button class="themebtn" onclick="toggleTheme()" title="라이트/다크 전환"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><span style="color:#fff"><i class="ti ti-wallet"></i> 지갑 연결</span></button></div></div>
+  <div class="topbar"><div><h1>투자 풀</h1><div class="sub">PINGPAY 매출채권 RWA · 표준형 풀 모집 중 · USDT 투자 → PINGRWA 스테이킹 (입금별 30일)</div></div><div style="display:flex;gap:10px;align-items:center"><button class="btn" onclick="openContract()" title="전자 투자계약서"><i class="ti ti-file-text"></i> 계약서</button><button class="themebtn" onclick="toggleTheme()" title="라이트/다크 전환"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><span style="color:#fff"><i class="ti ti-wallet"></i> 지갑 연결</span></button></div></div>
   <div class="stats">
    <div class="stat"><div class="l">총 스테이킹 (USDT)</div><div class="v" id="stStaked">—</div></div>
    <div class="stat"><div class="l">목표 APR</div><div class="v" id="stApr">12.0<small>%</small></div></div>
@@ -165,7 +165,7 @@ const CONTRACT_HTML=`<div style="font-family:var(--body);font-size:12.5px;line-h
 <p><b>제6조 (언스테이킹·출구)</b> 갑은 스테이킹을 해지(언스테이킹)하여 PINGRWA 토큰을 지갑으로 출금할 수 있으나 <b>USDT 원금은 반환되지 않는다.</b> 30일 미경과 묶음을 해지하면 적립 이자는 소멸한다. 갑의 출구는 PINGRWA의 보유·재스테이킹 또는 향후 2차시장 매도를 통한다.</p>
 <p><b>제7조 (위험 고지)</b> 본 투자는 원금 손실·유동성·기초자산 미상환 위험을 수반하며, 을은 원금 또는 수익을 보장하지 않는다.</p>
 <p><b>제8조 (전자서명)</b> 갑은 본 계약 내용을 충분히 이해하였으며, 지갑 서명으로 본 계약에 동의한다. 서명 기록(주소·버전·시각·서명값)은 전자적으로 보관된다.</p>
-<p style="color:var(--mut2);font-size:11px">※ 본 서비스는 현재 devnet 테스트 환경입니다.</p>
+
 </div>`;
 const contractBox=()=>`<div style="max-height:200px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:14px;background:rgba(127,127,127,.05);margin-bottom:12px">${CONTRACT_HTML}</div>`;
 
@@ -180,7 +180,7 @@ function u128(dv,o){return dv.getBigUint64(o,true)+(dv.getBigUint64(o+8,true)<<6
 
 window.connect=async()=>{
   provider=getProvider();
-  if(!provider){alert("Phantom 지갑이 필요합니다. (devnet으로 설정)");window.open("https://phantom.app/","_blank");return;}
+  if(!provider){alert("Phantom 지갑이 필요합니다.");window.open("https://phantom.app/","_blank");return;}
   const r=await provider.connect();
   user=new web3.PublicKey(r.publicKey.toString());
   uUsdt=await spl.getAssociatedTokenAddress(USDT_MINT,user);

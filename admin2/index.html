@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PINGRWA — 관리자 패널 v3 (devnet)</title>
+<title>PINGRWA — 관리자 패널 v3</title>
 <link rel="icon" type="image/svg+xml" href="/brand/logo-mark.svg">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
@@ -51,7 +51,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <div class="wrap">
  <div class="top"><a class="brand" href="/"><span class="bmk"></span><span class="bwm"></span></a>
   <div class="tact"><button class="themebtn" onclick="toggleTheme()"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><i class="ti ti-wallet"></i> 관리자 지갑 연결</button></div></div>
- <h1>관리자 패널 v3 <span class="flag"><i class="ti ti-shield-lock"></i> DEVNET · PINGRWA형 온체인</span></h1>
+ <h1>관리자 패널 v3 <span class="flag"><i class="ti ti-shield-lock"></i> PINGRWA형 온체인</span></h1>
  <div id="adminBanner"></div>
 
  <div class="card"><h3><i class="ti ti-info-circle"></i> 컨트렉트 상태</h3>
@@ -198,7 +198,7 @@ function updBanner(){
   else b.innerHTML='<div class="banner warn"><i class="ti ti-alert-triangle"></i> 연결 지갑이 admin이 아닙니다 — 쓰기 거부됩니다.</div>';
 }
 window.connect=async()=>{
-  provider=getProvider(); if(!provider){alert("Phantom 필요 (devnet)");window.open("https://phantom.app/","_blank");return;}
+  provider=getProvider(); if(!provider){alert("Phantom 필요");window.open("https://phantom.app/","_blank");return;}
   const r=await provider.connect(); user=new web3.PublicKey(r.publicKey.toString());
   $("connectBtn").innerHTML='<i class="ti ti-circle-check"></i> '+short(user.toBase58()); $("cWallet").textContent=user.toBase58();
   await refresh();
