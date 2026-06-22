@@ -103,6 +103,12 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
   <div class="st" id="stParams"></div>
  </div>
 
+ <div class="card"><h3><i class="ti ti-forms"></i> 회원가입 수집 항목 (체크한 항목을 첫 투자에서 입력받음)</h3>
+  <div id="sfBox" class="grid" style="margin-bottom:6px">로딩…</div>
+  <button class="btn pri sub-btn" onclick="saveSignupFields()"><i class="ti ti-device-floppy"></i> 수집 항목 저장 (서명)</button>
+  <div class="st" id="stSignup"></div>
+ </div>
+
  <div class="card"><h3><i class="ti ti-tool"></i> 운영 도구</h3>
   <div class="grid">
    <div class="fld"><label>관리 권한 이전 — 새 admin 주소 (set_admin)</label><div class="row2"><input id="aAdmin" type="text" placeholder="새 admin 주소"><button class="btn" onclick="doSetAdmin()">이전</button></div></div>
@@ -244,5 +250,33 @@ window.doReset=()=>{
   const data=Buffer.from([...DISC.admin_reset,...u64le((+$("aReset").value||0)*DEC)]);
   sendIx("stTool",new web3.TransactionInstruction({programId:PID,keys:adminCfgKeys(),data}),"초기화");
 };
+// ── 회원 수집 항목 (지갑 서명) ──
+let SF_LABELS={}, SF_VAL={};
+async function loadSignupFields(){
+  try{ const r=await (await fetch('/api/members/config')).json();
+    SF_LABELS=r.labels||{}; SF_VAL=r.fields||{};
+    $("sfBox").innerHTML=Object.keys(SF_LABELS).map(k=>`<label style="display:flex;gap:8px;align-items:center;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)"><input type="checkbox" id="sf_${k}" ${SF_VAL[k]?'checked':''} style="width:18px;height:18px"> ${SF_LABELS[k]} <span style="color:var(--mut2);font-size:11px;font-family:var(--mono)">${k}</span></label>`).join('');
+  }catch(e){ $("sfBox").innerHTML='<div style="color:var(--err)">설정 로드 실패</div>'; }
+}
+async function signMsg(message){
+  const enc=new TextEncoder().encode(message);
+  const {signature}=await provider.signMessage(enc);
+  return btoa(String.fromCharCode(...signature));
+}
+window.saveSignupFields=async()=>{
+  if(!user)return connect();
+  const fields={}; Object.keys(SF_LABELS).forEach(k=>fields[k]=$("sf_"+k).checked);
+  const ts=Date.now(); const message=`PINGRWA-ADMIN|set_signup_fields|ts=${ts}`;
+  setSt("stSignup","run",'<span class="spin"></span> Phantom에서 서명…');
+  try{
+    const sig=await signMsg(message);
+    const res=await (await fetch('/api/admin/members/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:user.toBase58(),ts,message,sig,fields})})).json();
+    if(!res.ok) throw new Error(res.message||'실패');
+    const on=Object.keys(res.fields).filter(k=>res.fields[k]).map(k=>SF_LABELS[k]||k).join(", ")||"(없음)";
+    setSt("stSignup","ok","✅ 저장됨 — 수집 항목: "+on);
+    await loadSignupFields();
+  }catch(e){ setSt("stSignup","err","❌ "+(e.message||e)); }
+};
 refresh();
+loadSignupFields();
 </script></body></html>
