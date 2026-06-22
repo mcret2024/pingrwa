@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PINGRWA — 관리자 패널 v2 (devnet)</title>
+<title>PINGRWA — 관리자 패널 v3 (devnet)</title>
 <link rel="icon" type="image/svg+xml" href="/brand/logo-mark.svg">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
@@ -48,17 +48,17 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <div class="wrap">
  <div class="top"><a class="brand" href="/"><span class="bmk"></span><span class="bwm"></span></a>
   <div class="tact"><button class="themebtn" onclick="toggleTheme()"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><i class="ti ti-wallet"></i> 관리자 지갑 연결</button></div></div>
- <h1>관리자 패널 v2 <span class="flag"><i class="ti ti-shield-lock"></i> DEVNET · 온체인</span></h1>
+ <h1>관리자 패널 v3 <span class="flag"><i class="ti ti-shield-lock"></i> DEVNET · 채권형 온체인</span></h1>
  <div id="adminBanner"></div>
 
  <div class="card"><h3><i class="ti ti-info-circle"></i> 컨트렉트 상태</h3>
   <div class="kv"><span class="l">admin</span><span class="v" id="cAdmin">—</span></div>
   <div class="kv"><span class="l">연결 지갑</span><span class="v" id="cWallet">미연결</span></div>
   <div class="kv"><span class="l">총 스테이킹 / 추천스테이킹</span><span class="v" id="cStaked">—</span></div>
-  <div class="kv"><span class="l">유동성 상한 · 목표APR · 추천율 · 수수료 · 정지</span><span class="v" id="cParams">—</span></div>
+  <div class="kv"><span class="l">상한 · APR · 추천율 · 수수료 · 최소기간 · 정지</span><span class="v" id="cParams">—</span></div>
   <div class="kv"><span class="l">이자풀 (잔액 / 지급예정 / 자유)</span><span class="v" id="cInt">—</span></div>
   <div class="kv"><span class="l">추천풀 (잔액 / 지급예정 / 자유)</span><span class="v" id="cRef">—</span></div>
-  <div class="kv"><span class="l">PINGRWA 풀</span><span class="v" id="cPing">—</span></div>
+  <div class="kv"><span class="l">채권 풀 (언스테이킹 출금재고)</span><span class="v" id="cPing">—</span></div>
  </div>
 
  <div class="card"><h3><i class="ti ti-calculator"></i> 이번달 목표 · 부족분 (예측)</h3>
@@ -77,7 +77,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
   <div class="grid">
    <div class="fld"><label>이자풀 충전 (USDT)</label><div class="row2"><input id="fInt" type="number" value="0"><button class="btn" onclick="fundInterest()">충전</button></div></div>
    <div class="fld"><label>추천풀 충전 (USDT)</label><div class="row2"><input id="fRef" type="number" value="0"><button class="btn" onclick="fundReferral()">충전</button></div></div>
-   <div class="fld"><label>PINGRWA 풀 충전 (스왑 재고)</label><div class="row2"><input id="fPing" type="number" value="0"><button class="btn" onclick="fundPingrwa()">충전</button></div></div>
+   <div class="fld"><label>채권 풀 충전 (언스테이킹 출금재고)</label><div class="row2"><input id="fPing" type="number" value="0"><button class="btn" onclick="fundPingrwa()">충전</button></div></div>
   </div>
   <div class="st" id="stFund"></div>
  </div>
@@ -96,6 +96,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
    <div class="fld"><label>목표 이율 APR (%)</label><input id="pApr" type="number" step="0.1" value="12"></div>
    <div class="fld"><label>추천 보너스율 (%)</label><input id="pRefRate" type="number" step="0.1" value="5"></div>
    <div class="fld"><label>이자 인출 수수료 (USDT)</label><input id="pFee" type="number" step="0.1" value="1"></div>
+   <div class="fld"><label>최소 스테이킹 기간 (초) · 30일=2592000</label><input id="pMinStake" type="number" value="2592000"></div>
    <div class="fld"><label>일시정지</label><select id="pPaused"><option value="false">정상</option><option value="true">정지</option></select></div>
    <div class="fld"><label>이번달 총상환액 기록 (분배엔 미사용 · 투명성)</label><input id="pRepay" type="number" value="0"></div>
   </div>
@@ -112,7 +113,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
  <div class="card"><h3><i class="ti ti-tool"></i> 운영 도구</h3>
   <div class="grid">
    <div class="fld"><label>관리 권한 이전 — 새 admin 주소 (set_admin)</label><div class="row2"><input id="aAdmin" type="text" placeholder="새 admin 주소"><button class="btn" onclick="doSetAdmin()">이전</button></div></div>
-   <div class="fld"><label>참여 초기화 total_staked (테스트 · admin_reset)</label><div class="row2"><input id="aReset" type="number" value="0"><button class="btn" onclick="doReset()">초기화</button></div></div>
+   <div class="fld"><label>재단 USDT 인출 — 대출재원 (admin_withdraw_usdt)</label><div class="row2"><input id="aWithdraw" type="number" value="0"><button class="btn" onclick="doWithdraw()">인출</button></div><div class="hint">모인 투자 원금(USDT)을 관리자 지갑으로 인출 (선지급 대출 집행용)</div></div>
   </div>
   <div class="st" id="stTool"></div>
  </div>
@@ -125,17 +126,17 @@ import * as web3 from "https://esm.sh/@solana/web3.js@1.95.3";
 import * as spl from "https://esm.sh/@solana/spl-token@0.4.8?deps=@solana/web3.js@1.95.3";
 
 const RPC="https://api.devnet.solana.com";
-const PID=new web3.PublicKey("6H27P7bUQhbSBGvoK6WZb5KwZsrNxfAcAdv2VEHtKLH");
-const CONFIG=new web3.PublicKey("2Up93E5XkpZjDzqe9dE32mrVuF7iqmckMoSbznyfAnD1");
-const USDT_VAULT=new web3.PublicKey("BMV8eivhbGgYS7xAhuwQHERoQqU4hGWGLmsCuGwbYDeN");
-const PINGRWA_VAULT=new web3.PublicKey("B76ig7QpJaRuLM4g2Ut6CDrLYx6vb9qNcfQpFY515hYG");
-const INTEREST_VAULT=new web3.PublicKey("JCnB4H54gJMvqYNSYRn4Tm1dRzLHvgbtp9sHbTgr54CX");
-const REFERRAL_VAULT=new web3.PublicKey("4VqhLqLQhiHjuoK2a3TUtJNH4PSHczxx5ukxLXhSTGPy");
+const PID=new web3.PublicKey("8jcRDgeYvhLU8xsAcDrmkR4TMyc75hfgPj6SBRs92exP");
+const CONFIG=new web3.PublicKey("Biq7qu9CoYe3TAqing8zqZUKG9FL75JDYjfDkgoWPK28");
+const USDT_VAULT=new web3.PublicKey("GFZU5Z9hDgLRGUUCXFN72bgqVizUpzD9sVgrCTukc9Jv");
+const PINGRWA_VAULT=new web3.PublicKey("6edvefqP9F8WS78ZFtxMXkmiCPg8dc1SWKEJYofmwgBQ");
+const INTEREST_VAULT=new web3.PublicKey("FjKVViiJ6AShuGanm4ZK5GXi69VTG3ET1Lz7xxr6Ao1n");
+const REFERRAL_VAULT=new web3.PublicKey("ArCYTuJQUe1itXLYp4acPn7XVHcfkicqRKFMjLMY7fhk");
 const USDT_MINT=new web3.PublicKey("9pVi4Z94PwBhVY8VBMB7k4xjVvfmbtFvTd1QoUDcgcFV");
 const PINGRWA_MINT=new web3.PublicKey("B5b7n8eHj3cYKS7w1bAyuJJLWFQ6WcKn7Aa5B1usdCBU");
 const TOKEN_PROGRAM=spl.TOKEN_PROGRAM_ID;
 const DEC=1e6;
-const DISC={set_params:[27,234,178,52,147,2,187,141],distribute_interest:[161,80,239,247,115,254,122,80],distribute_referral:[11,237,155,252,66,144,241,71],admin_reset:[124,61,81,202,222,3,202,199],set_admin:[251,163,0,52,91,194,187,92]};
+const DISC={set_params:[27,234,178,52,147,2,187,141],distribute_interest:[161,80,239,247,115,254,122,80],distribute_referral:[11,237,155,252,66,144,241,71],set_admin:[251,163,0,52,91,194,187,92],admin_withdraw_usdt:[105,97,68,135,49,150,55,142]};
 const conn=new web3.Connection(RPC,"confirmed");
 let provider=null,user=null,cfg=null;
 const $=id=>document.getElementById(id);
@@ -159,8 +160,8 @@ async function readConfig(){
     total_staked:u64(232)/DEC, total_referred:u64(240)/DEC,
     loan_total:u64(248)/DEC, repayment_pool:u64(256)/DEC,
     interest_reserved:u64(296)/DEC, referral_reserved:u64(304)/DEC,
-    target_apr_bps:dv.getUint16(312,true), lp_rate_bps:dv.getUint16(314,true),
-    referral_rate_bps:dv.getUint16(316,true), withdrawal_fee:u64(318)/DEC, paused:dv.getUint8(326)===1,
+    target_apr_bps:dv.getUint16(312,true), referral_rate_bps:dv.getUint16(314,true),
+    withdrawal_fee:u64(316)/DEC, min_stake_seconds:Number(dv.getBigInt64(324,true)), paused:dv.getUint8(332)===1,
   };
 }
 async function refresh(){
@@ -169,7 +170,8 @@ async function refresh(){
   const intFree=Math.max(0,intBal-cfg.interest_reserved), refFree=Math.max(0,refBal-cfg.referral_reserved);
   $("cAdmin").textContent=cfg.admin.toBase58();
   $("cStaked").textContent=fmt(cfg.total_staked)+" / "+fmt(cfg.total_referred);
-  $("cParams").textContent=fmt(cfg.loan_total)+" · "+(cfg.target_apr_bps/100)+"% · "+(cfg.referral_rate_bps/100)+"% · "+fmt(cfg.withdrawal_fee)+" · "+(cfg.paused?"정지":"정상");
+  const minDisp=cfg.min_stake_seconds>=86400?(cfg.min_stake_seconds/86400)+"일":cfg.min_stake_seconds+"초";
+  $("cParams").textContent=fmt(cfg.loan_total)+" · APR"+(cfg.target_apr_bps/100)+"% · 추천"+(cfg.referral_rate_bps/100)+"% · 수수료"+fmt(cfg.withdrawal_fee)+" · 최소"+minDisp+" · "+(cfg.paused?"정지":"정상");
   $("cInt").textContent=fmt(intBal)+" / "+fmt(cfg.interest_reserved)+" / "+fmt(intFree);
   $("cRef").textContent=fmt(refBal)+" / "+fmt(cfg.referral_reserved)+" / "+fmt(refFree);
   $("cPing").textContent=fmt(pingBal)+" PINGRWA";
@@ -181,7 +183,7 @@ async function refresh(){
   $("pTgtRef").textContent=fmt(tgtRef)+" USDT"; $("pFreeRef").textContent=fmt(refFree)+" USDT";
   const shRef=Math.max(0,tgtRef-refFree); $("pShortRef").innerHTML='<span class="'+(shRef>0?'short':'ok')+'">'+(shRef>0?fmt(shRef)+" USDT":"충분")+'</span>';
   // prefill
-  $("pLoan").value=cfg.loan_total; $("pApr").value=cfg.target_apr_bps/100; $("pRefRate").value=cfg.referral_rate_bps/100; $("pFee").value=cfg.withdrawal_fee; $("pPaused").value=String(cfg.paused); $("pRepay").value=cfg.repayment_pool;
+  $("pLoan").value=cfg.loan_total; $("pApr").value=cfg.target_apr_bps/100; $("pRefRate").value=cfg.referral_rate_bps/100; $("pFee").value=cfg.withdrawal_fee; $("pMinStake").value=cfg.min_stake_seconds; $("pPaused").value=String(cfg.paused); $("pRepay").value=cfg.repayment_pool;
   $("dInt").value=Math.min(tgtInt,intFree).toFixed(2); $("dRef").value=Math.min(tgtRef,refFree).toFixed(2);
   $("fInt").value=shInt>0?shInt.toFixed(2):0; $("fRef").value=shRef>0?shRef.toFixed(2):0;
   updBanner();
@@ -210,15 +212,15 @@ async function sendIx(stId,ixs,okMsg){
     await conn.confirmTransaction(sig,"confirmed");
     setSt(stId,"ok","✅ "+okMsg+' · <a target="_blank" href="https://explorer.solana.com/tx/'+sig+'?cluster=devnet">tx ↗</a>');
     await refresh();
-  }catch(e){let m=e.message||String(e);if(/1771|Unauthorized|has_one|0x7d3/i.test(m))m="권한 없음 (admin 아님)";if(/InsufficientFree|0x179a|6010/i.test(m))m="풀 자유잔액 부족 — 먼저 충전하세요.";setSt(stId,"err","❌ "+m);}
+  }catch(e){let m=e.message||String(e);if(/Unauthorized|has_one|6005|0x1775/i.test(m))m="권한 없음 (admin 아님)";if(/\bFree\b|6012/i.test(m))m="풀 자유잔액 부족 — 먼저 충전하세요.";if(/NothingStaked|6011/i.test(m))m="스테이킹된 금액이 없습니다 (분배 대상 없음).";setSt(stId,"err","❌ "+m);}
 }
 const adminCfgKeys=()=>[{pubkey:user,isSigner:true,isWritable:false},{pubkey:CONFIG,isSigner:false,isWritable:true}];
 
 window.doSetParams=()=>{
   const data=Buffer.from([...DISC.set_params,
     ...u64le((+$("pLoan").value||0)*DEC), ...u64le((+$("pRepay").value||0)*DEC),
-    ...u16le(Math.round((+$("pApr").value||0)*100)), ...u16le(cfg?cfg.lp_rate_bps:1000),
-    ...u16le(Math.round((+$("pRefRate").value||0)*100)), ...u64le((+$("pFee").value||0)*DEC),
+    ...u16le(Math.round((+$("pApr").value||0)*100)), ...u16le(Math.round((+$("pRefRate").value||0)*100)),
+    ...u64le((+$("pFee").value||0)*DEC), ...u64le(+$("pMinStake").value||0),
     ($("pPaused").value==="true")?1:0]);
   sendIx("stParams",new web3.TransactionInstruction({programId:PID,keys:adminCfgKeys(),data}),"파라미터 저장");
 };
@@ -246,9 +248,12 @@ window.doSetAdmin=()=>{
   const data=Buffer.from([...DISC.set_admin,...na.toBytes()]);
   sendIx("stTool",new web3.TransactionInstruction({programId:PID,keys:adminCfgKeys(),data}),"권한 이전");
 };
-window.doReset=()=>{
-  const data=Buffer.from([...DISC.admin_reset,...u64le((+$("aReset").value||0)*DEC)]);
-  sendIx("stTool",new web3.TransactionInstruction({programId:PID,keys:adminCfgKeys(),data}),"초기화");
+window.doWithdraw=async()=>{
+  if(!user)return connect();
+  const dest=await spl.getAssociatedTokenAddress(USDT_MINT,user);
+  const data=Buffer.from([...DISC.admin_withdraw_usdt,...u64le((+$("aWithdraw").value||0)*DEC)]);
+  const keys=[{pubkey:user,isSigner:true,isWritable:false},{pubkey:CONFIG,isSigner:false,isWritable:false},{pubkey:USDT_VAULT,isSigner:false,isWritable:true},{pubkey:dest,isSigner:false,isWritable:true},{pubkey:TOKEN_PROGRAM,isSigner:false,isWritable:false}];
+  sendIx("stTool",new web3.TransactionInstruction({programId:PID,keys,data}),"USDT 인출");
 };
 // ── 회원 수집 항목 (지갑 서명) ──
 let SF_LABELS={}, SF_VAL={};
