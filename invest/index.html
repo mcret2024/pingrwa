@@ -294,7 +294,7 @@ window.openInvest=async()=>{
     <div class="field"><label>추천인 주소 (선택)</label><div class="amt"><input id="refAddr" type="text" style="font-size:14px" placeholder="추천인 지갑 주소 (없으면 비움)"></div></div>
     <div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div>
     <div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">100</span> PINGRWA</b></div>
-    <div style="margin-top:14px"><div style="font-size:12px;color:var(--mut);margin-bottom:6px;font-family:var(--mono)">전자 투자계약서</div>${contractBox()}<label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;cursor:pointer"><input type="checkbox" id="agree" style="width:18px;height:18px;margin-top:1px" onchange="document.getElementById('firstBtn').disabled=!this.checked"> 위 전자 투자계약서의 내용을 충분히 이해하였으며 이에 <b>동의</b>합니다. (USDT 원금은 환매되지 않음)</label></div>`;
+    <div style="margin-top:14px"><div style="font-size:12px;color:var(--mut);margin-bottom:6px;font-family:var(--mono)">전자 투자계약서</div>${contractBox()}<label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.55;cursor:pointer"><input type="checkbox" id="agree" style="width:18px;height:18px;margin-top:2px;flex:none" onchange="document.getElementById('firstBtn').disabled=!this.checked"><span>위 전자 투자계약서의 내용을 충분히 이해하였으며 이에 <b>동의</b>합니다. <span style="color:var(--mut)">(USDT 원금은 환매되지 않음)</span></span></label></div>`;
   mFoot.innerHTML=`<button class="btn pri" id="firstBtn" onclick="signFirstInvest()" disabled>동의하고 가입·투자 (서명)</button>`;
   $("amt").oninput=window.syncRecv; ov.classList.add("on");
 };
