@@ -1,0 +1,297 @@
+<!DOCTYPE html><html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PINGRWA — 투자 (devnet 실연동)</title>
+<link rel="icon" type="image/svg+xml" href="/brand/logo-mark.svg">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0a0913;--panel:#11101d;--panel2:#16142552;--line:rgba(255,255,255,.08);--lineA:rgba(162,89,255,.35);--ink:#F2F0FA;--mut:rgba(242,240,250,.55);--mut2:rgba(242,240,250,.34);--pri:#A259FF;--mag:#E8459B;--ok:#2BD67B;--warn:#F5A524;--err:#FF6B6B;--disp:'Space Grotesk',sans-serif;--body:'Pretendard',sans-serif;--mono:'Space Mono',monospace;--g:linear-gradient(96deg,#870AE0,#A259FF);--modalbg:#14122a}
+html[data-theme="light"]{--bg:#F4F1FC;--panel:#fff;--panel2:#F3EDFC;--line:#E5DCF4;--lineA:rgba(135,10,224,.34);--ink:#0B0712;--mut:#2E2740;--mut2:#564E6C;--pri:#7A09CC;--modalbg:#fff}
+html[data-theme="light"] .stat .v,html[data-theme="light"] .pname .nm,html[data-theme="light"] .topbar h1,html[data-theme="light"] .acard h3,html[data-theme="light"] .chk .v,html[data-theme="light"] .card .ch h2{color:#0B0712}
+body{margin:0;font-family:var(--body);background-color:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.themebtn{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(127,127,127,.08);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 22px}
+.bmk{width:46px;height:24px;background:linear-gradient(135deg,#B45CFF,#870AE0);-webkit-mask:url('/brand/logo-mark.svg') left center/contain no-repeat;mask:url('/brand/logo-mark.svg') left center/contain no-repeat}
+.bwm{width:70px;height:18px;background:var(--ink);-webkit-mask:url('/brand/logo-text.svg') left center/contain no-repeat;mask:url('/brand/logo-text.svg') left center/contain no-repeat}
+.snav{display:flex;flex-direction:column;gap:3px;margin-top:6px}
+.snav a{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:11px;color:var(--mut);font-size:14px;font-weight:500;text-decoration:none}
+.snav a i{font-size:19px}.snav a.on{background:rgba(162,89,255,.14);color:#fff}.snav a.on i{color:var(--pri)}
+.swallet{margin-top:auto;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px}
+.swallet .d{width:7px;height:7px;border-radius:50%;background:var(--mut2);display:inline-block;margin-right:6px}
+.swallet.on .d{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.swallet .a{font-family:var(--mono);font-size:12px}.swallet .b{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px}
+.main{padding:26px 34px 50px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.topbar h1{font-family:var(--disp);font-size:24px;font-weight:700;margin:0}.topbar .sub{font-size:13px;color:var(--mut);margin-top:3px}
+.btn{font-family:var(--body);font-weight:600;font-size:14px;border-radius:11px;cursor:pointer;padding:10px 16px;border:1px solid var(--line);background:rgba(127,127,127,.06);color:var(--ink)}
+.btn.pri{background:var(--g);color:#fff;border:0;box-shadow:0 8px 22px rgba(135,10,224,.4)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:8px 14px;font-size:13px}
+.flag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--pri);background:var(--panel2);border:1px solid var(--lineA);padding:4px 10px;border-radius:999px;margin-left:10px;vertical-align:middle}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.stat .l{font-family:var(--mono);font-size:11px;color:var(--mut)}.stat .v{font-family:var(--disp);font-weight:700;font-size:26px;margin-top:8px}.stat .v small{font-size:13px;color:var(--ok)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.card .ch{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.card .ch h2{font-family:var(--disp);font-size:17px;margin:0;font-weight:600}.card .ch .leg{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.thead,.prow{display:grid;grid-template-columns:2.2fr 1fr 1fr 1.6fr 1fr 1.1fr;align-items:center;gap:12px;padding:14px 22px}
+.thead{font-family:var(--mono);font-size:11px;color:var(--mut2);border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.5px}
+.prow{border-bottom:1px solid var(--line)}.prow:last-child{border-bottom:0}
+.prow.feat{background:linear-gradient(90deg,rgba(162,89,255,.1),transparent 60%)}
+.pname{display:flex;align-items:center;gap:12px}
+.pic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:19px}
+.i1{background:linear-gradient(135deg,#16A36B,#2BD67B)}.i2{background:linear-gradient(135deg,#870AE0,#A259FF)}.i3{background:linear-gradient(135deg,#B4138A,#E8459B)}
+.pname .nm{font-family:var(--disp);font-weight:600;font-size:15px}.pname .rk{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:2px}
+.apy{font-family:var(--disp);font-weight:700;font-size:18px;background:linear-gradient(96deg,#870AE0,#E8459B);-webkit-background-clip:text;background-clip:text;color:transparent}
+.term{font-size:13px;color:var(--mut)}
+.bar{height:7px;border-radius:99px;background:rgba(127,127,127,.15);overflow:hidden}.bar i{display:block;height:100%;background:var(--g)}
+.barlbl{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:5px}
+.tag{font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+.tag.hot{background:rgba(232,69,155,.16);color:#ff9ed0;border-color:transparent}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
+.acard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+.acard h3{font-family:var(--disp);font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:8px;font-weight:600}.acard h3 i{color:var(--pri)}
+.acard .sub{font-size:13px;color:var(--mut);margin:0 0 15px}.acard .sub b{color:var(--ink)}
+.chk{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;font-size:13px;background:rgba(127,127,127,.04)}
+.chk .i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}.chk.ok .i{background:rgba(43,214,123,.18);color:var(--ok)}.chk.todo .i{background:rgba(245,165,36,.2);color:var(--warn)}.chk .v{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink)}.acard .btn{width:100%;margin-top:8px}
+.ov{position:fixed;inset:0;background:rgba(4,2,12,.72);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}.ov.on{display:flex}
+.modal{width:min(440px,100%);background:var(--modalbg);border:1px solid var(--lineA);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.7)}
+.mhd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}.mhd h3{font-family:var(--disp);font-size:17px;margin:0;font-weight:600}.mx{background:none;border:0;font-size:18px;color:var(--mut);cursor:pointer}.mbd{padding:22px}.mfoot{padding:16px 22px;border-top:1px solid var(--line)}.mfoot .btn{width:100%}
+.field{margin-bottom:16px}.field label{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-bottom:7px}.field label b{font-family:var(--mono);color:var(--ink)}
+.amt{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;padding:0 14px;background:rgba(127,127,127,.05)}.amt input{flex:1;border:0;background:transparent;font-family:var(--disp);font-weight:700;font-size:22px;color:var(--ink);padding:14px 0;outline:none;width:100%}.amt .cur{font-family:var(--mono);font-weight:700;color:var(--mut)}.amt .max{font-family:var(--mono);font-size:11px;color:var(--pri);border:1px solid var(--line);background:rgba(127,127,127,.06);border-radius:8px;padding:6px 9px;cursor:pointer;margin-left:8px}
+.recv{display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(162,89,255,.16);border:1px solid var(--lineA);border-radius:12px;font-size:13px;color:var(--pri);margin-bottom:8px}.recv b{font-family:var(--disp);font-size:18px;color:var(--ink)}
+.signbox{text-align:center;padding:18px 0}.spin{width:46px;height:46px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--pri);margin:0 auto 14px;animation:sp .9s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.okmark{width:54px;height:54px;border-radius:50%;background:rgba(43,214,123,.18);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}.errmark{width:54px;height:54px;border-radius:50%;background:rgba(255,107,107,.18);color:var(--err);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}.signbox h4{font-family:var(--disp);font-size:17px;margin:0 0 6px}.signbox p{font-size:13px;color:var(--mut);margin:0;line-height:1.6}.signbox p b{color:var(--ink)}.txline{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:12px;word-break:break-all}.txline a{color:var(--pri)}.note{font-family:var(--mono);font-size:11px;color:var(--mut2);margin-top:10px;text-align:center}
+.ti{line-height:1;vertical-align:-2px}
+.btn{transition:transform .15s,box-shadow .2s,border-color .2s}.btn.pri:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(135,10,224,.55)}.btn:not(.pri):not(:disabled):hover{border-color:var(--lineA)}
+.themebtn{transition:.18s}.themebtn:hover{border-color:var(--lineA);color:var(--pri)}
+.snav a{transition:.18s;position:relative}.snav a:hover{color:var(--ink)}
+.snav a.on::before{content:"";position:absolute;left:-16px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--g);box-shadow:0 0 12px rgba(162,89,255,.7)}
+.stat{transition:transform .2s,box-shadow .2s,border-color .2s}.stat:hover{transform:translateY(-4px);box-shadow:0 16px 42px rgba(135,10,224,.18);border-color:var(--lineA)}
+.acard{transition:transform .2s,box-shadow .2s,border-color .2s}.acard:hover{transform:translateY(-3px);box-shadow:0 16px 42px rgba(135,10,224,.16);border-color:var(--lineA)}
+.prow{transition:background .2s}.prow:not(.feat):hover{background:rgba(135,10,224,.06)}
+.prow.feat{position:relative;overflow:hidden}.prow.feat::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 42%,rgba(162,89,255,.16) 50%,transparent 58%);transform:translateX(-100%);animation:sweep 4.5s ease-in-out infinite;pointer-events:none}
+@keyframes sweep{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.tag.hot{position:relative;overflow:hidden}.tag.hot::after{content:"";position:absolute;inset:0;border-radius:99px;box-shadow:0 0 0 0 rgba(232,69,155,.55);animation:hotpulse 2.2s infinite}
+@keyframes hotpulse{0%{box-shadow:0 0 0 0 rgba(232,69,155,.5)}70%{box-shadow:0 0 0 7px rgba(232,69,155,0)}100%{box-shadow:0 0 0 0 rgba(232,69,155,0)}}
+@media(max-width:880px){.app{grid-template-columns:1fr}.side{display:none}.stats{grid-template-columns:1fr 1fr}.thead{display:none}.prow{grid-template-columns:1fr 1fr;gap:8px}.two{grid-template-columns:1fr}}
+</style></head><body>
+<div class="app">
+ <aside class="side">
+  <a class="brand" href="/"><span class="bmk"></span><span class="bwm"></span></a>
+  <nav class="snav">
+   <a href="#"><i class="ti ti-layout-dashboard"></i> 대시보드</a>
+   <a href="#"><i class="ti ti-arrows-exchange"></i> 거래</a>
+   <a href="#"><i class="ti ti-repeat"></i> 스왑</a>
+   <a class="on" href="#"><i class="ti ti-pool"></i> 투자 풀</a>
+   <a href="#"><i class="ti ti-wallet"></i> 지갑</a>
+   <a href="#"><i class="ti ti-history"></i> 히스토리</a>
+   <a href="#"><i class="ti ti-file-text"></i> IR</a>
+  </nav>
+  <div class="swallet" id="swallet"><div class="a"><span class="d"></span><span id="swAddr">미연결</span></div><div class="b" id="swBal">지갑을 연결하세요</div></div>
+ </aside>
+ <main class="main">
+  <div class="topbar"><div><h1>투자 풀 <span class="flag"><i class="ti ti-flask"></i> DEVNET 실연동</span></h1><div class="sub">PINGPAY 매출채권 RWA · 표준형 풀 모집 중 · USDT→PINGRWA 1:1 스왑</div></div><div style="display:flex;gap:10px;align-items:center"><button class="themebtn" onclick="toggleTheme()" title="라이트/다크 전환"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><span style="color:#fff"><i class="ti ti-wallet"></i> 지갑 연결</span></button></div></div>
+  <div class="stats">
+   <div class="stat"><div class="l">총 스테이킹 (USDT)</div><div class="v" id="stStaked">—</div></div>
+   <div class="stat"><div class="l">표준형 APY</div><div class="v">18.4<small>%</small></div></div>
+   <div class="stat"><div class="l">풀 PINGRWA</div><div class="v" id="stPool">—</div></div>
+   <div class="stat"><div class="l">상환율</div><div class="v">99.2<small>%</small></div></div>
+  </div>
+  <div class="card">
+   <div class="ch"><h2>풀 목록</h2><span class="leg">● 모집중 1 · 준비중 2</span></div>
+   <div class="thead"><span>풀</span><span>기간</span><span>APY</span><span>충전율</span><span>최소</span><span style="text-align:right">액션</span></div>
+   <div class="prow"><div class="pname"><span class="pic i1"><i class="ti ti-shield-check"></i></span><div><div class="nm">안정형 풀 <span class="tag">준비 중</span></div><div class="rk">저위험</div></div></div><span class="term">60일</span><span class="apy">12.0%</span><div><div class="bar"><i style="width:82%"></i></div><div class="barlbl">82% · 320채권</div></div><span class="term">50 USDT</span><div style="text-align:right"><button class="btn sm" disabled>비활성화</button></div></div>
+   <div class="prow feat"><div class="pname"><span class="pic i2"><i class="ti ti-chart-arcs"></i></span><div><div class="nm">표준형 풀 <span class="tag hot">모집중</span></div><div class="rk">중위험 · 다국가 분산</div></div></div><span class="term">60일</span><span class="apy">18.4%</span><div><div class="bar"><i id="featBar" style="width:0%"></i></div><div class="barlbl" id="featLbl">충전율 —</div></div><span class="term">50 USDT</span><div style="text-align:right"><button class="btn pri sm" onclick="openInvest()">투자하기</button></div></div>
+   <div class="prow"><div class="pname"><span class="pic i3"><i class="ti ti-rocket"></i></span><div><div class="nm">성장형 풀 <span class="tag">준비 중</span></div><div class="rk">고수익</div></div></div><span class="term">90일</span><span class="apy">24.0%</span><div><div class="bar"><i style="width:47%"></i></div><div class="barlbl">47% · 150채권</div></div><span class="term">50 USDT</span><div style="text-align:right"><button class="btn sm" disabled>비활성화</button></div></div>
+  </div>
+  <div class="two">
+   <div class="acard"><h3><i class="ti ti-cash-banknote"></i> 이자 · 추천 보너스 받기</h3><p class="sub">스테이킹 지분에 따라 적립된 이자와 추천 보너스를 <b>온체인</b>에서 직접 청구합니다.</p>
+    <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 지갑 연결 <span class="v" id="iAddr">미연결</span></div><div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 청구 가능 이자 <span class="v" id="iInt">—</span></div><div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 청구 가능 추천 보너스 <span class="v" id="iRef">—</span></div><button class="btn pri" onclick="openClaim()">이자·추천 청구하기</button></div>
+   <div class="acard"><h3><i class="ti ti-arrow-back-up"></i> 투자 회수 (언스테이킹)</h3><p class="sub">지갑주소 확인 후 <b>PINGRWA 반납</b>으로 원금(USDT)을 회수합니다.</p>
+    <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 지갑주소 확인 <span class="v" id="wAddr">미연결</span></div><div class="chk todo"><span class="i"><i class="ti ti-arrow-back-up"></i></span> 반납할 PINGRWA <span class="v" id="wRwa">—</span></div><div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 회수 예정액 <span class="v" id="wUsdt">—</span></div><button class="btn pri" onclick="openWithdraw()">PINGRWA 반납하고 USDT 회수</button></div>
+  </div>
+ </main>
+</div>
+<div class="ov" id="ov"><div class="modal"><div class="mhd"><h3 id="mTitle"></h3><button class="mx" onclick="closeOv()">✕</button></div><div class="mbd" id="mBody"></div><div class="mfoot" id="mFoot"></div></div></div>
+<script type="module">
+import { Buffer } from "https://esm.sh/buffer@6.0.3";
+window.Buffer = Buffer;
+import * as web3 from "https://esm.sh/@solana/web3.js@1.95.3";
+import * as spl from "https://esm.sh/@solana/spl-token@0.4.8?deps=@solana/web3.js@1.95.3";
+
+const RPC="https://api.devnet.solana.com";
+const PID=new web3.PublicKey("6H27P7bUQhbSBGvoK6WZb5KwZsrNxfAcAdv2VEHtKLH");
+const CONFIG=new web3.PublicKey("2Up93E5XkpZjDzqe9dE32mrVuF7iqmckMoSbznyfAnD1");
+const USDT_VAULT=new web3.PublicKey("BMV8eivhbGgYS7xAhuwQHERoQqU4hGWGLmsCuGwbYDeN");
+const PINGRWA_VAULT=new web3.PublicKey("B76ig7QpJaRuLM4g2Ut6CDrLYx6vb9qNcfQpFY515hYG");
+const INTEREST_VAULT=new web3.PublicKey("JCnB4H54gJMvqYNSYRn4Tm1dRzLHvgbtp9sHbTgr54CX");
+const REFERRAL_VAULT=new web3.PublicKey("4VqhLqLQhiHjuoK2a3TUtJNH4PSHczxx5ukxLXhSTGPy");
+const USDT_MINT=new web3.PublicKey("9pVi4Z94PwBhVY8VBMB7k4xjVvfmbtFvTd1QoUDcgcFV");
+const PINGRWA_MINT=new web3.PublicKey("B5b7n8eHj3cYKS7w1bAyuJJLWFQ6WcKn7Aa5B1usdCBU");
+const TOKEN_PROGRAM=spl.TOKEN_PROGRAM_ID;
+const DISC={register:[211,124,67,15,211,194,178,240],stake:[206,176,202,18,200,209,179,108],unstake:[90,95,107,42,205,124,50,225],claim_interest:[62,142,132,209,206,8,79,175],claim_referral:[219,247,18,148,63,247,112,198]};
+const DEC=1e6, ACC=1000000000000n;
+const conn=new web3.Connection(RPC,"confirmed");
+let provider=null,user=null,uUsdt=null,uPing=null,pos=null,cfgAcc={iAcc:0n,rAcc:0n};
+let bals={usdt:0,ping:0,sol:0}, pend={int:0,ref:0};
+const $=id=>document.getElementById(id);
+const short=a=>a.slice(0,4)+"…"+a.slice(-4);
+const fmt=n=>Number(n).toLocaleString(undefined,{maximumFractionDigits:2});
+const ov=$("ov"),mTitle=$("mTitle"),mBody=$("mBody"),mFoot=$("mFoot");
+const posPda=(owner)=>web3.PublicKey.findProgramAddressSync([Buffer.from("pos2"),owner.toBuffer()],PID)[0];
+
+function setIcon(){const l=document.documentElement.getAttribute("data-theme")==="light";document.querySelectorAll(".themebtn i").forEach(i=>i.className=l?"ti ti-moon":"ti ti-sun");}
+window.toggleTheme=()=>{const h=document.documentElement;if(h.getAttribute("data-theme")==="light"){h.removeAttribute("data-theme");try{localStorage.setItem("rwa_pools_theme","dark")}catch(e){}}else{h.setAttribute("data-theme","light");try{localStorage.setItem("rwa_pools_theme","light")}catch(e){}}setIcon();};
+try{if(localStorage.getItem("rwa_pools_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}setIcon();
+window.closeOv=()=>ov.classList.remove("on");
+ov.addEventListener("click",e=>{if(e.target===ov)window.closeOv();});
+function getProvider(){const p=window.phantom?.solana||window.solana;return (p&&p.isPhantom)?p:null;}
+async function tokBal(ata){try{const b=await conn.getTokenAccountBalance(ata);return b.value.uiAmount||0;}catch{return 0;}}
+function u128(dv,o){return dv.getBigUint64(o,true)+(dv.getBigUint64(o+8,true)<<64n);}
+
+window.connect=async()=>{
+  provider=getProvider();
+  if(!provider){alert("Phantom 지갑이 필요합니다. (devnet으로 설정)");window.open("https://phantom.app/","_blank");return;}
+  const r=await provider.connect();
+  user=new web3.PublicKey(r.publicKey.toString());
+  uUsdt=await spl.getAssociatedTokenAddress(USDT_MINT,user);
+  uPing=await spl.getAssociatedTokenAddress(PINGRWA_MINT,user);
+  $("connectBtn").innerHTML='<span style="color:#fff"><i class="ti ti-circle-check"></i> '+short(user.toBase58())+'</span>';
+  $("swallet").classList.add("on"); $("swAddr").textContent=short(user.toBase58());
+  $("iAddr").textContent=short(user.toBase58()); $("wAddr").textContent=short(user.toBase58());
+  await refresh();
+};
+
+async function readPosition(){
+  try{const ai=await conn.getAccountInfo(posPda(user)); if(!ai)return null; const d=ai.data,dv=new DataView(d.buffer,d.byteOffset,d.byteLength);
+    return {referrer:new web3.PublicKey(d.slice(40,72)),staked:dv.getBigUint64(72,true),referredStake:dv.getBigUint64(80,true),
+      iDebt:dv.getBigUint64(88,true),iClaim:dv.getBigUint64(96,true),rDebt:dv.getBigUint64(104,true),rClaim:dv.getBigUint64(112,true),registered:d[120]===1};
+  }catch(e){return null;}
+}
+function pendingOf(stakeBI,accBI,debtBI,claimBI){const g=stakeBI*accBI/ACC; return claimBI+(g>debtBI?g-debtBI:0n);}
+
+async function refresh(){
+  $("stPool").textContent=fmt(await tokBal(PINGRWA_VAULT));
+  try{const ai=await conn.getAccountInfo(CONFIG);const d=ai.data,dv=new DataView(d.buffer,d.byteOffset,d.byteLength);
+    const ts=Number(dv.getBigUint64(232,true))/DEC,lt=Number(dv.getBigUint64(248,true))/DEC;
+    cfgAcc.iAcc=u128(dv,264); cfgAcc.rAcc=u128(dv,280);
+    $("stStaked").textContent=fmt(ts);
+    const pct=lt>0?Math.min(100,ts/lt*100):0;
+    $("featBar").style.width=pct+"%"; $("featLbl").textContent="충전율 "+pct.toFixed(1)+"% · 상한 "+fmt(lt)+" USDT";
+  }catch(e){}
+  if(user){
+    bals.usdt=await tokBal(uUsdt);bals.ping=await tokBal(uPing);bals.sol=(await conn.getBalance(user))/web3.LAMPORTS_PER_SOL;
+    $("swBal").textContent="잔액 "+fmt(bals.usdt)+" USDT · "+fmt(bals.ping)+" PINGRWA";
+    pos=await readPosition();
+    if(pos){
+      pend.int=Number(pendingOf(pos.staked,cfgAcc.iAcc,pos.iDebt,pos.iClaim))/DEC;
+      pend.ref=Number(pendingOf(pos.referredStake,cfgAcc.rAcc,pos.rDebt,pos.rClaim))/DEC;
+      $("iInt").textContent="+"+fmt(pend.int)+" USDT"; $("iRef").textContent="+"+fmt(pend.ref)+" USDT";
+      $("wRwa").textContent=fmt(bals.ping)+" PINGRWA"; $("wUsdt").textContent=fmt(bals.ping)+" USDT";
+    }else{ pend={int:0,ref:0}; $("iInt").textContent="가입 전"; $("iRef").textContent="가입 전"; $("wRwa").textContent=fmt(bals.ping)+" PINGRWA"; $("wUsdt").textContent=fmt(bals.ping)+" USDT"; }
+  }
+}
+
+function u64le(n){const b=new Uint8Array(8);new DataView(b.buffer).setBigUint64(0,BigInt(Math.round(n*DEC)),true);return b;}
+function refMeta(referrerPk,writable){ if(referrerPk && !referrerPk.equals(web3.PublicKey.default)) return {pubkey:posPda(referrerPk),isSigner:false,isWritable:writable}; return {pubkey:PID,isSigner:false,isWritable:false}; }
+function registerIx(referrerPk){const data=Buffer.from([...DISC.register,...referrerPk.toBytes()]);
+  return new web3.TransactionInstruction({programId:PID,keys:[{pubkey:user,isSigner:true,isWritable:true},{pubkey:CONFIG,isSigner:false,isWritable:false},{pubkey:posPda(user),isSigner:false,isWritable:true},refMeta(referrerPk,false),{pubkey:web3.SystemProgram.programId,isSigner:false,isWritable:false}],data});}
+function swapIx(kind,amount,referrerPk){const disc=kind==="stake"?DISC.stake:DISC.unstake;const data=Buffer.from([...disc,...u64le(amount)]);
+  return new web3.TransactionInstruction({programId:PID,keys:[{pubkey:user,isSigner:true,isWritable:true},{pubkey:CONFIG,isSigner:false,isWritable:true},{pubkey:posPda(user),isSigner:false,isWritable:true},refMeta(referrerPk,true),{pubkey:USDT_VAULT,isSigner:false,isWritable:true},{pubkey:PINGRWA_VAULT,isSigner:false,isWritable:true},{pubkey:uUsdt,isSigner:false,isWritable:true},{pubkey:uPing,isSigner:false,isWritable:true},{pubkey:TOKEN_PROGRAM,isSigner:false,isWritable:false}],data});}
+function claimIx(kind){const disc=kind==="int"?DISC.claim_interest:DISC.claim_referral;const vault=kind==="int"?INTEREST_VAULT:REFERRAL_VAULT;
+  return new web3.TransactionInstruction({programId:PID,keys:[{pubkey:user,isSigner:true,isWritable:true},{pubkey:CONFIG,isSigner:false,isWritable:true},{pubkey:posPda(user),isSigner:false,isWritable:true},{pubkey:vault,isSigner:false,isWritable:true},{pubkey:uUsdt,isSigner:false,isWritable:true},{pubkey:TOKEN_PROGRAM,isSigner:false,isWritable:false}],data:Buffer.from(disc)});}
+const ataIdem=()=>[spl.createAssociatedTokenAccountIdempotentInstruction(user,uPing,user,PINGRWA_MINT),spl.createAssociatedTokenAccountIdempotentInstruction(user,uUsdt,user,USDT_MINT)];
+async function sendTx(ixs){const tx=new web3.Transaction();ixs.forEach(i=>tx.add(i));tx.feePayer=user;tx.recentBlockhash=(await conn.getLatestBlockhash()).blockhash;const sig=(await provider.signAndSendTransaction(tx)).signature;await conn.confirmTransaction(sig,"confirmed");return sig;}
+async function signMsg(m){const {signature}=await provider.signMessage(new TextEncoder().encode(m));return btoa(String.fromCharCode(...signature));}
+
+function spinner(t,s){mBody.innerHTML=`<div class="signbox"><div class="spin"></div><h4>${t}</h4><p>${s}</p></div>`;mFoot.innerHTML="";}
+function done(t,s,sig){mBody.innerHTML=`<div class="signbox"><div class="okmark"><i class="ti ti-check"></i></div><h4>${t}</h4><p>${s}</p>${sig?`<div class="txline"><a target="_blank" href="https://explorer.solana.com/tx/${sig}?cluster=devnet">탐색기에서 보기 ↗</a></div>`:""}</div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">확인</button>`;}
+function fail(msg){mBody.innerHTML=`<div class="signbox"><div class="errmark"><i class="ti ti-x"></i></div><h4>실패</h4><p>${msg}</p></div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">닫기</button>`;}
+function emsg(e){let m=e.message||String(e);if(/ReferrerInactive|0x179c|6012/i.test(m))m="추천인이 활성 참여자(≥100 USDT 스테이킹)가 아닙니다.";if(/LiquidityCap|6002/i.test(m))m="유동성 상한을 초과합니다.";if(/insufficient|0x1\b/i.test(m))m="잔액 부족 — 테스트 USDT/SOL이 필요합니다(주소 알려주세요).";return m;}
+window.syncRecv=()=>{const v=+$("amt").value||0;if($("recv"))$("recv").textContent=fmt(v);};
+window.setMaxStake=()=>{$("amt").value=bals.usdt;window.syncRecv();};
+window.setMaxUnstake=()=>{$("amt").value=bals.ping;window.syncRecv();};
+
+let SIGNUP_LABELS={},SIGNUP_FIELDS={};
+window.openInvest=async()=>{
+  if(!user){await window.connect();if(!user)return;}
+  pos=await readPosition();
+  if(pos&&pos.registered){ // already a member → stake only
+    mTitle.textContent="표준형 풀 추가 투자 (스테이킹)";
+    mBody.innerHTML=`<div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div><div class="recv"><span>받게 될 PINGRWA (1:1)</span><b><span id="recv">100</span> PINGRWA</b></div><div class="note">USDT→PINGRWA 온체인 스왑 · 가스 유저 부담</div>`;
+    mFoot.innerHTML=`<button class="btn pri" onclick="signStakeOnly()">지갑으로 서명하고 투자</button>`;
+    $("amt").oninput=window.syncRecv; ov.classList.add("on"); return;
+  }
+  // first invest → signup + register + stake
+  try{const r=await (await fetch('/api/members/config')).json(); SIGNUP_LABELS=r.labels||{}; SIGNUP_FIELDS=r.fields||{};}catch(e){SIGNUP_FIELDS={};SIGNUP_LABELS={};}
+  const piiHtml=Object.keys(SIGNUP_FIELDS).filter(k=>SIGNUP_FIELDS[k]).map(k=>`<div class="field"><label>${SIGNUP_LABELS[k]||k}</label><div class="amt"><input id="pii_${k}" type="${k==='email'?'email':'text'}" style="font-size:16px" placeholder="${SIGNUP_LABELS[k]||k}"></div></div>`).join("");
+  mTitle.textContent="회원가입 + 첫 투자";
+  mBody.innerHTML=`<div class="note" style="margin:0 0 12px;text-align:left">첫 투자에는 간단한 가입 정보와 (선택)추천인 입력이 필요합니다.</div>
+    ${piiHtml}
+    <div class="field"><label>추천인 주소 (선택)</label><div class="amt"><input id="refAddr" type="text" style="font-size:14px" placeholder="추천인 지갑 주소 (없으면 비움)"></div></div>
+    <div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div>
+    <div class="recv"><span>받게 될 PINGRWA (1:1)</span><b><span id="recv">100</span> PINGRWA</b></div>`;
+  mFoot.innerHTML=`<button class="btn pri" onclick="signFirstInvest()">가입하고 투자 (서명)</button>`;
+  $("amt").oninput=window.syncRecv; ov.classList.add("on");
+};
+window.signStakeOnly=async()=>{
+  const a=+$("amt").value||0; if(a<=0)return; if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
+  spinner("지갑 서명 요청 중…",`${fmt(a)} USDT → PINGRWA 스왑`);
+  try{const sig=await sendTx([...ataIdem(),swapIx("stake",a,pos.referrer)]);done("투자 완료",`${fmt(a)} USDT 스테이킹 · <b>${fmt(a)} PINGRWA</b> 수령`,sig);await refresh();}
+  catch(e){console.error(e);fail(emsg(e));}
+};
+window.signFirstInvest=async()=>{
+  const a=+$("amt").value||0; if(a<=0)return; if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
+  // referrer
+  let referrerPk=web3.PublicKey.default; const refStr=($("refAddr").value||"").trim();
+  if(refStr){ try{referrerPk=new web3.PublicKey(refStr);}catch{fail("추천인 주소 형식이 올바르지 않습니다.");return;} }
+  // PII
+  const pii={}; for(const k of Object.keys(SIGNUP_FIELDS)){ if(SIGNUP_FIELDS[k]){ const v=($("pii_"+k)?.value||"").trim(); if(!v){fail((SIGNUP_LABELS[k]||k)+" 입력이 필요합니다.");return;} pii[k]=v; } }
+  try{
+    spinner("가입 정보 서명…","Phantom에서 메시지에 서명해 주세요. (가입 정보 저장)");
+    const ts=Date.now(); const msg=`PINGRWA signup|${user.toBase58()}|ts=${ts}`; const sig1=await signMsg(msg);
+    const body={address:user.toBase58(),ts,message:msg,sig:sig1,referrer:refStr,...pii};
+    const res=await (await fetch('/api/members/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+    if(!res.ok) throw new Error(res.message||'가입 저장 실패');
+    spinner("투자 트랜잭션 서명…",`Phantom에서 서명해 주세요.<br>가입 + ${fmt(a)} USDT 스테이킹`);
+    const sig2=await sendTx([registerIx(referrerPk),...ataIdem(),swapIx("stake",a,referrerPk)]);
+    done("가입 + 투자 완료",`회원가입 저장 · ${fmt(a)} USDT 스테이킹 · <b>${fmt(a)} PINGRWA</b> 수령`+(refStr?`<br>추천인: ${short(refStr)}`:""),sig2);
+    await refresh();
+  }catch(e){console.error(e);fail(emsg(e));}
+};
+window.openWithdraw=async()=>{
+  if(!user){await window.connect();if(!user)return;}
+  pos=await readPosition();
+  if(!pos||!pos.registered){fail("스테이킹 내역이 없습니다.");ov.classList.add("on");return;}
+  mTitle.textContent="투자 회수 (언스테이킹)";
+  mBody.innerHTML=`<div class="field"><label>반납 PINGRWA <b>보유 ${fmt(bals.ping)} PINGRWA</b></label><div class="amt"><input id="amt" type="number" value="${bals.ping||0}"><span class="cur">PINGRWA</span><button class="max" onclick="setMaxUnstake()">MAX</button></div></div><div class="recv"><span>회수할 원금 (1:1)</span><b><span id="recv">${fmt(bals.ping)}</span> USDT</b></div><div class="note">PINGRWA 반납 → USDT 온체인 회수 · 가스 유저 부담</div>`;
+  mFoot.innerHTML=`<button class="btn pri" onclick="signWithdraw()">서명하고 PINGRWA 반납 · USDT 회수</button>`;
+  $("amt").oninput=window.syncRecv; ov.classList.add("on");
+};
+window.signWithdraw=async()=>{
+  const a=+$("amt").value||0; if(a<=0)return; if(a>bals.ping){fail("PINGRWA 보유량이 부족합니다.");return;}
+  spinner("지갑 서명 요청 중…",`${fmt(a)} PINGRWA → USDT 회수`);
+  try{const sig=await sendTx([...ataIdem(),swapIx("unstake",a,pos.referrer)]);done("회수 완료",`${fmt(a)} PINGRWA 반납 · <b>${fmt(a)} USDT</b> 회수`,sig);await refresh();}
+  catch(e){console.error(e);fail(emsg(e));}
+};
+window.openClaim=async()=>{
+  if(!user){await window.connect();if(!user)return;}
+  pos=await readPosition();
+  if(!pos||!pos.registered){fail("스테이킹 내역이 없습니다.");ov.classList.add("on");return;}
+  mTitle.textContent="이자 · 추천 보너스 청구";
+  mBody.innerHTML=`<div class="recv"><span>청구 가능 이자</span><b>+${fmt(pend.int)} USDT</b></div><div class="recv"><span>청구 가능 추천 보너스</span><b>+${fmt(pend.ref)} USDT</b></div><div class="note">온체인에서 지갑으로 직접 지급됩니다. (추천 보너스는 본인 스테이킹 ≥100 USDT일 때)</div>`;
+  mFoot.innerHTML=`<button class="btn pri" onclick="doClaim('int')">이자 청구</button><button class="btn" style="width:100%;margin-top:8px" onclick="doClaim('ref')">추천 보너스 청구</button>`;
+  ov.classList.add("on");
+};
+window.doClaim=async(kind)=>{
+  spinner("지갑 서명 요청 중…",kind==="int"?"이자 청구에 서명해 주세요.":"추천 보너스 청구에 서명해 주세요.");
+  try{const sig=await sendTx([...ataIdem(),claimIx(kind)]);done("청구 완료",(kind==="int"?"이자":"추천 보너스")+"가 지갑으로 지급되었습니다.",sig);await refresh();}
+  catch(e){console.error(e);let m=emsg(e);if(/NothingToClaim|6017|6018/i.test(e.message||""))m="청구할 금액이 없습니다.";if(/NotActive|6011/i.test(e.message||""))m="추천 보너스는 본인 스테이킹 ≥100 USDT일 때 청구할 수 있습니다.";fail(m);}
+};
+
+refresh();
+setInterval(()=>{if(document.visibilityState==="visible")refresh();},15000);
+</script></body></html>
