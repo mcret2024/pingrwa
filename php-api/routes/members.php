@@ -67,7 +67,7 @@ function membersVerifyAdmin(array $body, string $action): string {
 // ── public: which fields to collect (frontend builds the signup form) ──
 get('/api/members/config', function () {
     membersEnsureTable();
-    jsonOk(['fields' => membersGetConfig(), 'labels' => membersFieldDefs()]);
+    jsonOk(['fields' => membersGetConfig(), 'labels' => membersFieldDefs(), 'min_invest' => (float)getSetting('min_invest', '50')]);
 });
 
 // ── public: member's own record ──
@@ -124,7 +124,12 @@ post('/api/admin/members/config', function () {
     $cfg = [];
     foreach (array_keys(membersFieldDefs()) as $k) $cfg[$k] = !empty($in[$k]);
     setSetting('signup_fields', json_encode($cfg));
-    jsonOk(['fields' => $cfg]);
+    if (array_key_exists('min_invest', $body)) {
+        $mi = (float)$body['min_invest'];
+        if ($mi < 0) $mi = 0;
+        setSetting('min_invest', (string)$mi);
+    }
+    jsonOk(['fields' => $cfg, 'min_invest' => (float)getSetting('min_invest', '50')]);
 });
 
 // ── admin: list members (wallet-signed) ──

@@ -271,41 +271,46 @@ function spinner(t,s){mBody.innerHTML=`<div class="signbox"><div class="spin"></
 function done(t,s,sig){mBody.innerHTML=`<div class="signbox"><div class="okmark"><i class="ti ti-check"></i></div><h4>${t}</h4><p>${s}</p>${sig?`<div class="txline"><a target="_blank" href="https://explorer.solana.com/tx/${sig}?cluster=devnet">탐색기에서 보기 ↗</a></div>`:""}</div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">확인</button>`;}
 function fail(msg){mBody.innerHTML=`<div class="signbox"><div class="errmark"><i class="ti ti-x"></i></div><h4>실패</h4><p>${msg}</p></div>`;mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">닫기</button>`;}
 function emsg(e){let m=e.message||String(e);if(/RefInactive|6008/i.test(m))m="추천인이 활성 참여자(≥100 USDT 스테이킹)가 아닙니다.";if(/\bCap\b|6002/i.test(m))m="유동성 상한을 초과합니다.";if(/NotActive|6010/i.test(m))m="추천 보너스는 본인 스테이킹 ≥100 USDT일 때 받을 수 있습니다.";if(/NotMatured|6016/i.test(m))m="아직 30일(스테이킹 기간)을 채우지 않았습니다.";if(/Nothing|6013/i.test(m))m="청구할 금액이 없습니다.";if(/insufficient|0x1\b/i.test(m))m="잔액 부족 — 테스트 USDT/SOL이 필요합니다(주소 알려주세요).";return m;}
+let MIN_INVEST=50;
 window.syncRecv=()=>{const v=+$("amt").value||0;if($("recv"))$("recv").textContent=fmt(v);};
-window.setMaxStake=()=>{$("amt").value=bals.usdt;window.syncRecv();};
+window.updFirstBtn=()=>{const b=$("firstBtn"); if(!b)return; const a=+($("amt")?.value)||0; b.disabled=!($("agree")?.checked && a>=MIN_INVEST);};
+window.amtIn=()=>{const el=$("amt"); if(el&&parseFloat(el.value)<0)el.value=''; window.syncRecv(); window.updFirstBtn();};
+window.setMaxStake=()=>{$("amt").value=bals.usdt;window.amtIn();};
 window.setMaxRestake=()=>{$("amt").value=bals.ping;window.syncRecv();};
 
 let SIGNUP_LABELS={},SIGNUP_FIELDS={};
 window.openInvest=async()=>{
   if(!user){await window.connect();if(!user)return;}
   member=await readMember();
+  try{const r=await (await fetch('/api/members/config')).json(); MIN_INVEST=(r.min_invest!=null?+r.min_invest:50); SIGNUP_LABELS=r.labels||{}; SIGNUP_FIELDS=r.fields||{};}catch(e){MIN_INVEST=50;SIGNUP_FIELDS={};SIGNUP_LABELS={};}
+  const defAmt=Math.max(100,MIN_INVEST);
+  const amtField=`<div class="field"><label>투자 금액 <b>최소 ${fmt(MIN_INVEST)} · 잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" min="${MIN_INVEST}" step="any" value="${defAmt}"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div>`;
   if(member&&member.registered){ // already a member → invest a new tranche
     mTitle.textContent="추가 투자 (새 스테이킹 묶음)";
-    mBody.innerHTML=`<div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div><div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">100</span> PINGRWA</b></div><div class="note">USDT는 재단 귀속(환매 없음) · 새 묶음의 30일 카운트 시작 · 가스 유저 부담</div>`;
+    mBody.innerHTML=`${amtField}<div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">${fmt(defAmt)}</span> PINGRWA</b></div><div class="note">최소 투자금액 <b>${fmt(MIN_INVEST)} USDT</b> · USDT는 재단 귀속(환매 없음) · 새 묶음의 30일 카운트 시작</div>`;
     mFoot.innerHTML=`<button class="btn pri" onclick="signInvest()">지갑으로 서명하고 투자</button>`;
-    $("amt").oninput=window.syncRecv; ov.classList.add("on"); return;
+    $("amt").oninput=window.amtIn; ov.classList.add("on"); return;
   }
   // first invest → signup + register + invest
-  try{const r=await (await fetch('/api/members/config')).json(); SIGNUP_LABELS=r.labels||{}; SIGNUP_FIELDS=r.fields||{};}catch(e){SIGNUP_FIELDS={};SIGNUP_LABELS={};}
   const piiHtml=Object.keys(SIGNUP_FIELDS).filter(k=>SIGNUP_FIELDS[k]).map(k=>`<div class="field"><label>${SIGNUP_LABELS[k]||k}</label><div class="amt"><input id="pii_${k}" type="${k==='email'?'email':'text'}" style="font-size:16px" placeholder="${SIGNUP_LABELS[k]||k}"></div></div>`).join("");
   mTitle.textContent="회원가입 + 첫 투자";
   mBody.innerHTML=`<div class="note" style="margin:0 0 12px;text-align:left">첫 투자에는 간단한 가입 정보 입력과 <b>전자 투자계약 동의</b>가 필요합니다.</div>
     ${piiHtml}
     <div class="field"><label>추천인 주소 (선택)</label><div class="amt"><input id="refAddr" type="text" style="font-size:14px" placeholder="추천인 지갑 주소 (없으면 비움)"></div></div>
-    <div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div>
-    <div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">100</span> PINGRWA</b></div>
-    <div style="margin-top:14px"><div style="font-size:12px;color:var(--mut);margin-bottom:6px;font-family:var(--mono)">전자 투자계약서</div>${contractBox()}<label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.55;cursor:pointer"><input type="checkbox" id="agree" style="width:18px;height:18px;margin-top:2px;flex:none" onchange="document.getElementById('firstBtn').disabled=!this.checked"><span>위 전자 투자계약서의 내용을 충분히 이해하였으며 이에 <b>동의</b>합니다. <span style="color:var(--mut)">(USDT 원금은 환매되지 않음)</span></span></label></div>`;
+    ${amtField}
+    <div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">${fmt(defAmt)}</span> PINGRWA</b></div>
+    <div style="margin-top:14px"><div style="font-size:12px;color:var(--mut);margin-bottom:6px;font-family:var(--mono)">전자 투자계약서</div>${contractBox()}<label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.55;cursor:pointer"><input type="checkbox" id="agree" style="width:18px;height:18px;margin-top:2px;flex:none" onchange="window.updFirstBtn()"><span>위 전자 투자계약서의 내용을 충분히 이해하였으며 이에 <b>동의</b>합니다. <span style="color:var(--mut)">(USDT 원금은 환매되지 않음)</span></span></label></div>`;
   mFoot.innerHTML=`<button class="btn pri" id="firstBtn" onclick="signFirstInvest()" disabled>동의하고 가입·투자 (서명)</button>`;
-  $("amt").oninput=window.syncRecv; ov.classList.add("on");
+  $("amt").oninput=window.amtIn; ov.classList.add("on");
 };
 window.signInvest=async()=>{
-  const a=+$("amt").value||0; if(a<=0)return; if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
+  const a=+$("amt").value||0; if(a<MIN_INVEST){fail("최소 투자금액은 "+fmt(MIN_INVEST)+" USDT입니다.");return;} if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
   spinner("지갑 서명 요청 중…",`${fmt(a)} USDT 투자 · PINGRWA 스테이킹`);
   try{const sig=await sendTx([...ataIdem(),investIx(a,member.referrer,member.trancheCount)]);done("투자 완료",`${fmt(a)} USDT 투자 · <b>${fmt(a)} PINGRWA</b> 스테이킹(잠금)`,sig);await refresh();}
   catch(e){console.error(e);fail(emsg(e));}
 };
 window.signFirstInvest=async()=>{
-  const a=+$("amt").value||0; if(a<=0)return; if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
+  const a=+$("amt").value||0; if(a<MIN_INVEST){fail("최소 투자금액은 "+fmt(MIN_INVEST)+" USDT입니다.");return;} if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
   if(!$("agree")?.checked){fail("전자 투자계약에 동의해야 진행할 수 있습니다.");return;}
   let referrerPk=web3.PublicKey.default; const refStr=($("refAddr").value||"").trim();
   if(refStr){ try{referrerPk=new web3.PublicKey(refStr);}catch{fail("추천인 주소 형식이 올바르지 않습니다.");return;} }
