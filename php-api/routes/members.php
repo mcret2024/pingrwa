@@ -12,6 +12,9 @@ function membersFieldDefs(): array {
     return ['nickname' => '닉네임', 'email' => '이메일', 'name' => '이름', 'phone' => '전화번호'];
 }
 
+/** Current electronic investment-contract version (terms published in the frontend). */
+const MEMBER_CONTRACT_VERSION = 'v1';
+
 function membersEnsureTable(): void {
     DB::execute("CREATE TABLE IF NOT EXISTS `members` (
         `address`   VARCHAR(64) NOT NULL,
@@ -20,10 +23,21 @@ function membersEnsureTable(): void {
         `name`      VARCHAR(120) NULL,
         `phone`     VARCHAR(60) NULL,
         `referrer`  VARCHAR(64) NULL,
+        `contract_version`   VARCHAR(20) NULL,
+        `contract_signed_at` DATETIME NULL,
+        `contract_sig`       TEXT NULL,
         `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (`address`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    // add contract columns to pre-existing tables (ignored if already present)
+    foreach ([
+        "ADD COLUMN `contract_version` VARCHAR(20) NULL",
+        "ADD COLUMN `contract_signed_at` DATETIME NULL",
+        "ADD COLUMN `contract_sig` TEXT NULL",
+    ] as $alter) {
+        try { DB::execute("ALTER TABLE `members` $alter"); } catch (\Throwable $e) { /* column exists */ }
+    }
 }
 
 function membersGetConfig(): array {
@@ -59,8 +73,8 @@ get('/api/members/config', function () {
 // ── public: member's own record ──
 get('/api/members/:address', function ($p) {
     membersEnsureTable();
-    $m = DB::fetchOne("SELECT address,nickname,email,name,phone,referrer,created_at FROM members WHERE address=?", [trim((string)($p['address'] ?? ''))]);
-    jsonOk(['member' => $m]);
+    $m = DB::fetchOne("SELECT address,nickname,email,name,phone,referrer,contract_version,contract_signed_at,created_at FROM members WHERE address=?", [trim((string)($p['address'] ?? ''))]);
+    jsonOk(['member' => $m, 'contract_version' => MEMBER_CONTRACT_VERSION]);
 });
 
 // ── user signup (wallet-signed; binds address) ──
@@ -74,7 +88,10 @@ post('/api/members/signup', function () {
     if ($addr === '') jsonError(400, '지갑 주소가 필요합니다.');
     if ($sig === '' || $msg === '') jsonError(401, '서명이 필요합니다.');
     if (abs((int)(microtime(true) * 1000) - $ts) > 600000) jsonError(401, '서명이 만료되었습니다.');
-    if ($msg !== "PINGRWA signup|{$addr}|ts={$ts}") jsonError(401, '서명 메시지가 일치하지 않습니다.');
+    // wallet-signed electronic-contract acceptance (binds address + contract version)
+    $cver = trim((string)($body['contract_version'] ?? ''));
+    if ($cver === '') jsonError(400, '계약 버전이 필요합니다.');
+    if ($msg !== "PINGRWA 전자투자계약 동의|{$cver}|{$addr}|ts={$ts}") jsonError(401, '계약 동의 서명 메시지가 일치하지 않습니다.');
     if (!verifySolanaMessageSignature($addr, $msg, $sig)) jsonError(401, '서명 검증 실패.');
 
     $cfg = membersGetConfig();
@@ -89,11 +106,13 @@ post('/api/members/signup', function () {
     $referrer = $referrer !== '' ? $referrer : null;
 
     DB::execute(
-        "INSERT INTO members(address,nickname,email,name,phone,referrer) VALUES(?,?,?,?,?,?)
-         ON DUPLICATE KEY UPDATE nickname=VALUES(nickname),email=VALUES(email),name=VALUES(name),phone=VALUES(phone),referrer=COALESCE(members.referrer,VALUES(referrer))",
-        [$addr, $vals['nickname'], $vals['email'], $vals['name'], $vals['phone'], $referrer]
+        "INSERT INTO members(address,nickname,email,name,phone,referrer,contract_version,contract_signed_at,contract_sig)
+         VALUES(?,?,?,?,?,?,?,NOW(),?)
+         ON DUPLICATE KEY UPDATE nickname=VALUES(nickname),email=VALUES(email),name=VALUES(name),phone=VALUES(phone),referrer=COALESCE(members.referrer,VALUES(referrer)),
+           contract_version=VALUES(contract_version),contract_signed_at=VALUES(contract_signed_at),contract_sig=VALUES(contract_sig)",
+        [$addr, $vals['nickname'], $vals['email'], $vals['name'], $vals['phone'], $referrer, $cver, $sig]
     );
-    jsonOk(['saved' => true]);
+    jsonOk(['saved' => true, 'contract_version' => $cver]);
 });
 
 // ── admin: set which fields to collect (wallet-signed) ──

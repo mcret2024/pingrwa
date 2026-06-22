@@ -48,7 +48,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <div class="wrap">
  <div class="top"><a class="brand" href="/"><span class="bmk"></span><span class="bwm"></span></a>
   <div class="tact"><button class="themebtn" onclick="toggleTheme()"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><i class="ti ti-wallet"></i> 관리자 지갑 연결</button></div></div>
- <h1>관리자 패널 v3 <span class="flag"><i class="ti ti-shield-lock"></i> DEVNET · 채권형 온체인</span></h1>
+ <h1>관리자 패널 v3 <span class="flag"><i class="ti ti-shield-lock"></i> DEVNET · PINGRWA형 온체인</span></h1>
  <div id="adminBanner"></div>
 
  <div class="card"><h3><i class="ti ti-info-circle"></i> 컨트렉트 상태</h3>
@@ -58,7 +58,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
   <div class="kv"><span class="l">상한 · APR · 추천율 · 수수료 · 최소기간 · 정지</span><span class="v" id="cParams">—</span></div>
   <div class="kv"><span class="l">이자풀 (잔액 / 지급예정 / 자유)</span><span class="v" id="cInt">—</span></div>
   <div class="kv"><span class="l">추천풀 (잔액 / 지급예정 / 자유)</span><span class="v" id="cRef">—</span></div>
-  <div class="kv"><span class="l">채권 풀 (언스테이킹 출금재고)</span><span class="v" id="cPing">—</span></div>
+  <div class="kv"><span class="l">PINGRWA 풀 (언스테이킹 출금재고)</span><span class="v" id="cPing">—</span></div>
  </div>
 
  <div class="card"><h3><i class="ti ti-calculator"></i> 이번달 목표 · 부족분 (예측)</h3>
@@ -77,7 +77,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
   <div class="grid">
    <div class="fld"><label>이자풀 충전 (USDT)</label><div class="row2"><input id="fInt" type="number" value="0"><button class="btn" onclick="fundInterest()">충전</button></div></div>
    <div class="fld"><label>추천풀 충전 (USDT)</label><div class="row2"><input id="fRef" type="number" value="0"><button class="btn" onclick="fundReferral()">충전</button></div></div>
-   <div class="fld"><label>채권 풀 충전 (언스테이킹 출금재고)</label><div class="row2"><input id="fPing" type="number" value="0"><button class="btn" onclick="fundPingrwa()">충전</button></div></div>
+   <div class="fld"><label>PINGRWA 풀 충전 (언스테이킹 출금재고)</label><div class="row2"><input id="fPing" type="number" value="0"><button class="btn" onclick="fundPingrwa()">충전</button></div></div>
   </div>
   <div class="st" id="stFund"></div>
  </div>

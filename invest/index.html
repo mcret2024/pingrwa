@@ -93,11 +93,11 @@ body{margin:0;font-family:var(--body);background-color:var(--bg);color:var(--ink
   <div class="swallet" id="swallet"><div class="a"><span class="d"></span><span id="swAddr">미연결</span></div><div class="b" id="swBal">지갑을 연결하세요</div></div>
  </aside>
  <main class="main">
-  <div class="topbar"><div><h1>투자 풀 <span class="flag"><i class="ti ti-flask"></i> DEVNET 실연동</span></h1><div class="sub">PINGPAY 매출채권 RWA · 표준형 풀 모집 중 · USDT 투자 → 채권 스테이킹 (입금별 30일)</div></div><div style="display:flex;gap:10px;align-items:center"><button class="themebtn" onclick="toggleTheme()" title="라이트/다크 전환"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><span style="color:#fff"><i class="ti ti-wallet"></i> 지갑 연결</span></button></div></div>
+  <div class="topbar"><div><h1>투자 풀 <span class="flag"><i class="ti ti-flask"></i> DEVNET 실연동</span></h1><div class="sub">PINGPAY 매출채권 RWA · 표준형 풀 모집 중 · USDT 투자 → PINGRWA 스테이킹 (입금별 30일)</div></div><div style="display:flex;gap:10px;align-items:center"><button class="btn" onclick="openContract()" title="전자 투자계약서"><i class="ti ti-file-text"></i> 계약서</button><button class="themebtn" onclick="toggleTheme()" title="라이트/다크 전환"><i class="ti ti-sun"></i></button><button class="btn pri" id="connectBtn" onclick="connect()"><span style="color:#fff"><i class="ti ti-wallet"></i> 지갑 연결</span></button></div></div>
   <div class="stats">
    <div class="stat"><div class="l">총 스테이킹 (USDT)</div><div class="v" id="stStaked">—</div></div>
    <div class="stat"><div class="l">목표 APR</div><div class="v" id="stApr">12.0<small>%</small></div></div>
-   <div class="stat"><div class="l">채권 풀 PINGRWA</div><div class="v" id="stPool">—</div></div>
+   <div class="stat"><div class="l">PINGRWA 풀 PINGRWA</div><div class="v" id="stPool">—</div></div>
    <div class="stat"><div class="l">상환율</div><div class="v">99.2<small>%</small></div></div>
   </div>
   <div class="card">
@@ -115,8 +115,8 @@ body{margin:0;font-family:var(--body);background-color:var(--bg);color:var(--ink
   <div class="two">
    <div class="acard"><h3><i class="ti ti-cash-banknote"></i> 이자 · 추천 보너스 청구</h3><p class="sub">30일 충족 묶음의 적립 이자와 추천 보너스를 <b>온체인</b>에서 지갑으로 직접 받습니다.</p>
     <div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 청구 가능 이자 (30일↑) <span class="v" id="iInt">—</span></div><div class="chk ok"><span class="i"><i class="ti ti-check"></i></span> 청구 가능 추천 보너스 <span class="v" id="iRef">—</span></div><button class="btn pri" onclick="claimAllInterest()">이자 전체 청구</button><button class="btn" style="width:100%;margin-top:8px" onclick="doClaimRef()">추천 보너스 청구</button></div>
-   <div class="acard"><h3><i class="ti ti-repeat"></i> 보유 채권 재스테이킹</h3><p class="sub">언스테이킹해서 지갑에 있는 <b>PINGRWA 채권</b>을 다시 스테이킹하면 새 묶음으로 이자가 시작됩니다 (30일 카운트 새로 시작).</p>
-    <div class="chk ok"><span class="i"><i class="ti ti-wallet"></i></span> 지갑 보유 채권 <span class="v" id="wRwa">—</span></div><div class="chk todo"><span class="i"><i class="ti ti-info-circle"></i></span> 투자 원금(USDT) <span class="v">재단 귀속 · 환매 없음</span></div><button class="btn pri" onclick="openRestake()">보유 채권 재스테이킹</button></div>
+   <div class="acard"><h3><i class="ti ti-repeat"></i> 보유 PINGRWA 재스테이킹</h3><p class="sub">언스테이킹해서 지갑에 있는 <b>PINGRWA</b>을 다시 스테이킹하면 새 묶음으로 이자가 시작됩니다 (30일 카운트 새로 시작).</p>
+    <div class="chk ok"><span class="i"><i class="ti ti-wallet"></i></span> 지갑 보유 PINGRWA <span class="v" id="wRwa">—</span></div><div class="chk todo"><span class="i"><i class="ti ti-info-circle"></i></span> 투자 원금(USDT) <span class="v">재단 귀속 · 환매 없음</span></div><button class="btn pri" onclick="openRestake()">보유 PINGRWA 재스테이킹</button></div>
   </div>
  </main>
 </div>
@@ -150,6 +150,21 @@ const memberPda=(owner)=>web3.PublicKey.findProgramAddressSync([Buffer.from("mem
 function u32le(n){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n>>>0,true);return b;}
 const stakePda=(owner,idx)=>web3.PublicKey.findProgramAddressSync([Buffer.from("stk3"),owner.toBuffer(),u32le(idx)],PID)[0];
 function fmtRemain(sec){if(sec<=0)return"충족";const d=Math.floor(sec/86400),h=Math.floor(sec%86400/3600),m=Math.floor(sec%3600/60);if(d>0)return"D-"+d;if(h>0)return h+"시간";if(m>0)return m+"분";return Math.max(0,sec)+"초";}
+const CONTRACT_VERSION="v1";
+const PLATFORM_ADDR="7oWYGTGQWDDvpT77Q3KzDuXu74kTbwBgxuEcktEGB2tU";
+const CONTRACT_HTML=`<div style="font-family:var(--body);font-size:12.5px;line-height:1.7;color:var(--ink)">
+<div style="font-family:var(--disp);font-weight:700;font-size:15px;margin-bottom:8px">PINGRWA 전자 투자계약서 <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">(${CONTRACT_VERSION})</span></div>
+<p><b>제1조 (당사자)</b> 본 계약은 투자자(이하 "갑", 연결된 지갑 주소)와 운영사 PINGPAY 재단(이하 "을", 관리 지갑 <span style="font-family:var(--mono)">${PLATFORM_ADDR.slice(0,8)}…</span>) 간에 체결된다.</p>
+<p><b>제2조 (투자 상품)</b> 을은 PINGPAY 매출채권(선지급 금융)을 기초자산으로 하는 RWA를 운영하며, 갑은 USDT를 예치하고 그 증표로 PINGRWA 토큰을 스테이킹(잠금) 형태로 보유한다.</p>
+<p><b>제3조 (투자 원금)</b> 갑이 예치한 USDT는 을의 선지급 대출 재원으로 사용되며 <b>즉시 환매되지 않는다.</b> 갑은 프로토콜로부터 원금을 직접 인출할 수 없다.</p>
+<p><b>제4조 (이자)</b> 을은 실제수익(상환이자−미상환손실) 범위에서 이자풀을 충당하고, 매월 지급일에 스테이킹 지분에 비례하여 분배한다. 목표이율(연 APR)은 목표치이며 재원이 부족하면 분배액이 자동 감액되고 잔여는 이월된다. 이자는 입금(스테이킹)일로부터 <b>30일이 경과한 묶음</b>에 한하여 지급된다.</p>
+<p><b>제5조 (추천 보너스)</b> 갑이 타인을 추천하고 본인이 100 USDT 이상 스테이킹을 유지하는 경우, 추천풀에서 추천 보너스를 수령할 수 있다.</p>
+<p><b>제6조 (언스테이킹·출구)</b> 갑은 스테이킹을 해지(언스테이킹)하여 PINGRWA 토큰을 지갑으로 출금할 수 있으나 <b>USDT 원금은 반환되지 않는다.</b> 30일 미경과 묶음을 해지하면 적립 이자는 소멸한다. 갑의 출구는 PINGRWA의 보유·재스테이킹 또는 향후 2차시장 매도를 통한다.</p>
+<p><b>제7조 (위험 고지)</b> 본 투자는 원금 손실·유동성·기초자산 미상환 위험을 수반하며, 을은 원금 또는 수익을 보장하지 않는다.</p>
+<p><b>제8조 (전자서명)</b> 갑은 본 계약 내용을 충분히 이해하였으며, 지갑 서명으로 본 계약에 동의한다. 서명 기록(주소·버전·시각·서명값)은 전자적으로 보관된다.</p>
+<p style="color:var(--mut2);font-size:11px">※ 본 서비스는 현재 devnet 테스트 환경입니다.</p>
+</div>`;
+const contractBox=()=>`<div style="max-height:200px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:14px;background:rgba(127,127,127,.05);margin-bottom:12px">${CONTRACT_HTML}</div>`;
 
 function setIcon(){const l=document.documentElement.getAttribute("data-theme")==="light";document.querySelectorAll(".themebtn i").forEach(i=>i.className=l?"ti ti-moon":"ti ti-sun");}
 window.toggleTheme=()=>{const h=document.documentElement;if(h.getAttribute("data-theme")==="light"){h.removeAttribute("data-theme");try{localStorage.setItem("rwa_pools_theme","dark")}catch(e){}}else{h.setAttribute("data-theme","light");try{localStorage.setItem("rwa_pools_theme","light")}catch(e){}}setIcon();};
@@ -199,7 +214,7 @@ function renderTranches(){
     const mat=t.matured?'<span class="tag" style="background:rgba(43,214,123,.16);color:#7ef0b0;border-color:transparent">자격 충족 ✓</span>':'<span class="tag">'+fmtRemain(t.remain)+' 남음</span>';
     return '<div class="prow" style="grid-template-columns:.6fr 1.2fr 1.5fr 1.1fr 1.5fr">'+
       '<span class="term">#'+t.idx+'</span>'+
-      '<span class="pname"><span class="nm" style="font-size:14px">'+fmt(Number(t.amount)/DEC)+'</span> <span class="term">채권</span></span>'+
+      '<span class="pname"><span class="nm" style="font-size:14px">'+fmt(Number(t.amount)/DEC)+'</span> <span class="term">PINGRWA</span></span>'+
       '<span>'+mat+'</span>'+
       '<span class="apy" style="font-size:15px">+'+fmt(Number(t.accrued)/DEC)+'</span>'+
       '<span style="text-align:right;display:flex;gap:6px;justify-content:flex-end">'+
@@ -221,7 +236,7 @@ async function refresh(){
   }catch(e){}
   if(user){
     bals.usdt=await tokBal(uUsdt);bals.ping=await tokBal(uPing);bals.sol=(await conn.getBalance(user))/web3.LAMPORTS_PER_SOL;
-    $("swBal").textContent="잔액 "+fmt(bals.usdt)+" USDT · "+fmt(bals.ping)+" 채권";
+    $("swBal").textContent="잔액 "+fmt(bals.usdt)+" USDT · "+fmt(bals.ping)+" PINGRWA";
     member=await readMember();
     tranches=await readTranches();
     renderTranches();
@@ -229,7 +244,7 @@ async function refresh(){
     let refPend=0n; if(member){const g=member.referredStake*cfg.rAcc/ACC; refPend=member.refClaim+(g>member.refDebt?g-member.refDebt:0n);}
     pend.int=Number(intAll)/DEC; pend.intMatured=Number(intMat)/DEC; pend.ref=Number(refPend)/DEC;
     $("iInt").textContent="+"+fmt(pend.intMatured)+" USDT"; $("iRef").textContent="+"+fmt(pend.ref)+" USDT";
-    $("wRwa").textContent=fmt(bals.ping)+" 채권(PINGRWA)";
+    $("wRwa").textContent=fmt(bals.ping)+" PINGRWA";
   }
 }
 
@@ -263,7 +278,7 @@ window.openInvest=async()=>{
   member=await readMember();
   if(member&&member.registered){ // already a member → invest a new tranche
     mTitle.textContent="추가 투자 (새 스테이킹 묶음)";
-    mBody.innerHTML=`<div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div><div class="recv"><span>스테이킹 (채권 잠금)</span><b><span id="recv">100</span> 채권</b></div><div class="note">USDT는 재단 귀속(환매 없음) · 새 묶음의 30일 카운트 시작 · 가스 유저 부담</div>`;
+    mBody.innerHTML=`<div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div><div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">100</span> PINGRWA</b></div><div class="note">USDT는 재단 귀속(환매 없음) · 새 묶음의 30일 카운트 시작 · 가스 유저 부담</div>`;
     mFoot.innerHTML=`<button class="btn pri" onclick="signInvest()">지갑으로 서명하고 투자</button>`;
     $("amt").oninput=window.syncRecv; ov.classList.add("on"); return;
   }
@@ -271,34 +286,36 @@ window.openInvest=async()=>{
   try{const r=await (await fetch('/api/members/config')).json(); SIGNUP_LABELS=r.labels||{}; SIGNUP_FIELDS=r.fields||{};}catch(e){SIGNUP_FIELDS={};SIGNUP_LABELS={};}
   const piiHtml=Object.keys(SIGNUP_FIELDS).filter(k=>SIGNUP_FIELDS[k]).map(k=>`<div class="field"><label>${SIGNUP_LABELS[k]||k}</label><div class="amt"><input id="pii_${k}" type="${k==='email'?'email':'text'}" style="font-size:16px" placeholder="${SIGNUP_LABELS[k]||k}"></div></div>`).join("");
   mTitle.textContent="회원가입 + 첫 투자";
-  mBody.innerHTML=`<div class="note" style="margin:0 0 12px;text-align:left">첫 투자에는 간단한 가입 정보와 (선택)추천인 입력이 필요합니다.</div>
+  mBody.innerHTML=`<div class="note" style="margin:0 0 12px;text-align:left">첫 투자에는 간단한 가입 정보 입력과 <b>전자 투자계약 동의</b>가 필요합니다.</div>
     ${piiHtml}
     <div class="field"><label>추천인 주소 (선택)</label><div class="amt"><input id="refAddr" type="text" style="font-size:14px" placeholder="추천인 지갑 주소 (없으면 비움)"></div></div>
     <div class="field"><label>투자 금액 <b>잔액 ${fmt(bals.usdt)} USDT</b></label><div class="amt"><input id="amt" type="number" value="100"><span class="cur">USDT</span><button class="max" onclick="setMaxStake()">MAX</button></div></div>
-    <div class="recv"><span>스테이킹 (채권 잠금)</span><b><span id="recv">100</span> 채권</b></div>`;
-  mFoot.innerHTML=`<button class="btn pri" onclick="signFirstInvest()">가입하고 투자 (서명)</button>`;
+    <div class="recv"><span>스테이킹 (PINGRWA 잠금)</span><b><span id="recv">100</span> PINGRWA</b></div>
+    <div style="margin-top:14px"><div style="font-size:12px;color:var(--mut);margin-bottom:6px;font-family:var(--mono)">전자 투자계약서</div>${contractBox()}<label style="display:flex;gap:9px;align-items:flex-start;font-size:13px;cursor:pointer"><input type="checkbox" id="agree" style="width:18px;height:18px;margin-top:1px" onchange="document.getElementById('firstBtn').disabled=!this.checked"> 위 전자 투자계약서의 내용을 충분히 이해하였으며 이에 <b>동의</b>합니다. (USDT 원금은 환매되지 않음)</label></div>`;
+  mFoot.innerHTML=`<button class="btn pri" id="firstBtn" onclick="signFirstInvest()" disabled>동의하고 가입·투자 (서명)</button>`;
   $("amt").oninput=window.syncRecv; ov.classList.add("on");
 };
 window.signInvest=async()=>{
   const a=+$("amt").value||0; if(a<=0)return; if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
-  spinner("지갑 서명 요청 중…",`${fmt(a)} USDT 투자 · 채권 스테이킹`);
-  try{const sig=await sendTx([...ataIdem(),investIx(a,member.referrer,member.trancheCount)]);done("투자 완료",`${fmt(a)} USDT 투자 · <b>${fmt(a)} 채권</b> 스테이킹(잠금)`,sig);await refresh();}
+  spinner("지갑 서명 요청 중…",`${fmt(a)} USDT 투자 · PINGRWA 스테이킹`);
+  try{const sig=await sendTx([...ataIdem(),investIx(a,member.referrer,member.trancheCount)]);done("투자 완료",`${fmt(a)} USDT 투자 · <b>${fmt(a)} PINGRWA</b> 스테이킹(잠금)`,sig);await refresh();}
   catch(e){console.error(e);fail(emsg(e));}
 };
 window.signFirstInvest=async()=>{
   const a=+$("amt").value||0; if(a<=0)return; if(a>bals.usdt){fail("USDT 잔액이 부족합니다.");return;}
+  if(!$("agree")?.checked){fail("전자 투자계약에 동의해야 진행할 수 있습니다.");return;}
   let referrerPk=web3.PublicKey.default; const refStr=($("refAddr").value||"").trim();
   if(refStr){ try{referrerPk=new web3.PublicKey(refStr);}catch{fail("추천인 주소 형식이 올바르지 않습니다.");return;} }
   const pii={}; for(const k of Object.keys(SIGNUP_FIELDS)){ if(SIGNUP_FIELDS[k]){ const v=($("pii_"+k)?.value||"").trim(); if(!v){fail((SIGNUP_LABELS[k]||k)+" 입력이 필요합니다.");return;} pii[k]=v; } }
   try{
-    spinner("가입 정보 서명…","Phantom에서 메시지에 서명해 주세요. (가입 정보 저장)");
-    const ts=Date.now(); const msg=`PINGRWA signup|${user.toBase58()}|ts=${ts}`; const sig1=await signMsg(msg);
-    const body={address:user.toBase58(),ts,message:msg,sig:sig1,referrer:refStr,...pii};
+    spinner("전자 투자계약 동의 서명…","Phantom에서 메시지에 서명해 주세요.<br>(전자 투자계약 동의 + 가입 정보 저장)");
+    const ts=Date.now(); const msg=`PINGRWA 전자투자계약 동의|${CONTRACT_VERSION}|${user.toBase58()}|ts=${ts}`; const sig1=await signMsg(msg);
+    const body={address:user.toBase58(),ts,message:msg,sig:sig1,referrer:refStr,contract_version:CONTRACT_VERSION,...pii};
     const res=await (await fetch('/api/members/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
     if(!res.ok) throw new Error(res.message||'가입 저장 실패');
-    spinner("투자 트랜잭션 서명…",`Phantom에서 서명해 주세요.<br>가입 + ${fmt(a)} USDT 투자(채권 스테이킹)`);
+    spinner("투자 트랜잭션 서명…",`Phantom에서 서명해 주세요.<br>가입 + ${fmt(a)} USDT 투자(PINGRWA 스테이킹)`);
     const sig2=await sendTx([registerIx(referrerPk),...ataIdem(),investIx(a,referrerPk,0)]);
-    done("가입 + 투자 완료",`회원가입 저장 · ${fmt(a)} USDT 투자 · <b>${fmt(a)} 채권</b> 스테이킹`+(refStr?`<br>추천인: ${short(refStr)}`:""),sig2);
+    done("가입 + 투자 완료",`회원가입 저장 · ${fmt(a)} USDT 투자 · <b>${fmt(a)} PINGRWA</b> 스테이킹`+(refStr?`<br>추천인: ${short(refStr)}`:""),sig2);
     await refresh();
   }catch(e){console.error(e);fail(emsg(e));}
 };
@@ -307,13 +324,13 @@ window.openUnstake=async(idx)=>{
   const amt=fmt(Number(t.amount)/DEC);
   mTitle.textContent="언스테이킹 (묶음 #"+idx+")";
   const intLine=t.matured?`<div class="recv"><span>함께 받을 적립 이자</span><b>+${fmt(Number(t.accrued)/DEC)} USDT</b></div>`:`<div class="recv" style="background:rgba(245,165,36,.14);border-color:rgba(245,165,36,.4);color:var(--warn)"><span>30일 미충족 — 이자 몰수</span><b>0 USDT</b></div>`;
-  mBody.innerHTML=`<div class="recv"><span>지갑으로 출금될 채권</span><b>${amt} 채권(PINGRWA)</b></div>${intLine}<div class="note">언스테이킹 시 <b>채권 토큰</b>만 지갑으로 출금됩니다. <b>투자 원금(USDT)은 반환되지 않습니다</b>(재단 귀속). 출금한 채권은 보유·재스테이킹할 수 있고, 추후 2차시장에서 매도할 수 있습니다.</div>`;
-  mFoot.innerHTML=`<button class="btn pri" onclick="signUnstake(${idx})">서명하고 언스테이킹 (채권 출금)</button>`;
+  mBody.innerHTML=`<div class="recv"><span>지갑으로 출금될 PINGRWA</span><b>${amt} PINGRWA</b></div>${intLine}<div class="note">언스테이킹 시 <b>PINGRWA</b>만 지갑으로 출금됩니다. <b>투자 원금(USDT)은 반환되지 않습니다</b>(재단 귀속). 출금한 PINGRWA은 보유·재스테이킹할 수 있고, 추후 2차시장에서 매도할 수 있습니다.</div>`;
+  mFoot.innerHTML=`<button class="btn pri" onclick="signUnstake(${idx})">서명하고 언스테이킹 (PINGRWA 출금)</button>`;
   ov.classList.add("on");
 };
 window.signUnstake=async(idx)=>{
-  spinner("지갑 서명 요청 중…","묶음 #"+idx+" 언스테이킹 · 채권 출금");
-  try{const sig=await sendTx([...ataIdem(),unstakeIx(idx,member.referrer)]);done("언스테이킹 완료","채권 토큰이 지갑으로 출금되었습니다. (USDT 원금은 재단 귀속)",sig);await refresh();}
+  spinner("지갑 서명 요청 중…","묶음 #"+idx+" 언스테이킹 · PINGRWA 출금");
+  try{const sig=await sendTx([...ataIdem(),unstakeIx(idx,member.referrer)]);done("언스테이킹 완료","PINGRWA이 지갑으로 출금되었습니다. (USDT 원금은 재단 귀속)",sig);await refresh();}
   catch(e){console.error(e);fail(emsg(e));}
 };
 window.claimOne=async(idx)=>{
@@ -334,16 +351,16 @@ window.openRestake=async()=>{
   if(!user){await window.connect();if(!user)return;}
   member=await readMember();
   if(!member||!member.registered){fail("먼저 ‘투자하기’로 가입·투자해 주세요.");ov.classList.add("on");return;}
-  if(bals.ping<=0){mTitle.textContent="재스테이킹";fail("지갑에 보유한 채권(PINGRWA)이 없습니다.");ov.classList.add("on");return;}
-  mTitle.textContent="보유 채권 재스테이킹";
-  mBody.innerHTML=`<div class="field"><label>재스테이킹 채권 <b>보유 ${fmt(bals.ping)} 채권</b></label><div class="amt"><input id="amt" type="number" value="${bals.ping||0}"><span class="cur">채권</span><button class="max" onclick="setMaxRestake()">MAX</button></div></div><div class="recv"><span>새 묶음으로 스테이킹</span><b><span id="recv">${fmt(bals.ping)}</span> 채권</b></div><div class="note">보유 채권을 풀에 다시 잠급니다. 새 묶음의 30일 카운트가 시작됩니다.</div>`;
+  if(bals.ping<=0){mTitle.textContent="재스테이킹";fail("지갑에 보유한 PINGRWA이 없습니다.");ov.classList.add("on");return;}
+  mTitle.textContent="보유 PINGRWA 재스테이킹";
+  mBody.innerHTML=`<div class="field"><label>재스테이킹 PINGRWA <b>보유 ${fmt(bals.ping)} PINGRWA</b></label><div class="amt"><input id="amt" type="number" value="${bals.ping||0}"><span class="cur">PINGRWA</span><button class="max" onclick="setMaxRestake()">MAX</button></div></div><div class="recv"><span>새 묶음으로 스테이킹</span><b><span id="recv">${fmt(bals.ping)}</span> PINGRWA</b></div><div class="note">보유 PINGRWA을 풀에 다시 잠급니다. 새 묶음의 30일 카운트가 시작됩니다.</div>`;
   mFoot.innerHTML=`<button class="btn pri" onclick="signRestake()">서명하고 재스테이킹</button>`;
   $("amt").oninput=window.syncRecv; ov.classList.add("on");
 };
 window.signRestake=async()=>{
-  const a=+$("amt").value||0; if(a<=0)return; if(a>bals.ping){fail("보유 채권이 부족합니다.");return;}
-  spinner("지갑 서명 요청 중…",`${fmt(a)} 채권 재스테이킹`);
-  try{const sig=await sendTx([...ataIdem(),restakeIx(a,member.referrer,member.trancheCount)]);done("재스테이킹 완료",`${fmt(a)} 채권을 새 묶음으로 스테이킹했습니다.`,sig);await refresh();}
+  const a=+$("amt").value||0; if(a<=0)return; if(a>bals.ping){fail("보유 PINGRWA이 부족합니다.");return;}
+  spinner("지갑 서명 요청 중…",`${fmt(a)} PINGRWA 재스테이킹`);
+  try{const sig=await sendTx([...ataIdem(),restakeIx(a,member.referrer,member.trancheCount)]);done("재스테이킹 완료",`${fmt(a)} PINGRWA을 새 묶음으로 스테이킹했습니다.`,sig);await refresh();}
   catch(e){console.error(e);fail(emsg(e));}
 };
 window.doClaimRef=async()=>{
@@ -352,6 +369,22 @@ window.doClaimRef=async()=>{
   spinner("지갑 서명 요청 중…","추천 보너스 청구에 서명해 주세요.");
   try{const sig=await sendTx([...ataIdem(),claimRefIx()]);done("청구 완료","추천 보너스가 지갑으로 지급되었습니다.",sig);await refresh();}
   catch(e){console.error(e);fail(emsg(e));}
+};
+window.openContract=async()=>{
+  mTitle.textContent="전자 투자계약서";
+  let head="";
+  if(user){
+    try{const r=await (await fetch('/api/members/'+user.toBase58())).json();
+      const m=r&&r.member;
+      if(m&&m.contract_signed_at){
+        head=`<div class="recv" style="margin-bottom:12px;background:rgba(43,214,123,.12);border-color:rgba(43,214,123,.4);color:var(--ok)"><span><i class="ti ti-circle-check"></i> 서명 완료</span><b style="font-size:13px">${m.contract_version||CONTRACT_VERSION} · ${m.contract_signed_at}</b></div>`;
+      }
+    }catch(e){}
+    head+=`<div class="note" style="text-align:left;margin-bottom:12px">투자자(갑): <b>${short(user.toBase58())}</b> · 운영사(을): <b>${short(PLATFORM_ADDR)}</b></div>`;
+  }
+  mBody.innerHTML=head+CONTRACT_HTML;
+  mFoot.innerHTML=`<button class="btn pri" onclick="closeOv()">확인</button>`;
+  ov.classList.add("on");
 };
 
 refresh();
